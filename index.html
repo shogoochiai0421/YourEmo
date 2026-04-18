@@ -40,8 +40,9 @@ body {
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
-.screen{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.35s ease}
 .screen.active{display:flex}
+.screen.visible{opacity:1}
 .big-em{font-size:10px;line-height:1;margin-bottom:10px;text-align:center}
 .big-img{width:250px;height:250px;object-fit:contain;margin-bottom:10px;display:block} /* スタート画面のイラスト */
 .ttl{font-size:35px;color:var(--color-text-secondary);text-align:center;line-height:1.2;margin-bottom:30px}
@@ -51,8 +52,10 @@ body {
 .pbar-wrap{width:100%;height:7px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden;flex-shrink:0}
 .pbar{height:100%;border-radius:99px;background:#D4537E;transition:width .35s}
 .q-em{font-size:44px;text-align:center;margin-bottom:6px;flex-shrink:0;min-height:52px} /* 選択画面の絵文字 */
-.q-img{width:52px;height:52px;object-fit:contain;margin:0 auto 6px;display:block;flex-shrink:0}
+.q-img{width:152px;height:152px;object-fit:contain;margin:0 auto 106px;display:block;flex-shrink:0}
 .q-text{font-size:17px;font-weight:500;color:var(--color-text-primary);text-align:center;line-height:1.5;margin-bottom:16px;flex-shrink:0}
+
+/* opt=オプションボタン系 */
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;flex-shrink:0}
 .opt{background:var(--color-background-secondary);border:1.5px solid var(--color-border-tertiary);border-radius:16px;padding:11px 8px;font-size:14px;cursor:pointer;color:var(--color-text-primary);display:flex;flex-direction:column;align-items:center;gap:5px;transition:background .12s,border-color .12s}
 .opt .oi{font-size:26px;line-height:1;min-height:30px;display:flex;align-items:center;justify-content:center}
@@ -84,9 +87,7 @@ body {
   
   <img class="big-img" id="startImg" src="" alt="">
 
-<p class="bordering02">テキストテキストテキスト</p>
- 
-  <div class="ttl">きもちチェック</div>
+  <div class="bordering02"class="ttl">きもちチェック</div>
 
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
   <button class="start-btn" onclick="startQ()">はじめる</button>
@@ -273,20 +274,45 @@ const MD={
     ]}
 };
 
+/* =============================================
+   結果画面のサイズ設定　← ここを変えてね！
+   ============================================= */
+const RS = {
+  imgSize:    80,   /* 結果トップの画像サイズ（px） */
+  ttlSize:    22,   /* きもちタイトルの文字サイズ（px） */
+  descSize:   14,   /* きもちの説明文の文字サイズ（px） */
+  centerImg:  60,   /* 中央カードの画像サイズ（px） */
+  centerTxt:  13,   /* 中央カードのラベル文字サイズ（px） */
+  bubbleW:   120,   /* バブルの横幅（px） */
+  bubbleTxt:  13,   /* バブルの文字サイズ（px） */
+};
+
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 let cur=0,ans={},busy=false;
 
+function fadeIn(el){
+  el.classList.add("active");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("visible")));
+}
+function fadeOut(el,cb){
+  el.classList.remove("visible");
+  setTimeout(()=>{el.classList.remove("active");if(cb)cb();},350);
+}
+
 window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.wink){si.src=IMG.wink;si.style.display="block";}else{si.style.display="none";}
+  /* 最初の画面をフェードイン */
+  const start=document.getElementById("startScreen");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>start.classList.add("visible")));
 });
 
 function startQ(){
-  document.getElementById("startScreen").classList.remove("active");
-  document.getElementById("quizScreen").classList.add("active");
-  cur=0;ans={};renderQ();
+  const from=document.getElementById("startScreen");
+  const to=document.getElementById("quizScreen");
+  fadeOut(from,()=>{cur=0;ans={};renderQ();fadeIn(to);});
 }
 
 function renderQ(){
@@ -329,34 +355,49 @@ function selectOpt(val,btn){
   ans[Qs[cur].id]=val;
   document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));
   btn.classList.add("sel");
-  setTimeout(()=>{cur++;if(cur>=Qs.length){showResult();}else{renderQ();}},320);
+  setTimeout(()=>{
+    cur++;
+    if(cur>=Qs.length){
+      const from=document.getElementById("quizScreen");
+      fadeOut(from,()=>showResult());
+    } else {
+      renderQ();
+    }
+  },320);
 }
 
 function showResult(){
-  document.getElementById("quizScreen").classList.remove("active");
-  document.getElementById("resultScreen").classList.add("active");
+  const to=document.getElementById("resultScreen");
   const mt=ans.mood||"neutral";
   const d=MD[mt]||MD.neutral;
 
   const resicon=document.getElementById("resicon");
   if(d.topImg && IMG[d.topImg]){
-    resicon.innerHTML=`<img class="res-img" src="${IMG[d.topImg]}" alt="">`;
+    resicon.innerHTML=`<img class="res-img" src="${IMG[d.topImg]}" alt="" style="width:${RS.imgSize}px;height:${RS.imgSize}px;object-fit:contain;margin:0 auto 3px;display:block">`;
   } else {
     resicon.innerHTML=`<div style="height:8px"></div>`;
   }
 
-  document.getElementById("rttl").textContent=pick(d.ttls);
-  document.getElementById("rdesc").textContent=pick(d.descs);
+  const rttl=document.getElementById("rttl");
+  rttl.textContent=pick(d.ttls);
+  rttl.style.fontSize=RS.ttlSize+"px";
+
+  const rdesc=document.getElementById("rdesc");
+  rdesc.textContent=pick(d.descs);
+  rdesc.style.fontSize=RS.descSize+"px";
 
   const cce=document.getElementById("cce");
   if(d.ce_ikey && IMG[d.ce_ikey]){
-    cce.innerHTML=`<img src="${IMG[d.ce_ikey]}" width="36" height="36" style="object-fit:contain">`;
+    cce.innerHTML=`<img src="${IMG[d.ce_ikey]}" width="${RS.centerImg}" height="${RS.centerImg}" style="object-fit:contain">`;
   } else {
     cce.innerHTML="";
   }
-  document.getElementById("cct").textContent=d.ct;
+  const cct=document.getElementById("cct");
+  cct.textContent=d.ct;
+  cct.style.fontSize=RS.centerTxt+"px";
 
   const chosen=shuffle(d.bubbles).slice(0,10);
+  fadeIn(to);
   setTimeout(()=>placeBubbles(chosen),80);
 }
 
@@ -372,18 +413,19 @@ function placeBubbles(list){
     const angle=(2*Math.PI/n)*i-Math.PI/2;
     const bx=cx+rW*Math.cos(angle);
     const by=cy+rH*Math.sin(angle);
-    const bw=110;
+    const bw=RS.bubbleW;
     const el=document.createElement("div");
     el.className="bubble";
     el.textContent=item.t;
-    el.style.cssText=`left:${(bx-bw/2).toFixed(0)}px;top:${(by-26).toFixed(0)}px;width:${bw}px;background:${item.c};color:${item.tc};`;
+    el.style.cssText=`left:${(bx-bw/2).toFixed(0)}px;top:${(by-26).toFixed(0)}px;width:${bw}px;background:${item.c};color:${item.tc};font-size:${RS.bubbleTxt}px;`;
     scene.appendChild(el);
   });
 }
 
 function restart(){
-  document.getElementById("resultScreen").classList.remove("active");
+  const from=document.getElementById("resultScreen");
+  const to=document.getElementById("startScreen");
+  fadeOut(from,()=>fadeIn(to));
   cur=0;ans={};
-  document.getElementById("startScreen").classList.add("active");
 }
 </script>
