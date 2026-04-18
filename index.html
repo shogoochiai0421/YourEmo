@@ -3,6 +3,7 @@
   
 /* M PLUS Rounded 1c の 400(通常) と 700(太字) を指定して読み込む */
   @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0}
 #app {
@@ -17,14 +18,35 @@
   min-height: 620px;
   display: flex;
   flex-direction: column;
+  color: #53433a;
 }
+
+body {
+    /* 色の名前で指定 */
+    background-color: rgb(255, 249, 243);
+    
+    /* またはカラーコード（#RRGGBB）で指定 */
+    /* background-color: #f0f0f0; */
+  }
+
+.footer-text {
+  position: absolute; /* 親要素(#app)を基準に自由に配置 */
+  bottom: 20px;       /* 下から10pxの位置 */
+  left: 30px;         /* 左から15pxの位置 */
+  font-size: 18px;    /* 文字の大きさ（お好みで） */
+  color: #7e7d81;
+  z-index: 100;       /* 他の要素より手前に表示 */
+  pointer-events: none; /* 文章がボタンに重なってもクリックを邪魔しない設定 */
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+
 .screen{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 .screen.active{display:flex}
 .big-em{font-size:10px;line-height:1;margin-bottom:10px;text-align:center}
 .big-img{width:250px;height:250px;object-fit:contain;margin-bottom:10px;display:block} /* スタート画面のイラスト */
 .ttl{font-size:35px;color:var(--color-text-secondary);text-align:center;line-height:1.2;margin-bottom:30px}
 .sub{font-size:25px;color:var(--color-text-secondary);text-align:center;line-height:1.2;margin-bottom:30px}
-.start-btn{background:#D4537E;color:#fff;border:none;border-radius:99px;padding:13px 40px;font-size:17px;font-weight:500;cursor:pointer}
+.start-btn{background:#ffdf4e;color:#fff;border:none;border-radius:99px;padding:13px 40px;font-size:17px;font-weight:500;cursor:pointer}
 .start-btn:active{transform:scale(0.96)}
 .pbar-wrap{width:100%;height:7px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden;flex-shrink:0}
 .pbar{height:100%;border-radius:99px;background:#D4537E;transition:width .35s}
@@ -36,7 +58,7 @@
 .opt .oi{font-size:26px;line-height:1;min-height:30px;display:flex;align-items:center;justify-content:center}
 .opt .oi img{width:130px;height:130px;object-fit:contain} /* 選択肢上のイラスト */
 .opt:hover{background:#FBEAF0;border-color:#ED93B1}
-.opt.sel{background:#FBEAF0;border-color:#D4537E;color:#72243E}
+.opt.sel{background:#FBEAF0;border-color:#ffeba8;color:#72243E}
 .opt:active{transform:scale(0.95)}
 #resultScreen{padding:0;justify-content:flex-start}
 .res-top{text-align:center;padding:14px 16px 8px;flex-shrink:0;width:100%}
@@ -53,10 +75,17 @@
 .retry-btn{flex-shrink:0;margin:0 0 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:99px;padding:8px 22px;font-size:13px;color:var(--color-text-secondary);cursor:pointer}
 </style>
 
+
+
 <div id="app">
 <div id="startScreen" class="screen active">
+
+  <div class="footer-text">開発 横浜保育教育専門学校 にじいろゼミ</div>
+  
   <img class="big-img" id="startImg" src="" alt="">
 
+<p class="bordering02">テキストテキストテキスト</p>
+ 
   <div class="ttl">きもちチェック</div>
 
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
