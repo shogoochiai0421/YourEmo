@@ -1,0 +1,268 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{width:100%;height:660px;display:flex;flex-direction:column;overflow:hidden;position:relative;font-family:var(--font-sans,sans-serif)}
+.screen{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+
+.big-em{font-size:60px;line-height:1;margin-bottom:10px;text-align:center}
+.ttl{font-size:21px;font-weight:500;color:var(--color-text-primary);text-align:center;margin-bottom:8px}
+.sub{font-size:14px;color:var(--color-text-secondary);text-align:center;line-height:1.7;margin-bottom:24px}
+.start-btn{background:#D4537E;color:#fff;border:none;border-radius:99px;padding:13px 40px;font-size:17px;font-weight:500;cursor:pointer}
+.start-btn:active{transform:scale(0.96)}
+
+.pbar-wrap{width:100%;height:7px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden;flex-shrink:0}
+.pbar{height:100%;border-radius:99px;background:#D4537E;transition:width .35s}
+.q-em{font-size:44px;text-align:center;margin-bottom:6px;flex-shrink:0}
+.q-text{font-size:17px;font-weight:500;color:var(--color-text-primary);text-align:center;line-height:1.5;margin-bottom:16px;flex-shrink:0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;flex-shrink:0}
+.opt{background:var(--color-background-secondary);border:1.5px solid var(--color-border-tertiary);border-radius:16px;padding:11px 8px;font-size:14px;cursor:pointer;color:var(--color-text-primary);display:flex;flex-direction:column;align-items:center;gap:5px;transition:background .12s,border-color .12s}
+.opt .oi{font-size:26px;line-height:1}
+.opt:hover{background:#FBEAF0;border-color:#ED93B1}
+.opt.sel{background:#FBEAF0;border-color:#D4537E;color:#72243E}
+.opt:active{transform:scale(0.95)}
+.next-btn{margin-top:14px;background:#D4537E;color:#fff;border:none;border-radius:99px;padding:11px 30px;font-size:15px;font-weight:500;cursor:pointer;opacity:.3;pointer-events:none;transition:opacity .2s;flex-shrink:0}
+.next-btn.on{opacity:1;pointer-events:all}
+.next-btn.on:active{transform:scale(0.96)}
+
+#resultScreen{padding:0;justify-content:flex-start}
+.res-top{text-align:center;padding:14px 16px 10px;flex-shrink:0;width:100%}
+.res-em{font-size:40px;line-height:1;margin-bottom:4px}
+.res-ttl{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.res-desc{font-size:13px;color:var(--color-text-secondary);margin-top:5px;line-height:1.6}
+
+.bubble-scene{position:relative;width:100%;flex:1;min-height:0}
+.center-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:24px;padding:14px 18px;text-align:center;width:120px;z-index:10}
+.center-card .ce{font-size:32px;line-height:1;margin-bottom:5px}
+.center-card .ct{font-size:12px;font-weight:500;color:var(--color-text-secondary);line-height:1.4}
+
+.bubble{position:absolute;border-radius:99px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;font-weight:500;line-height:1.4;padding:9px 14px;animation:bfloat linear infinite}
+@keyframes bfloat{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(var(--dx1),var(--dy1))}
+  50%{transform:translate(var(--dx2),var(--dy2))}
+  75%{transform:translate(var(--dx1),var(--dy2))}
+  100%{transform:translate(0,0)}
+}
+
+.retry-btn{flex-shrink:0;margin:0 0 12px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:99px;padding:9px 24px;font-size:13px;color:var(--color-text-secondary);cursor:pointer}
+</style>
+
+<div id="app">
+
+<div id="startScreen" class="screen active">
+  <div class="big-em">🌈</div>
+  <div class="ttl">きもちチェック</div>
+  <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
+  <button class="start-btn" onclick="startQ()">はじめる</button>
+</div>
+
+<div id="quizScreen" class="screen">
+  <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:0%"></div></div>
+  <div class="q-em" id="qem"></div>
+  <div class="q-text" id="qtext"></div>
+  <div class="opts" id="opts"></div>
+  <button class="next-btn" id="nbtn" onclick="nextQ()">つぎへ →</button>
+</div>
+
+<div id="resultScreen" class="screen">
+  <div class="res-top">
+    <div class="res-em" id="rem"></div>
+    <div class="res-ttl" id="rttl"></div>
+    <div class="res-desc" id="rdesc"></div>
+  </div>
+  <div class="bubble-scene" id="bscene">
+    <div class="center-card" id="ccard">
+      <div class="ce" id="cce"></div>
+      <div class="ct" id="cct"></div>
+    </div>
+  </div>
+  <button class="retry-btn" onclick="restart()">もう一どやる</button>
+</div>
+
+</div>
+
+<script>
+const Qs=[
+  {id:"mood",text:"いまのきもちはどれかな？",em:"🎭",opts:[
+    {i:"😄",l:"たのしい",v:"happy"},
+    {i:"😢",l:"かなしい",v:"sad"},
+    {i:"😠",l:"もやもやする",v:"angry"},
+    {i:"😨",l:"なんかこわい",v:"anxious"}
+  ]},
+  {id:"energy",text:"からだにげんきはあるかな？",em:"💪",opts:[
+    {i:"🔥",l:"げんきいっぱい",v:"high"},
+    {i:"😐",l:"ふつうかな",v:"mid"},
+    {i:"😴",l:"つかれたな",v:"low"},
+    {i:"🤒",l:"ぐったり…",v:"verylow"}
+  ]},
+  {id:"social",text:"だれかといたいきもちはある？",em:"👫",opts:[
+    {i:"🤗",l:"いっしょにいたい",v:"social"},
+    {i:"🙂",l:"どちらでも",v:"neutral"},
+    {i:"🏠",l:"ひとりがいいな",v:"alone"},
+    {i:"😶",l:"わからない",v:"unsure"}
+  ]},
+  {id:"body",text:"からだはどんなかんじ？",em:"🫀",opts:[
+    {i:"💓",l:"ドキドキしてる",v:"heart"},
+    {i:"😮‍💨",l:"いきぐるしい",v:"breath"},
+    {i:"🤢",l:"おなかがいたい",v:"stomach"},
+    {i:"😌",l:"だいじょうぶ",v:"fine"}
+  ]},
+  {id:"wish",text:"いましたいことは？",em:"💫",opts:[
+    {i:"😴",l:"ねむりたい",v:"sleep"},
+    {i:"🎮",l:"あそびたい",v:"play"},
+    {i:"🤝",l:"はなしたい",v:"talk"},
+    {i:"😶",l:"なにもしたくない",v:"nothing"}
+  ]}
+];
+
+const MD={
+  angry:{em:"💨",ttl:"もやもやしてるんだね",desc:"なにかうまくいかなくて、むかーっとしちゃうこと、だれにでもあるよ。そのエネルギーをそとにだしてあげよう！",ce:"😤",ct:"もやもや",
+    bubbles:[
+      {t:"トイレでゆっくり\nいきをはいてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"かみをビリビリ\nやぶいてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"そとでジャンプ\nしてみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"まくらに\nさけんでみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"つめたいみずを\nのんでみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"すきなうたを\nきいてみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"きもちをえに\nかいてみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"100まで\nかぞえてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"しばらく\nひとりでいてみる",c:"#FAECE7",tc:"#712B13"},
+      {t:"しんらいできるひとに\nはなしてみる",c:"#FBEAF0",tc:"#72243E"}
+    ]},
+  sad:{em:"💧",ttl:"かなしいきもちなんだね",desc:"なみだがでそうなくらいかなしいこと、あるよね。そのきもちはそのままでいいよ。ゆっくりしてね。",ce:"😢",ct:"かなしい",
+    bubbles:[
+      {t:"おもいっきり\nないてみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"ぬいぐるみを\nだっこしてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"あたたかい\nのみものをのんでみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"すきなうたを\nきいてみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"そとのそらを\nみてみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"すきなどうがを\nみてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"きもちをノートに\nかいてみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"おふろに\nゆっくりはいってみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"だれかに\nそばにいてもらう",c:"#FBEAF0",tc:"#72243E"},
+      {t:"しんらいできるひとに\nはなしてみる",c:"#FAECE7",tc:"#712B13"}
+    ]},
+  anxious:{em:"💭",ttl:"なんかドキドキしてるんだね",desc:"しんぱいなことやこわいことがあると、からだもどきどきしちゃうよね。ひとつずつ、ゆっくりいこうね。",ce:"😨",ct:"しんぱい",
+    bubbles:[
+      {t:"4びょうすって\n8びょうはいてみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"みえるものを\n5つさがしてみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"あしのうらを\nかんじてみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"しんぱいをノートに\nかいてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"つめたいみずを\nのんでみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"ふわふわしたものを\nさわってみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"すきなばしょに\nこもってみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"だいじょうぶって\nつぶやいてみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"きょうはゆっくり\nやすんでみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"しんらいできるひとに\nはなしてみる",c:"#FAECE7",tc:"#712B13"}
+    ]},
+  happy:{em:"✨",ttl:"たのしいきもちなんだね！",desc:"わあ、うれしいな！そのきもち、だいじにしてね。たのしいエネルギーをいっぱいつかってみよう！",ce:"😄",ct:"たのしい",
+    bubbles:[
+      {t:"きょうのことを\nにっきにかいてみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"ありがとうを\nつたえてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"すきなことに\nちょうせんしてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"おもいっきり\nわらってみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"そとをおさんぽ\nしてみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"ともだちを\nさそってみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"えや工作を\nしてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"すきなうたを\nうたってみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"ゆっくり\nやすんでみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"こうふんしたら\nふかいきしてみる",c:"#EEEDFE",tc:"#3C3489"}
+    ]},
+  neutral:{em:"🌿",ttl:"なんとなくそんなきもちなんだね",desc:"おおきなきもちはないけど、なんとなくぼんやりしてたり、つかれてたりするのかもね。ゆっくりしてていいよ。",ce:"😌",ct:"ふつう",
+    bubbles:[
+      {t:"ゆっくり\nふかいきしてみる",c:"#E1F5EE",tc:"#085041"},
+      {t:"すきなものを\nながめてみる",c:"#FBEAF0",tc:"#72243E"},
+      {t:"からだを\nのばしてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"みずをのんで\nリセットしてみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"5ぷんだけ\nそとをあるいてみる",c:"#EAF3DE",tc:"#27500A"},
+      {t:"すきなどうがを\nみてみる",c:"#FAEEDA",tc:"#633806"},
+      {t:"へやをすこし\nかたづけてみる",c:"#FAECE7",tc:"#712B13"},
+      {t:"きょうのことを\nにっきにかいてみる",c:"#EEEDFE",tc:"#3C3489"},
+      {t:"おふろで\nあたたまってみる",c:"#E6F1FB",tc:"#0C447C"},
+      {t:"はやめに\nねてみる",c:"#E1F5EE",tc:"#085041"}
+    ]}
+};
+
+let cur=0,ans={};
+
+function startQ(){
+  document.getElementById("startScreen").classList.remove("active");
+  document.getElementById("quizScreen").classList.add("active");
+  cur=0;ans={};renderQ();
+}
+
+function renderQ(){
+  const q=Qs[cur];
+  document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
+  document.getElementById("qem").textContent=q.em;
+  document.getElementById("qtext").textContent=q.text;
+  const g=document.getElementById("opts");
+  g.innerHTML="";
+  q.opts.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    b.innerHTML='<span class="oi">'+o.i+'</span><span>'+o.l+'</span>';
+    b.onclick=()=>{ans[q.id]=o.v;g.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");document.getElementById("nbtn").classList.add("on");};
+    g.appendChild(b);
+  });
+  document.getElementById("nbtn").classList.remove("on");
+}
+
+function nextQ(){
+  if(!ans[Qs[cur].id])return;
+  cur++;
+  if(cur>=Qs.length){showResult();}else{renderQ();}
+}
+
+function showResult(){
+  document.getElementById("pbar").style.width="100%";
+  document.getElementById("quizScreen").classList.remove("active");
+  document.getElementById("resultScreen").classList.add("active");
+  const mt=ans.mood||"neutral";
+  const d=MD[mt]||MD.neutral;
+  document.getElementById("rem").textContent=d.em;
+  document.getElementById("rttl").textContent=d.ttl;
+  document.getElementById("rdesc").textContent=d.desc;
+  document.getElementById("cce").textContent=d.ce;
+  document.getElementById("cct").textContent=d.ct;
+  setTimeout(()=>placeBubbles(d.bubbles),80);
+}
+
+function placeBubbles(list){
+  const scene=document.getElementById("bscene");
+  scene.querySelectorAll(".bubble").forEach(b=>b.remove());
+  const W=scene.offsetWidth||360;
+  const H=scene.offsetHeight||340;
+  const cx=W/2, cy=H/2;
+  const n=list.length;
+  const rBase=Math.min(W,H)*0.39;
+
+  list.forEach((item,i)=>{
+    const angle=(2*Math.PI/n)*i - Math.PI/2;
+    const wobble=1+(i%2===0?0.08:-0.08);
+    const r=rBase*wobble;
+    const bx=cx+r*Math.cos(angle);
+    const by=cy+r*Math.sin(angle);
+    const bw=100;
+
+    const d=document.createElement("div");
+    d.className="bubble";
+    d.textContent=item.t;
+    const dur=(4+Math.random()*2.5).toFixed(1)+"s";
+    const mx=7, my=10;
+    const dx1=((-mx+Math.random()*mx*2)).toFixed(1)+"px";
+    const dy1=((-my+Math.random()*my*2)).toFixed(1)+"px";
+    const dx2=((-mx+Math.random()*mx*2)).toFixed(1)+"px";
+    const dy2=((-my+Math.random()*my*2)).toFixed(1)+"px";
+    d.style.cssText=`left:${(bx-bw/2).toFixed(0)}px;top:${(by-28).toFixed(0)}px;width:${bw}px;background:${item.c};color:${item.tc};animation-duration:${dur};animation-delay:-${(Math.random()*3).toFixed(1)}s;--dx1:${dx1};--dy1:${dy1};--dx2:${dx2};--dy2:${dy2};`;
+    scene.appendChild(d);
+  });
+}
+
+function restart(){
+  document.getElementById("resultScreen").classList.remove("active");
+  cur=0;ans={};
+  document.getElementById("startScreen").classList.add("active");
+}
+</script>
