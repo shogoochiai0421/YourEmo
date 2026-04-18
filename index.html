@@ -1,24 +1,40 @@
 
 <style>
+  
+/* M PLUS Rounded 1c の 400(通常) と 700(太字) を指定して読み込む */
+  @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+
 *{box-sizing:border-box;margin:0;padding:0}
-#app{width:100%;height:620px;display:flex;flex-direction:column;overflow:hidden;position:relative;font-family:var(--font-sans,sans-serif)}
+#app {
+  /* フォントを指定 */
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  
+  /* 太さを指定（700が一般的な太字です） */
+  font-weight: 700; 
+  
+  width: 100%;
+  height: 100vh;
+  min-height: 620px;
+  display: flex;
+  flex-direction: column;
+}
 .screen{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 .screen.active{display:flex}
-.big-em{font-size:60px;line-height:1;margin-bottom:10px;text-align:center}
-.big-img{width:72px;height:72px;object-fit:contain;margin-bottom:10px;display:block}
-.ttl{font-size:21px;font-weight:500;color:var(--color-text-primary);text-align:center;margin-bottom:8px}
-.sub{font-size:14px;color:var(--color-text-secondary);text-align:center;line-height:1.7;margin-bottom:24px}
+.big-em{font-size:10px;line-height:1;margin-bottom:10px;text-align:center}
+.big-img{width:250px;height:250px;object-fit:contain;margin-bottom:10px;display:block} /* スタート画面のイラスト */
+.ttl{font-size:35px;color:var(--color-text-secondary);text-align:center;line-height:1.2;margin-bottom:30px}
+.sub{font-size:25px;color:var(--color-text-secondary);text-align:center;line-height:1.2;margin-bottom:30px}
 .start-btn{background:#D4537E;color:#fff;border:none;border-radius:99px;padding:13px 40px;font-size:17px;font-weight:500;cursor:pointer}
 .start-btn:active{transform:scale(0.96)}
 .pbar-wrap{width:100%;height:7px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden;flex-shrink:0}
 .pbar{height:100%;border-radius:99px;background:#D4537E;transition:width .35s}
-.q-em{font-size:44px;text-align:center;margin-bottom:6px;flex-shrink:0;min-height:52px}
+.q-em{font-size:44px;text-align:center;margin-bottom:6px;flex-shrink:0;min-height:52px} /* 選択画面の絵文字 */
 .q-img{width:52px;height:52px;object-fit:contain;margin:0 auto 6px;display:block;flex-shrink:0}
 .q-text{font-size:17px;font-weight:500;color:var(--color-text-primary);text-align:center;line-height:1.5;margin-bottom:16px;flex-shrink:0}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;flex-shrink:0}
 .opt{background:var(--color-background-secondary);border:1.5px solid var(--color-border-tertiary);border-radius:16px;padding:11px 8px;font-size:14px;cursor:pointer;color:var(--color-text-primary);display:flex;flex-direction:column;align-items:center;gap:5px;transition:background .12s,border-color .12s}
 .opt .oi{font-size:26px;line-height:1;min-height:30px;display:flex;align-items:center;justify-content:center}
-.opt .oi img{width:30px;height:30px;object-fit:contain}
+.opt .oi img{width:130px;height:130px;object-fit:contain} /* 選択肢上のイラスト */
 .opt:hover{background:#FBEAF0;border-color:#ED93B1}
 .opt.sel{background:#FBEAF0;border-color:#D4537E;color:#72243E}
 .opt:active{transform:scale(0.95)}
@@ -40,7 +56,9 @@
 <div id="app">
 <div id="startScreen" class="screen active">
   <img class="big-img" id="startImg" src="" alt="">
+
   <div class="ttl">きもちチェック</div>
+
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
   <button class="start-btn" onclick="startQ()">はじめる</button>
 </div>
