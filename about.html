@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>きもちチェックについて</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background: #ffffff;
+      color: #493c34;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      border-bottom: 1px solid #e8e0d8;
+      padding: 18px 0;
+    }
+    .header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-name {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #53433a;
+      text-decoration: none;
+    }
+    nav a {
+      font-size: 14px;
+      color: #9e8e86;
+      text-decoration: none;
+      margin-left: 20px;
+    }
+    nav a:hover { color: #53433a; }
+
+    /* ── 本文エリア ── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    /* ── 各セクション ── */
+    .section { margin-bottom: 80px; }
+
+    h1 {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .lead {
+      font-size: 15px;
+      color: #9e8e86;
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid #e8e0d8;
+    }
+
+    h2 {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    p { margin-bottom: 16px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── 区切り線 ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #e8e0d8;
+      margin: 5px 0;
+    }
+
+    /* ── 仕組み説明ボックス ── */
+    .flow-box {
+      background: #fff;
+      border: 1px solid #e8e0d8;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 20px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .flow-step:last-child { margin-bottom: 0; }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: #ffce65;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .step-body { flex: 1; }
+    .step-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .step-desc { font-size: 14px; color: #7e6e66; line-height: 1.7; }
+
+    /* ── タグ説明テーブル ── */
+    .tag-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .tag-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: #f5ede6;
+      font-weight: 700;
+      border-bottom: 1px solid #e8e0d8;
+    }
+    .tag-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0e8e0;
+      color: #7e6e66;
+      vertical-align: top;
+    }
+    .tag-table tr:last-child td { border-bottom: none; }
+
+    /* ── カラーバッジ ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 2px 3px 2px 0;
+    }
+    .badge-pink   { background: #FBEAF0; color: #72243E; }
+    .badge-green  { background: #E1F5EE; color: #085041; }
+    .badge-yellow { background: #FAEEDA; color: #633806; }
+    .badge-blue   { background: #E6F1FB; color: #0C447C; }
+    .badge-lime   { background: #EAF3DE; color: #27500A; }
+    .badge-purple { background: #EEEDFE; color: #3C3489; }
+
+    /* ── スコアの視覚化 ── */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .score-card {
+      background: #fff;
+      border: 1px solid #e8e0d8;
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .score-pt {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffce65;
+    }
+    .score-label { font-size: 12px; color: #9e8e86; margin-top: 2px; }
+    .score-weight { font-size: 13px; font-weight: 700; color: #53433a; margin-top: 4px; }
+
+    /* ── メンバー ── */
+    .member-list {
+      list-style: none;
+      margin-top: 16px;
+    }
+    .member-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #f0e8e0;
+      font-size: 15px;
+    }
+    .member-list li:last-child { border-bottom: none; }
+    .member-role {
+      font-size: 13px;
+      color: #9e8e86;
+      margin-left: 8px;
+    }
+
+    /* ── リンクボタン ── */
+    .btn {
+      display: inline-block;
+      background: #ffce65;
+      color: #fff;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px 36px;
+      border-radius: 99px;
+      text-decoration: none;
+      margin-top: 20px;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #e8e0d8;
+      color: #7e6e66;
+      font-size: 14px;
+      padding: 10px 24px;
+      margin-top: 12px;
+    }
+
+    /* ── フッター ── */
+    footer {
+      border-top: 1px solid #e8e0d8;
+      padding: 28px 0;
+      text-align: center;
+      font-size: 13px;
+      color: #b0a098;
+      font-family: 'Zen Maru Gothic', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a class="site-name" href="index.html">🌈 きもちチェック</a>
+      <nav>
+        <a href="index.html">サービスへ戻る</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- タイトル -->
+    <div class="section">
+      <h1>きもちチェックについて</h1>
+      <p class="lead">
+
+      <p>「きもちチェック」は、子どもたちが自分のきもちをことばに見つけて、気持ちが楽になるヒントを試してみるきっかけを作るためのサービスです。学童保育や幼稚園・保育園、療育の現場で気軽に使えることを目指して制作に取り組みました。
+        <br>本サービスは完全非営利であり、課金の必要や広告の表示は一切ありません。
+        <br><br>※本サービスは開発途中です。予告なく機能が変更されたりサービスが終了したり、する可能性があります。</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- つかいかた -->
+    <div class="section">
+      <h2 style="margin-top:32px; font-size:30px;">使い方</h2>
+      <p>5つのしつもんに答えると、今のきもちにあった「とっこうやく（特効薬）」が10個提示されます。難しい操作はありません。</p>
+
+      <div class="flow-box">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">「はじめる」をおす</div>
+            <div class="step-desc">トップ画面のボタンをタップしてスタートします。</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">5つのしつもんにこたえる</div>
+            <div class="step-desc">きもち・からだのげんき・だれかといたいか・からだのかんじ・いましたいこと、の順に選ぶだけ。</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">とくこうやくをみる</div>
+            <div class="step-desc">今のきもちの分析と、それにぴったりな10個のヒントが画面に表示されます。気になるものを子どもと一緒にみつけて、やってみましょう。</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">もういちどやる</div>
+            <div class="step-desc">ボタンを押すとスタート画面に戻ります。同じ回答をしても、毎回違う特効薬を見ることができます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+        <!-- ゼミについて -->
+    <div class="section">
+      <h2 style="margin-top:32px; font-size:30px;">私たちのゼミについて</h2>
+<p>本サイトは<a href="https://hoiku.iwasaki.ac.jp/" target="_blank" style="color:#828af3;">横浜保育教育専門学校</a> にじいろゼミが制作しました。<br>にじいろゼミでは日々、発達多様性や療育についての研究活動を行っています。
+    </div>
+    <img src="https://hoiku.iwasaki.ac.jp/wp-content/uploads/2024/03/access_fl08.jpg" alt="校舎" style="width:100%; max-width:500px; border-radius:12px;">
+    <hr class="divider">
+
+    <!-- しくみ -->
+    <div class="section">
+      <h2 style="margin-top:32px; font-size:30px;">内部の仕組み</h2>
+      <p>このアプリはHTMLとJavaScriptだけで動いており、サーバーへの通信は一切行いません。回答データは外部に送信されず、ブラウザ上だけで処理されます。</p>
+
+      <h2 style="margin-top:32px; font-size:17px;">"特効薬"の選ばれかた</h2>
+      <p>約100個の特効薬には、それぞれ5つの質問に対応した「タグ」が設定されています。5つの回答と各特効薬のタグを照合してスコアを計算し、スコアが高いものほど選ばれやすい「重み付きランダム選択」で10個を決定します。</p>
+
+      <table class="tag-table">
+        <thead>
+          <tr><th>しつもん</th><th>タグの例</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>いまのきもち</td><td>happy / sad / angry / anxious / any</td></tr>
+          <tr><td>からだのげんき</td><td>high / mid / low / verylow / any</td></tr>
+          <tr><td>だれかといたいか</td><td>social / alone / neutral / any</td></tr>
+          <tr><td>からだのかんじ</td><td>heart / breath / stomach / fine / any</td></tr>
+          <tr><td>いましたいこと</td><td>sleep / play / talk / nothing / any</td></tr>
+        </tbody>
+      </table>
+
+      <div class="score-grid" style="margin-top: 24px;">
+        <div class="score-card"><div class="score-pt">5点</div><div class="score-label">全タグ一致</div><div class="score-weight">重み ×32</div></div>
+        <div class="score-card"><div class="score-pt">4点</div><div class="score-label">4つ一致</div><div class="score-weight">重み ×16</div></div>
+        <div class="score-card"><div class="score-pt">3点</div><div class="score-label">3つ一致</div><div class="score-weight">重み ×8</div></div>
+        <div class="score-card"><div class="score-pt">2点</div><div class="score-label">2つ一致</div><div class="score-weight">重み ×4</div></div>
+        <div class="score-card"><div class="score-pt">1点</div><div class="score-label">1つ一致</div><div class="score-weight">重み ×2</div></div>
+        <div class="score-card"><div class="score-pt">0点</div><div class="score-label">一致なし</div><div class="score-weight">重み ×1</div></div>
+      </div>
+
+      <h2 style="margin-top:32px; font-size:17px;">特効薬のジャンル（色）</h2>
+      <p>特効薬はジャンルによって色分けされています。</p>
+      <p>
+        <span class="badge badge-pink">発散</span>
+        <span class="badge badge-green">落ち着き</span>
+        <span class="badge badge-yellow">気分転換</span>
+        <span class="badge badge-blue">人とつながる</span>
+        <span class="badge badge-lime">からだ</span>
+        <span class="badge badge-purple">表現</span>
+      </p>
+      <h2 style="margin-top:32px; font-size:17px;">子ども達に投げかけられた各質問の結果を総合的に処理して、今の気持ちに会う特効薬が選定されているのです。</h2>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 開発者・制作について -->
+    <div class="section">
+      <h2 style="margin-top:32px; font-size:30px;">開発について</h2>
+      <p>本サイトは横浜保育教育専門学校 にじいろゼミが制作しました。ゼミでは、発達多様性や療育についての研究活動を行っています。</p>
+
+      <ul class="member-list">
+        <li>あきこちゃん (ゼミ担当教員)<span class="member-role">企画・監修</span></li>
+        <li>しょー<span class="member-role">デザイン</span></li>
+        <li>しょー<span class="member-role">開発</span></li>
+      </ul>
+    </div>
+
+    <hr class="divider">
+
+    <!-- フィードバック -->
+    <div class="section">
+      <h2 style="margin-top:32px; font-size:30px;">フィードバック・お問い合わせ</h2>
+      <p>アプリの不具合や改善のご提案は、以下のフォームからお知らせください。いただいたご意見は今後の改善に活用させていただきます。</p>
+      <a class="btn" href="https://docs.google.com/forms/..." target="_blank">報告・ご意見フォーム</a>
+    </div>
+
+    <hr class="divider">
+
+    <!-- アプリへ戻る -->
+    <div class="section" style="text-align:center;">
+      <a class="btn" href="index.html">アプリをつかう</a><br>
+      <a class="btn btn-outline" href="index.html">← トップへ戻る</a>
+    </div>
+
+  </main>
+
+  <footer>
+    横浜保育教育専門学校 にじいろゼミ
+  </footer>
+
+</body>
+</html>
