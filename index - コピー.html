@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>きもちチェック</title>
-</head>
-<body>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
 
+/* ==============================================
+   ★ まとめて設定できるところ ★
+   ここの数字を変えると見た目が変わるよ！
+   ============================================== */
 :root {
   /* ── フェード ── */
   --fade-ms:      500;   /* 画面切り替えのフェード時間（ミリ秒） */
@@ -140,41 +136,6 @@ html, body {
 .bubble { position:absolute; width:var(--bubble-w); border-radius:99px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:15px 20px; opacity:0; transition:opacity 3.5s ease; }
 
 .retry-btn { flex-shrink:0; margin:0 0 30px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
-
-/* ── スマホ向け調整 (max-width: 480px) ── */
-@media (max-width: 480px) {
-  #startScreen { padding-top: 60px; }
-  .big-img     { width: 180px; height: 180px; }
-  .ttl         { font-size: 26px; margin-bottom: 16px; }
-  .sub         { font-size: 18px; margin-bottom: 20px; }
-  .start-btn   { font-size: 22px; padding: 20px 36px; }
-  .footer-text { font-size: 8px; bottom: 12px; left: 16px; }
-  .header-text { font-size: 13px; bottom: 12px; right: 16px; }
-
-  #quizScreen  { padding-top: 36px; }
-  .q-text      { font-size: 24px; margin-bottom: 10px; }
-  .opts        { gap: 10px; max-width: 100%; }
-  .opt         { padding: 8px 12px; font-size: 15px; }
-  .opt .oi img { width: 90px; height: 90px; }
-  .back-btn    { font-size: 15px; }
-
-  #resultScreen { padding-top: 16px; }
-  .res-ttl      { font-size: 20px; }
-  .res-desc     { font-size: 10px; }
-  .center-card .ct { font-size: 15px; }
-  .sub-tags { font-size: 10px; }
-  :root {
-    --center-img-size: 90px;
-    --center-txt-size: 18px;
-    --bubble-w:        130px;
-    --bubble-txt:      13px;
-
-    --bubble-rw: 0.35;     /* 横方向の半径（画面幅に対する割合） */
-    --bubble-rh: 0.34;     /* 縦方向の半径（バブルエリア高さに対する割合） */
-  }
-
-  .retry-btn { font-size: 13px; margin-bottom: 16px; }
-}
 </style>
 
 <div id="app">
@@ -248,13 +209,13 @@ const Qs=[
     {i:"😄",ikey:"smile",  l:"たのしい",    v:"happy"},
     {i:"😢",ikey:"cry",    l:"かなしい",    v:"sad"},
     {i:"😠",ikey:"mad",    l:"もやもやする",v:"angry"},
-    {i:"😨",ikey:"fear",   l:"なんだかこわい",v:"anxious"}
+    {i:"😨",ikey:"fear",   l:"なんかこわい",v:"anxious"}
   ]},
   {id:"energy",text:"からだにげんきはあるかな？",opts:[
     {i:"🔥",ikey:"enjoy",         l:"げんきいっぱい",v:"high"},
-    {i:"😴",ikey:"tired",         l:"つかれたな",   v:"low"},
-    {i:"🤒",ikey:"notfeelingwell",l:"ぐったり…",   v:"verylow"},
     {i:"😐",ikey:"expressionless",l:"ふつうかな",   v:"mid"},
+    {i:"😴",ikey:"tired",         l:"つかれたな",   v:"low"},
+    {i:"🤒",ikey:"notfeelingwell",l:"ぐったり…",   v:"verylow"}
   ]},
   {id:"social",text:"だれかといたいきもちはある？",opts:[
     {i:"🤗",ikey:"playwith",     l:"いっしょにいたい",v:"social"},
@@ -497,20 +458,11 @@ function placeBubbles(list){
   });
 }
 
-/* もう一どやるボタンを押したとき：結果画面をリセットしてスタート画面へ戻る */
+/* もう一どやるボタンを押したとき：結果画面をフェードアウトしてスタート画面へ戻る */
 function restart(){
-  /* バブル・テキスト・サブタグを即座にリセット */
-  document.getElementById("bscene").querySelectorAll(".bubble").forEach(b=>b.remove());
-  document.getElementById("rttl").textContent="";
-  document.getElementById("rdesc").textContent="";
-  document.getElementById("cce").innerHTML="";
-  document.getElementById("cct").textContent="";
-  document.getElementById("subTags").textContent="";
   fadeOut(document.getElementById("resultScreen"),()=>{
     cur=0;ans={};
     fadeIn(document.getElementById("startScreen"));
   });
 }
 </script>
-</body>
-</html>

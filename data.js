@@ -111,7 +111,7 @@ const BUBBLES = [
   {t:"いまのきもちをえにかいてみる",g:"表現",    tags:{mood:["angry","sad","anxious"],energy:["low","mid"],social:"alone",  body:["fine","bad"],wish:"nothing"}},
   {t:"えんぴつですきなものをかいてみる",g:"表現",tags:{mood:["sad","anxious"],   energy:"low",     social:"alone",        body:["fine","bad"],wish:"nothing"}},
   {t:"みつけたものをえにかいてみる",g:"表現",    tags:{mood:["sad","happy"],     energy:"mid",     social:["alone","neutral"], body:"fine",       wish:"nothing"}},
-  {t:"てがみをかいてみる",          g:"表現",    tags:{mood:"happy",            energy:["high","mid"],  social:"social",       body:"fine",       wish:"talk"}},
+  {t:"おてがみをかいてみる",          g:"表現",    tags:{mood:"happy",            energy:["high","mid"],  social:"social",       body:"fine",       wish:"talk"}},
   {t:"ちいさなこえでうたってみる",  g:"表現",    tags:{mood:["sad","anxious"],   energy:"low",     social:"alone",        body:["fine","breath"], wish:"nothing"}},
   {t:"おおきなこえであくびしてみる",g:"表現",    tags:{mood:"angry",            energy:["high","mid"],  social:"alone",        body:"breath",     wish:["nothing","play"]}},
   {t:"きもちをことばにしてみる",    g:"表現",    tags:{mood:["sad","anxious"],   energy:["low","mid"],   social:["alone","social"],body:["fine","bad"],wish:"talk"}},
