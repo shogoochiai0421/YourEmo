@@ -134,7 +134,7 @@ const BUBBLES = [
   {t:"すきなうたをきいてみる",
    g:"気分転換",
    img:"act-listen-music.png",
-   desc:"すきな きょくを ぜんりょくで きいてみよう。",
+   desc:"すきな きょくを きいてみよう。ちなみに わたしの マイブームは、『さっちゃん』。",
    tags:{mood:["sad","anxious","angry"], energy:["low","mid"], social:"alone", body:["fine","bad"], wish:["nothing","sleep"]}},
   {t:"すきなどうがをみてみる",
    g:"気分転換",
