@@ -18,57 +18,52 @@
 
 /* ── PC・タブレット向け設定 ── */
 :root {
-  /* ── フェード・アニメーション ── */
-  --fade-ms:             500;  /* 画面切り替えのフェード時間（ミリ秒） */
-  --fade-wait-ms:        200;  /* 選択肢を押してから次へ行くまでの待ち時間（ミリ秒） */
-  --bubble-feed-ms:     800;  /* 特効薬バブルが出そろうまでの時間（ミリ秒） */
+  /* フェード */
+  --fade-ms:      500;   /* 画面切り替えのフェード時間（ミリ秒） */
+  --fade-wait-ms: 200;   /* 選択肢を押してから次へ行くまでの待ち時間（ミリ秒） */
 
-  /* ── 今の気持ち画面 ── */
-  --res-ttl-size:        35px; /* きもちタイトルの文字サイズ */
-  --res-desc-size:       20px; /* きもちの説明文の文字サイズ */
-  --center-img-size:    150px; /* 中央カードの画像サイズ */
-  --center-txt-size:     30px; /* 中央カードのラベル文字サイズ */
+  /* バブルの円の半径（0.0〜0.5 が目安。大きいほど外側に広がる） */
+  --bubble-rw:    0.25;  /* 横方向の半径（画面幅に対する割合） */
+  --bubble-rh:    0.35;   /* 縦方向の半径（バブルエリア高さに対する割合） */
 
-  /* ── 特効薬画面 ── */
-  --act-ttl-size:        28px; /* 特効薬画面タイトルの文字サイズ */
-  --act-desc-size:       16px; /* 特効薬画面説明文の文字サイズ */
-  --bubble-w:           255px; /* バブルの横幅（5列×2段レイアウト） */
-  --bubble-txt:          16px; /* バブルの文字サイズ */
-  --bubble-img-size:    150px; /* バブルの画像サイズ */
-  --bubble-gap:          20px; /* バブル間のすき間 */
+  /* バブルの円の中心位置（0.5=中央、小さいほど上、大きいほど下） */
+  --bubble-cx:    0.5;   /* 横方向の中心位置 */
+  --bubble-cy:    0.40;  /* 縦方向の中心位置 */
 
-  /* ── 特効薬詳細画面 ── */
-  --detail-img-size:    280px; /* 詳細画面の画像サイズ */
-  --detail-ttl-size:     30px; /* 詳細画面のタイトル文字サイズ */
-  --detail-desc-size:    22px; /* 詳細画面の解説文字サイズ */
+  /* 結果画面のサイズ */
+  --res-ttl-size:    35px;  /* きもちタイトルの文字サイズ */
+  --res-desc-size:   20px;  /* きもちの説明文の文字サイズ */
+  --center-img-size: 150px; /* 中央カードの画像サイズ */
+  --center-txt-size: 30px;  /* 中央カードのラベル文字サイズ */
+  --bubble-w:        250px; /* バブルの横幅 */
+  --bubble-txt:      15px;  /* バブルの文字サイズ */
+  --bubble-img-size: 200px; /* バブルの画像サイズ */
 
-  /* ── 太字の設定（400=ふつう / 700=太字） ── */
-  --fw-q-text:           700;  /* 質問文の太さ */
-  --fw-opt-label:        700;  /* 選択肢のラベルの太さ */
-  --fw-res-ttl:          700;  /* 今の気持ち画面タイトルの太さ */
-  --fw-res-desc:         700;  /* 各画面の説明文の太さ */
-  --fw-bubble:           700;  /* 特効薬バブルの文字の太さ */
+  /* 太字の設定（400=ふつう / 700=太字） */
+  --fw-q-text:    700;   /* 質問文の太さ */
+  --fw-opt-label: 700;   /* 選択肢のラベルの太さ */
+  --fw-res-ttl:   700;   /* 結果タイトルの太さ */
+  --fw-res-desc:  700;   /* 結果の説明文の太さ */
+  --fw-bubble:    700;   /* 特効薬バブルの文字の太さ */
 }
 
 /* ── スマホ向け設定（画面幅 480px 以下） ── */
 @media (max-width: 480px) {
   :root {
-    /* 今の気持ち画面 */
-    --center-img-size:  90px;
-    --center-txt-size:  18px;
+    /* バブルの円の半径 */
+    --bubble-rw:    0.35;
+    --bubble-rh:    0.34;
 
-    /* 特効薬画面 */
-    --act-ttl-size:     20px;
-    --act-desc-size:    12px;
-    --bubble-w:        140px;
-    --bubble-txt:       12px;
-    --bubble-img-size:  80px;
-    --bubble-gap:        8px;
+    /* バブルの円の中心位置 */
+    --bubble-cx:    0.5;
+    --bubble-cy:    0.43;
 
-    /* 特効薬詳細画面 */
-    --detail-img-size: 200px;
-    --detail-ttl-size:  25px;
-    --detail-desc-size: 18px;
+    /* 結果画面のサイズ */
+    --center-img-size: 90px;
+    --center-txt-size: 18px;
+    --bubble-w:        130px;
+    --bubble-txt:      13px;
+    --bubble-img-size: 100px;
   }
 
   /* スタート画面 */
@@ -88,14 +83,13 @@
   .opt .oi img { width: 90px; height: 90px; }
   .back-btn    { font-size: 15px; }
 
-  /* 今の気持ち画面 */
+  /* 結果画面 */
   #resultScreen    { padding-top: 16px; }
   .res-ttl         { font-size: 20px; }
   .res-desc        { font-size: 10px; }
   .center-card .ct { font-size: 15px; }
   .sub-tags        { font-size: 10px; }
   .retry-btn       { font-size: 13px; margin-bottom: 16px; }
-  .next-screen-btn { font-size: 16px; padding: 12px 24px; }
 }
 
 /* ===================================================== */
@@ -190,129 +184,20 @@ html, body {
 .res-ttl  { font-size:var(--res-ttl-size); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); }
 .res-desc { font-size:var(--res-desc-size); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:3px; line-height:1.5; }
 
-/* ── 今の気持ち画面 ── */
-.center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
+.bubble-scene { position:relative; width:100%; flex:1; min-height:0; overflow:hidden; }
+
+.center-card     { position:absolute; top:calc(var(--bubble-cy) * 100%); left:50%; transform:translate(-50%,-50%); background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; z-index:10; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
 .center-card .ct { font-size:var(--center-txt-size); font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
-.sub-tags { margin-top:8px; display:flex; flex-direction:column; gap:3px; }
+.sub-tags { margin-top:8px; display:flex; flex-direction:column; gap:3px; color:#808080}
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
-/* ── 特効薬画面 ── */
-#actScreen { padding:16px 16px 8px; justify-content:flex-start; }
-.act-top  { text-align:center; padding:30px 0 10px; flex-shrink:0; width:100%; }
-.act-ttl  { font-size:var(--act-ttl-size);  font-weight:var(--fw-res-ttl);  color:var(--color-text-primary); }
-.act-desc { font-size:var(--act-desc-size); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:4px; line-height:1.5; }
-
-.bubble-grid {
-  display:grid;
-  grid-template-columns: repeat(5, var(--bubble-w));
-  gap:var(--bubble-gap);
-  justify-content:center;
-  width:100%;
-  flex:1;
-  align-content:center;
-  padding:0 8px;
-  min-height:0;
-  overflow:hidden;
-}
-@media (max-width: 480px) {
-  .bubble-grid { grid-template-columns: repeat(2, var(--bubble-w)); }
-}
-
-.bubble { width:var(--bubble-w); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:10px 8px; opacity:0; transition:opacity 0.6s ease; gap:4px; }
-.bubble-img { width:var(--bubble-img-size); height:var(--bubble-img-size); object-fit:contain; flex-shrink:0; }
+.bubble { position:absolute; width:var(--bubble-w); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:12px 10px 10px; opacity:0; transition:opacity 3.5s ease; gap:6px; }
+.bubble-img { width:var(--bubble-img-size, 80px); height:var(--bubble-img-size, 80px); object-fit:contain; flex-shrink:0; }
 .bubble-txt { line-height:1.4; }
 
-.retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
-.next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
-.next-screen-btn:active { transform:scale(0.96); }
-
-/* ── 特効薬詳細画面 ── */
-#detailScreen {
-  justify-content:center; align-items:center;
-  padding:16px; gap:16px;
-  background:transparent;
-}
-
-/* カード本体 */
-.detail-card {
-  width:min(400px, 88vw);
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.10);
-  display:flex; flex-direction:column;
-  flex-shrink:0;
-  border: 3px solid rgba(255,255,255,0.55);
-}
-
-/* カードヘッダー（イメージカラー背景） */
-.detail-card-header {
-  padding:32px 18px 5px;
-  background: var(--detail-bg, #FBEAF0);
-}
-.detail-card-ttl {
-  font-size:var(--detail-ttl-size);
-  font-weight:700;
-  color: var(--detail-tc, #72243E);
-  text-align:center;
-  line-height:1.3;
-}
-
-/* イラストエリア */
-.detail-card-img-wrap {
-  background: var(--detail-bg, #FBEAF0);
-  display:flex; justify-content:center; align-items:flex-end;
-  padding:24px 0 0;
-  overflow:hidden;
-  min-height:calc(var(--detail-img-size) + 16px);
-}
-.detail-img {
-  width:var(--detail-img-size);
-  height:var(--detail-img-size);
-  object-fit:contain;
-  transform-origin: 50% 80%; /* 下端を基点に揺れる */
-  animation: detailSway 8s ease-in-out infinite;
-}
-@keyframes detailSway {
-  
-  0%   { transform: rotate(0deg); }
-  5%   { transform: rotate(3deg); }
-  15%  { transform: rotate(-4deg); }
-  25%  { transform: rotate(3deg); }
-  40%  { transform: rotate(-1deg); }
-  55%  { transform: rotate(0deg); }
-
-  /* 25%から100%（9秒間）は0度のまま固定 = 静止 */
-  100% { transform: rotate(0deg); }
-}
-
-/* 解説テキストエリア */
-.detail-card-body {
-  background:#fff;
-  padding:10px 22px 30px;
-}
-.detail-card-desc {
-  font-size:var(--detail-desc-size);
-  color:#53433a;
-  text-align:center;
-  line-height:1.8;
-}
-
-/* もどるボタン */
-.detail-back-btn {
-  background:rgba(255,255,255,0.75);
-  border:1.5px solid rgba(0,0,0,0.12);
-  border-radius:99px;
-  padding:10px 28px;
-  font-size:17px;
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  font-weight:700;
-  color:#53433a;
-  cursor:pointer;
-  flex-shrink:0;
-}
-.detail-back-btn:active { transform:scale(0.96); }
+.retry-btn { flex-shrink:0; margin:0 0 30px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
 
 
 </style>
@@ -338,46 +223,21 @@ html, body {
   <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
   <button class="back-btn hidden" id="topBtn" onclick="goTop()">← さいしょにもどる</button>
 </div>
-<!-- 今の気持ち画面 -->
-<div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
+<div id="resultScreen" class="screen">
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
     <div class="res-desc" id="rdesc"></div>
   </div>
-  <div class="center-card" style="margin:0 auto;">
-    <div class="ce" id="cce"></div>
-    <div class="ct" id="cct"></div>
-    <div class="sub-tags" id="subTags"></div>
+  <div class="bubble-scene" id="bscene">
+    <div class="center-card">
+      <div class="ce" id="cce"></div>
+      <div class="ct" id="cct"></div>
+      <div class="sub-tags" id="subTags"></div>
+    </div>
   </div>
-  <button class="next-screen-btn" onclick="showActScreen()">これ、やってみる？ →</button>
   <button class="retry-btn" onclick="restart()">もういちど</button>
-</div>
-
-<!-- 特効薬画面 -->
-<div id="actScreen" class="screen">
-  <div class="act-top">
-    <div class="act-ttl" id="actTtl"></div>
-    <div class="act-desc" id="actDesc"></div>
-  </div>
-  <div class="bubble-grid" id="bscene"></div>
-  <button class="retry-btn" onclick="restart()">もういちど</button>
-</div>
-
-<!-- 特効薬詳細画面 -->
-<div id="detailScreen" class="screen">
-  <div class="detail-card" id="detailCard">
-    <div class="detail-card-header">
-      <div class="detail-card-ttl" id="detailTtl"></div>
-    </div>
-    <div class="detail-card-img-wrap">
-      <img id="detailImg" src="" alt="" class="detail-img">
-    </div>
-    <div class="detail-card-body">
-      <div class="detail-card-desc" id="detailDesc"></div>
-    </div>
-  </div>
-  <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
+  
 </div>
 </div>
 
@@ -487,7 +347,7 @@ function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Mat
 /* CSSカスタムプロパティ（:root変数）の値を数値で取得する */
 function cssVar(name){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0;}
 
-let cur=0,ans={},busy=false,chosenBubbles=[];
+let cur=0,ans={},busy=false;
 
 /* 指定した画面要素をフェードインで表示する */
 function fadeIn(el){
@@ -543,6 +403,8 @@ function renderQ(){
     let iconHtml;
     if(o.ikey&&IMG[o.ikey]){
       iconHtml=`<span class="oi"><img src="${IMG[o.ikey]}" width="30" height="30" style="object-fit:contain"></span>`;
+    }else if(o.i){
+      iconHtml=`<span class="oi" style="font-size:26px">${o.i}</span>`;
     }else{
       iconHtml=`<span class="oi"></span>`;
     }
@@ -617,91 +479,69 @@ function showResult(){
     return (ANS_LABEL[id] && ANS_LABEL[id][ans[id]]) || "";
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
-  /* 全特効薬を回答との一致度でスコアリングして選択（特効薬画面で使用） */
-  chosenBubbles = selectBubbles(ans, 10);
+  /* 全特効薬を回答との一致度でスコアリングして重み付き選択 */
+  const chosen = selectBubbles(ans, 8);
   fadeIn(document.getElementById("resultScreen"));
+  setTimeout(()=>placeBubbles(chosen),(cssVar('--fade-ms')||300)+50);
 }
 
-/* 今の気持ち画面から特効薬画面へ遷移する */
-function showActScreen(){
-  document.getElementById("actTtl").textContent  = document.getElementById("rttl").textContent;
-  document.getElementById("actDesc").textContent = document.getElementById("rdesc").textContent;
-  fadeOut(document.getElementById("resultScreen"),()=>{
-    fadeIn(document.getElementById("actScreen"));
-    setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
-  });
-}
-
-/* 特効薬バブルをグリッドに並べる（PC=5列×2段、スマホ=2列×5段） */
+/* 特効薬バブルを円周上に配置して結果画面に追加する。
+   中心座標はバブルエリア(bscene)の cx=W/2, cy=H/2 で決まる */
 function placeBubbles(list){
   const scene=document.getElementById("bscene");
   scene.querySelectorAll(".bubble").forEach(b=>b.remove());
+  const W=scene.offsetWidth||500;
+  const H=scene.offsetHeight||300;
+  const cxRatio=cssVar('--bubble-cx')||0.5;
+  const cyRatio=cssVar('--bubble-cy')||0.43;
+  const cx=W*cxRatio, cy=H*cyRatio;
+  const n=list.length;
+  const rwRatio=cssVar('--bubble-rw')||0.42;
+  const rhRatio=cssVar('--bubble-rh')||0.43;
+  const bwStr=getComputedStyle(document.documentElement).getPropertyValue('--bubble-w').trim();
+  const bw=parseInt(bwStr)||115;
+  const bh=50;
+  const rW=Math.min(cx-bw/2-4, W*rwRatio);
+  const rH=Math.min(cy-bh/2-4, H*rhRatio);
 
-  const INTERVAL = cssVar('--bubble-feed-ms') || 1200; /* 全バブルが出そろうまでの時間（--bubble-feed-ms で設定） */
+  /* 出現タイミングをシャッフルして円周の位置とフェードイン順を切り離す */
+  const INTERVAL = 1000; /* 全バブルが出そろうまでの合計時間(ms) ← ここで調整 */
   const slots = list.map((_,i)=>i);
   for(let k=slots.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[slots[k],slots[j]]=[slots[j],slots[k]];}
 
   list.forEach((item,i)=>{
+    const angle=(2*Math.PI/n)*i-Math.PI/2;
+    const bx=cx+rW*Math.cos(angle);
+    const by=cy+rH*Math.sin(angle);
     const el=document.createElement("div");
     el.className="bubble";
     const bc = item.g && BC[item.g] ? BC[item.g] : {c:item.c||"#FBEAF0", tc:item.tc||"#72243E"};
+    /* item.img が指定されていれば acts フォルダの画像を表示、なければ画像なしでテキストのみ */
     const imgHtml = item.img
       ? `<img class="bubble-img" src="${BASE_ACT}${item.img}" alt="">`
       : "";
     el.innerHTML = imgHtml + `<span class="bubble-txt">${item.t}</span>`;
-    el.style.cssText=`background:${bc.c};color:${bc.tc};cursor:pointer;`;
-    el.onclick = () => openDetail(item);
+    el.style.cssText=`left:${(bx-bw/2).toFixed(0)}px;top:${(by-bh/2).toFixed(0)}px;background:${bc.c};color:${bc.tc};`;
     scene.appendChild(el);
-    const delay = (slots[i] / list.length) * INTERVAL + Math.random() * 50;
+    /* slots[i] 番目のタイミングでフェードイン（ランダムなぶれも少し加える） */
+    const delay = (slots[i] / n) * INTERVAL + Math.random() * 100;
     setTimeout(()=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.opacity="1"; })); }, delay);
   });
 }
 
-/* 特効薬バブルをタップしたとき：詳細画面を表示する */
-function openDetail(item){
-  const img = item.img ? BASE_ACT + item.img : "";
-  const di = document.getElementById("detailImg");
-  di.src = img;
-  di.style.display = img ? "block" : "none";
-  document.getElementById("detailTtl").textContent  = item.t;
-  document.getElementById("detailDesc").textContent = item.desc || "";
-  /* イメージカラーをカードに適用 */
-  const bc = item.g && BC[item.g] ? BC[item.g] : {c:"#FBEAF0", tc:"#72243E"};
-  const card = document.getElementById("detailCard");
-  card.style.setProperty("--detail-bg", bc.c);
-  card.style.setProperty("--detail-tc", bc.tc);
-  fadeOut(document.getElementById("actScreen"),()=>{
-    fadeIn(document.getElementById("detailScreen"));
-  });
-}
-
-/* 詳細画面のもどるボタン：特効薬画面へ戻る */
-function closeDetail(){
-  fadeOut(document.getElementById("detailScreen"),()=>{
-    document.getElementById("detailScreen").style.background="";
-    fadeIn(document.getElementById("actScreen"));
-  });
-}
-
-/* もう一どやるボタンを押したとき：リセットしてスタート画面へ戻る */
+/* もう一どやるボタンを押したとき：結果画面をリセットしてスタート画面へ戻る */
 function restart(){
+  /* バブル・テキスト・サブタグを即座にリセット */
   document.getElementById("bscene").querySelectorAll(".bubble").forEach(b=>b.remove());
   document.getElementById("rttl").textContent="";
   document.getElementById("rdesc").textContent="";
   document.getElementById("cce").innerHTML="";
   document.getElementById("cct").textContent="";
   document.getElementById("subTags").textContent="";
-  if(document.getElementById("actTtl")) document.getElementById("actTtl").textContent="";
-  if(document.getElementById("actDesc")) document.getElementById("actDesc").textContent="";
-  chosenBubbles=[];
-  const current =
-    document.getElementById("detailScreen").classList.contains("active")
-      ? document.getElementById("detailScreen")
-      : document.getElementById("actScreen").classList.contains("active")
-        ? document.getElementById("actScreen")
-        : document.getElementById("resultScreen");
-  document.getElementById("detailScreen").style.background="";
-  fadeOut(current,()=>{ cur=0;ans={}; fadeIn(document.getElementById("startScreen")); });
+  fadeOut(document.getElementById("resultScreen"),()=>{
+    cur=0;ans={};
+    fadeIn(document.getElementById("startScreen"));
+  });
 }
 </script>
 </body>
