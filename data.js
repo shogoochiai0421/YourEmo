@@ -26,11 +26,10 @@ const BC = {
 const BUBBLES = [
   /* ── 発散・うごく ── */
   {t:"そとでジャンプしてみる",      g:"発散",    tags:{mood:["angry","happy"], energy:"high",    social:["alone","neutral"], body:["fine","heart"],  wish:"play"}},
-  {t:"その場ではしってみる",        g:"発散",    tags:{mood:["angry","happy"], energy:"high",    social:["alone","neutral"], body:["fine","heart"],  wish:"play"}},
+  {t:"そのばではしってみる",        g:"発散",    tags:{mood:["angry","happy"], energy:"high",    social:["alone","neutral"], body:["fine","heart"],  wish:"play"}},
   {t:"かみをビリビリやぶいてみる",  g:"発散",    tags:{mood:"angry",           energy:["high","mid"], social:"alone",        body:["fine","heart"],  wish:["nothing","any"]}},
   {t:"まくらにさけんでみる",        g:"発散",    tags:{mood:"angry",           energy:["high","mid"], social:"alone",        body:["fine","breath"], wish:["nothing","any"]}},
-  {t:"かべをてでおしてみる",        g:"発散",    tags:{mood:"angry",           energy:["high","mid"], social:"alone",        body:["fine","heart"],  wish:"nothing"}},
-  {t:"ぎゅーってこぶしをにぎってみる",g:"発散",  tags:{mood:"angry",           energy:["high","mid"], social:["alone","neutral"], body:"heart",    wish:["nothing","play"]}},
+  {t:"ぎゅーっててをにぎってみる",g:"発散",  tags:{mood:"angry",           energy:["high","mid"], social:["alone","neutral"], body:"heart",    wish:["nothing","play"]}},
   {t:"からだをぐるぐるうごかしてみる",g:"発散",  tags:{mood:["angry","happy"], energy:"high",    social:["alone","neutral"], body:"fine",       wish:"play"}},
   {t:"からだをのばしてみる",        g:"発散",    tags:{mood:["sad","anxious"],  energy:"low",     social:["alone","neutral"], body:"breath",     wish:["nothing","sleep"]}},
   {t:"おもいきりのびをしてみる",    g:"発散",    tags:{mood:["angry","anxious"],energy:["high","mid"], social:["alone","neutral"], body:"breath", wish:["nothing","play"]}},
@@ -38,7 +37,7 @@ const BUBBLES = [
 
   /* ── 落ち着く・ひとりで ── */
   {t:"トイレでゆっくりいきをはいてみる",g:"落ち着き",tags:{mood:"angry",        energy:["high","mid"],  social:"alone",        body:"breath",     wish:["nothing","play"]}},
-  {t:"ゆっくりふかいきしてみる",    g:"落ち着き",tags:{mood:["anxious","angry"], energy:["low","mid"],   social:["alone","neutral"], body:"breath",  wish:["nothing","sleep"]}},
+  {t:"ゆっくりしんこきゅうしてみる",    g:"落ち着き",tags:{mood:["anxious","angry"], energy:["low","mid"],   social:["alone","neutral"], body:"breath",  wish:["nothing","sleep"]}},
   {t:"しんこきゅうを3かいしてみる", g:"落ち着き",tags:{mood:["anxious","angry"], energy:["low","mid"],   social:["alone","neutral"], body:"heart",   wish:["nothing","sleep"]}},
   {t:"4びょうすって8びょうはいてみる",g:"落ち着き",tags:{mood:"anxious",        energy:["low","mid"],   social:["alone","neutral"], body:"heart",   wish:["nothing","sleep"]}},
   {t:"めをとじて10かぞえてみる",    g:"落ち着き",tags:{mood:"anxious",          energy:["low","mid"],   social:"alone",        body:["heart","breath"], wish:"nothing"}},
@@ -49,7 +48,7 @@ const BUBBLES = [
   {t:"きょうはゆっくりやすんでみる",g:"落ち着き",tags:{mood:["sad","anxious"],   energy:"verylow", social:["alone","neutral"], body:["fine","bad"],wish:"sleep"}},
   {t:"ゆっくりあるいてみる",        g:"落ち着き",tags:{mood:["sad","anxious"],   energy:"low",     social:["alone","neutral"], body:["fine","bad"],wish:["nothing","sleep"]}},
   {t:"そとをおさんぽしてみる",      g:"落ち着き",tags:{mood:["happy","sad"],     energy:["high","mid"],  social:["alone","neutral"], body:"fine",    wish:"play"}},
-  {t:"5ぷんだけそとをあるいてみる", g:"落ち着き",tags:{mood:["sad","angry"],     energy:"mid",     social:["alone","neutral"], body:"fine",       wish:"nothing"}},
+  {t:"5ふんだけそとをあるいてみる", g:"落ち着き",tags:{mood:["sad","angry"],     energy:"mid",     social:["alone","neutral"], body:"fine",       wish:"nothing"}},
   {t:"そとではしってみる",          g:"落ち着き",tags:{mood:["happy","angry"],   energy:"high",    social:["alone","neutral"], body:"fine",       wish:"play"}},
 
   /* ── 気分転換・楽しむ ── */
