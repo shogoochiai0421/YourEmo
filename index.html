@@ -624,8 +624,9 @@ function showResult(){
 
 /* 今の気持ち画面から特効薬画面へ遷移する */
 function showActScreen(){
-  document.getElementById("actTtl").textContent  = document.getElementById("rttl").textContent;
-  document.getElementById("actDesc").textContent = document.getElementById("rdesc").textContent;
+  /* 上部テキスト：きもちラベル（もやもや等）＋サブタグ（つかれている・ひとりでいたい等） */
+  document.getElementById("actTtl").textContent  = document.getElementById("cct").textContent;
+  document.getElementById("actDesc").textContent = document.getElementById("subTags").textContent;
   fadeOut(document.getElementById("resultScreen"),()=>{
     fadeIn(document.getElementById("actScreen"));
     setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
