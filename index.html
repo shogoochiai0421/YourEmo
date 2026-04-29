@@ -27,6 +27,7 @@
   --center-txt-size: 30px;  /* 中央カードのラベル文字サイズ */
   --bubble-w:       250px;  /* バブルの横幅 */
   --bubble-txt:      25px;  /* バブルの文字サイズ */
+  --bubble-img-size: 80px;   /* バブルの画像サイズ */
 
   /* ── 太字の設定（400=ふつう / 700=太字） ── */
   --fw-q-text:    700;   /* 質問文の太さ */
@@ -137,7 +138,9 @@ html, body {
 .sub-tags { margin-top:8px; display:flex; flex-direction:column; gap:3px; color:#808080}
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
-.bubble { position:absolute; width:var(--bubble-w); border-radius:99px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:15px 20px; opacity:0; transition:opacity 3.5s ease; }
+.bubble { position:absolute; width:var(--bubble-w); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:12px 10px 10px; opacity:0; transition:opacity 3.5s ease; gap:6px; }
+.bubble-img { width:var(--bubble-img-size, 80px); height:var(--bubble-img-size, 80px); object-fit:contain; flex-shrink:0; }
+.bubble-txt { line-height:1.4; }
 
 .retry-btn { flex-shrink:0; margin:0 0 30px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
 
@@ -219,28 +222,29 @@ html, body {
 <script src="data.js"></script>
 
 <script>
-const BASE = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/expressions/";
+const BASE_EXP  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/expressions/";
+const BASE_ACT  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
 const IMG = {
-  rainbow:        BASE+"main-rainbow.png",
-  smile:          BASE+"expression-smile.png",
-  cry:            BASE+"expression-cry.png",
-  mad:            BASE+"expression-mad.png",
-  puzzled:        BASE+"expression-puzzled.png",
-  sad:            BASE+"expression-sad.png",
-  normal:         BASE+"expression-normal.png",
-  amaze:          BASE+"expression-amaze.png",
-  kidding:        BASE+"expression-kidding.png",
-  wink:           BASE+"expression-wink.png",
-  enjoy:          BASE+"expression-enjoy.png",
-  expressionless: BASE+"expression-expressionless.png",
-  fear:           BASE+"expression-fear.png",
-  notfeelingwell: BASE+"expression-notfeelingwell.png",
-  panic:          BASE+"expression-panic.png",
-  sickness:       BASE+"expression-sickness.png",
-  sleepy:         BASE+"expression-sleepy.png",
-  tired:          BASE+"expression-tired.png",
-  playwith:       BASE+"expression-playwith.png",
-  alone:          BASE+"expression-alone.png",
+  rainbow:        BASE_EXP+"main-rainbow.png",
+  smile:          BASE_EXP+"expression-smile.png",
+  cry:            BASE_EXP+"expression-cry.png",
+  mad:            BASE_EXP+"expression-mad.png",
+  puzzled:        BASE_EXP+"expression-puzzled.png",
+  sad:            BASE_EXP+"expression-sad.png",
+  normal:         BASE_EXP+"expression-normal.png",
+  amaze:          BASE_EXP+"expression-amaze.png",
+  kidding:        BASE_EXP+"expression-kidding.png",
+  wink:           BASE_EXP+"expression-wink.png",
+  enjoy:          BASE_EXP+"expression-enjoy.png",
+  expressionless: BASE_EXP+"expression-expressionless.png",
+  fear:           BASE_EXP+"expression-fear.png",
+  notfeelingwell: BASE_EXP+"expression-notfeelingwell.png",
+  panic:          BASE_EXP+"expression-panic.png",
+  sickness:       BASE_EXP+"expression-sickness.png",
+  sleepy:         BASE_EXP+"expression-sleepy.png",
+  tired:          BASE_EXP+"expression-tired.png",
+  playwith:       BASE_EXP+"expression-playwith.png",
+  alone:          BASE_EXP+"expression-alone.png",
 };
 
 const Qs=[
@@ -487,8 +491,12 @@ function placeBubbles(list){
     const by=cy+rH*Math.sin(angle);
     const el=document.createElement("div");
     el.className="bubble";
-    el.textContent=item.t;
     const bc = item.g && BC[item.g] ? BC[item.g] : {c:item.c||"#FBEAF0", tc:item.tc||"#72243E"};
+    /* item.img が指定されていれば acts フォルダの画像を表示、なければ画像なしでテキストのみ */
+    const imgHtml = item.img
+      ? `<img class="bubble-img" src="${BASE_ACT}${item.img}" alt="">`
+      : "";
+    el.innerHTML = imgHtml + `<span class="bubble-txt">${item.t}</span>`;
     el.style.cssText=`left:${(bx-bw/2).toFixed(0)}px;top:${(by-bh/2).toFixed(0)}px;background:${bc.c};color:${bc.tc};`;
     scene.appendChild(el);
     /* slots[i] 番目のタイミングでフェードイン（ランダムなぶれも少し加える） */
