@@ -21,12 +21,12 @@
   /* ── フェード・アニメーション ── */
   --fade-ms:             500;  /* 画面切り替えのフェード時間（ミリ秒） */
   --fade-wait-ms:        200;  /* 選択肢を押してから次へ行くまでの待ち時間（ミリ秒） */
-  --bubble-feed-ms:     800;  /* 特効薬バブルが出そろうまでの時間（ミリ秒） */
+  --bubble-feed-ms:     300;  /* 特効薬バブルが出そろうまでの時間（ミリ秒） */
 
   /* ── 今の気持ち画面 ── */
-  --res-ttl-size:        35px; /* きもちタイトルの文字サイズ */
-  --res-desc-size:       20px; /* きもちの説明文の文字サイズ */
-  --center-img-size:    150px; /* 中央カードの画像サイズ */
+  --res-ttl-size:        40px; /* きもちタイトルの文字サイズ */
+  --res-desc-size:       25px; /* きもちの説明文の文字サイズ */
+  --center-img-size:    220px; /* 中央カードの画像サイズ */
   --center-txt-size:     30px; /* 中央カードのラベル文字サイズ */
 
   /* ── 特効薬画面 ── */
@@ -54,7 +54,7 @@
 @media (max-width: 480px) {
   :root {
     /* 今の気持ち画面 */
-    --center-img-size:  90px;
+    --center-img-size:  120px;
     --center-txt-size:  18px;
 
     /* 特効薬画面 */
@@ -105,7 +105,7 @@
 html, body {
   width:100%; height:100%;
   overflow:hidden;
-  background-color: rgb(255,249,243);
+  background-color: rgb(255, 250, 241);
 }
 
 #app {
@@ -272,7 +272,7 @@ html, body {
   height:var(--detail-img-size);
   object-fit:contain;
   transform-origin: 50% 80%; /* 下端を基点に揺れる */
-  animation: detailSway 8s ease-in-out infinite;
+  animation: detailSway 5s ease-in-out infinite;
 }
 @keyframes detailSway {
   
@@ -652,7 +652,7 @@ function placeBubbles(list){
     el.style.cssText=`background:${bc.c};color:${bc.tc};cursor:pointer;`;
     el.onclick = () => openDetail(item);
     scene.appendChild(el);
-    const delay = (slots[i] / list.length) * INTERVAL + Math.random() * 50;
+    const delay = (slots[i] / list.length) * INTERVAL + Math.random() * 30;
     setTimeout(()=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.opacity="1"; })); }, delay);
   });
 }
