@@ -422,9 +422,7 @@ const BASE_ACT  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/mai
    LIKE_ENTRY_TITLE : 「特効薬タイトル」のentry.XXXXXXXX
    LIKE_ENTRY_DATE  : 「日付」のentry.XXXXXXXX
    ============================================= */
-const LIKE_FORM_URL   = "https://docs.google.com/forms/d/e/1FAIpQLScrVScBpTtolzdMXo9_NpE2EyelA6HMAqn79ztgrDjKatNDNw/formResponse";
-const LIKE_ENTRY_TITLE = "entry.2144183238"; /* ← フォームのentry IDに変えてね */
-const LIKE_ENTRY_DATE  = "entry.1574450260"; /* ← フォームのentry IDに変えてね */
+const LIKE_FORM_URL   = "https://script.google.com/macros/s/AKfycbwU-1su5Ce_HrTz0y83QLLvdVplHMPve3ePXsonZlBNYNoMQ-b1zch-_zySvYn7co6Y/exec";
 
 /* セッション中のいいね状態を保持（キー：特効薬テキスト） */
 const likedSet = new Set();
@@ -746,15 +744,10 @@ function toggleLike(){
   likeBtn.disabled = true;
 
   /* imgタグのGETリクエストでGoogleフォームに送信（CORSを回避できる） */
-  const today = new Date();
-  const dateStr = today.getFullYear() + "年" +
-                  (today.getMonth()+1) + "月" +
-                  today.getDate() + "日";
-  const url = LIKE_FORM_URL
-    + "?" + LIKE_ENTRY_TITLE + "=" + encodeURIComponent(t)
-    + "&" + LIKE_ENTRY_DATE  + "=" + encodeURIComponent(dateStr);
-  const beacon = new Image();
-  beacon.src = url;
+const url = LIKE_FORM_URL
+  + "?title=" + encodeURIComponent(t)
+const beacon = new Image();
+beacon.src = url;
 }
 
 /* 詳細画面のもどるボタン：特効薬画面へ戻る */
