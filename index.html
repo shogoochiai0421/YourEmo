@@ -736,7 +736,7 @@ function openDetail(item){
 function toggleLike(){
   if(!currentDetailItem) return;
   const t = currentDetailItem.t;
-  if(likedSet.has(t)) return; /* 取り消し不可 */
+  if(likedSet.has(t)) return;
 
   likedSet.add(t);
   const likeBtn = document.getElementById("likeBtn");
@@ -745,21 +745,16 @@ function toggleLike(){
   likeBtn.classList.add("liked");
   likeBtn.disabled = true;
 
-  /* Googleフォームに送信（日付＋タイトル） */
+  /* imgタグのGETリクエストでGoogleフォームに送信（CORSを回避できる） */
   const today = new Date();
   const dateStr = today.getFullYear() + "年" +
                   (today.getMonth()+1) + "月" +
                   today.getDate() + "日";
-  const params = new URLSearchParams();
-  params.append(LIKE_ENTRY_TITLE, t);
-  params.append(LIKE_ENTRY_DATE,  dateStr);
-  /* no-cors で送信（レスポンスは読めないが送信はできる） */
-  fetch(LIKE_FORM_URL, {
-    method: "POST",
-    mode:   "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body:   params.toString(),
-  }).catch(()=>{}); /* エラーは握りつぶす（ユーザーに影響させない） */
+  const url = LIKE_FORM_URL
+    + "?" + LIKE_ENTRY_TITLE + "=" + encodeURIComponent(t)
+    + "&" + LIKE_ENTRY_DATE  + "=" + encodeURIComponent(dateStr);
+  const beacon = new Image();
+  beacon.src = url;
 }
 
 /* 詳細画面のもどるボタン：特効薬画面へ戻る */
