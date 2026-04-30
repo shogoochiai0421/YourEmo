@@ -50,53 +50,7 @@
   --fw-bubble:           700;  /* 特効薬バブルの文字の太さ */
 }
 
-/* ── スマホ向け設定（画面幅 480px 以下） ── */
-@media (max-width: 480px) {
-  :root {
-    /* 今の気持ち画面 */
-    --center-img-size:  120px;
-    --center-txt-size:  18px;
 
-    /* 特効薬画面 */
-    --act-ttl-size:     20px;
-    --act-desc-size:    12px;
-    --bubble-w:        140px;
-    --bubble-txt:       12px;
-    --bubble-img-size:  80px;
-    --bubble-gap:        8px;
-
-    /* 特効薬詳細画面 */
-    --detail-img-size: 200px;
-    --detail-ttl-size:  25px;
-    --detail-desc-size: 18px;
-  }
-
-  /* スタート画面 */
-  #startScreen { padding-top: 30px; }
-  .big-img     { width: 100px; height: 100px; }
-  .ttl         { font-size: 26px; margin-bottom: 16px; }
-  .sub         { font-size: 18px; margin-bottom: 20px; }
-  .start-btn   { font-size: 22px; padding: 20px 36px; }
-  .footer-text { font-size: 4px; bottom: 10px; left: 8px; }
-  .header-text { font-size: 13px; bottom: 12px; right: 16px; }
-
-  /* 質問画面 */
-  #quizScreen  { padding-top:20px; }
-  .q-text      { font-size: 20px; margin-bottom: 10px; }
-  .opts        { gap: 10px; max-width: 100%; }
-  .opt         { padding: 8px 12px; font-size: 10px; }
-  .opt .oi img { width: 40px; height: 40px; }
-  .back-btn    { font-size: 10px; }
-
-  /* 今の気持ち画面 */
-  #resultScreen    { padding-top: 13px; }
-  .res-ttl         { font-size: 20px; }
-  .res-desc        { font-size: 8px; }
-  .center-card .ct { font-size: 15px; }
-  .sub-tags        { font-size: 10px; }
-  .retry-btn       { font-size: 10px; margin-bottom: 16px; }
-  .next-screen-btn { font-size: 16px; padding: 12px 24px; }
-}
 
 /* ===================================================== */
 
@@ -314,6 +268,77 @@ html, body {
 }
 .detail-back-btn:active { transform:scale(0.96); }
 
+/* ── いいねボタン ── */
+.detail-card-body {
+  position: relative;
+}
+.like-btn {
+  position:absolute;
+  bottom:10px; right:10px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  padding:4px;
+  line-height:1;
+}
+.like-btn:active { transform:scale(0.88); }
+.like-img {
+  width:var(--like-img-size, 44px);
+  height:var(--like-img-size, 44px);
+  object-fit:contain;
+  transition:transform 0.15s ease;
+}
+.like-btn.liked .like-img { transform:scale(1.15); }
+
+
+
+/* ── スマホ向け設定（画面幅 480px 以下） ── */
+@media (max-width: 480px) {
+  :root {
+    /* 今の気持ち画面 */
+    --center-img-size:  120px;
+    --center-txt-size:  18px;
+
+    /* 特効薬画面 */
+    --act-ttl-size:     20px;
+    --act-desc-size:    12px;
+    --bubble-w:        140px;
+    --bubble-txt:       12px;
+    --bubble-img-size:  80px;
+    --bubble-gap:        8px;
+
+    /* 特効薬詳細画面 */
+    --detail-img-size: 200px;
+    --detail-ttl-size:  25px;
+    --detail-desc-size: 18px;
+  }
+
+  /* スタート画面 */
+  #startScreen { padding-top: 60px; }
+  .big-img     { width: 150px; height: 150px; }
+  .ttl         { font-size: 32px; margin-bottom: 16px; }
+  .sub         { font-size: 18px; margin-bottom: 30px; }
+  .start-btn   { font-size: 18px; padding: 20px 36px; }
+  .footer-text { font-size: 10px; bottom: 10px; left: 8px; }
+  .header-text { font-size: 4px; bottom: 12px; right: 16px; }
+
+  /* 質問画面 */
+  #quizScreen  { padding-top:20px; }
+  .q-text      { font-size: 28px; margin-bottom: 10px; }
+  .opts        { gap: 10px; max-width: 100%; }
+  .opt         { padding: 8px 12px; font-size: 14px; }
+  .opt .oi img { width: 110px; height: 110px; }
+  .back-btn    { font-size: 10px; }
+
+  /* 今の気持ち画面 */
+  #resultScreen    { padding-top: 13px; }
+  .res-ttl         { font-size: 20px; }
+  .res-desc        { font-size: 8px; }
+  .center-card .ct { font-size: 15px; }
+  .sub-tags        { font-size: 10px; }
+  .retry-btn       { font-size: 10px; margin-bottom: 16px; }
+  .next-screen-btn { font-size: 16px; padding: 12px 24px; }
+}
 
 </style>
 
@@ -375,6 +400,9 @@ html, body {
     </div>
     <div class="detail-card-body">
       <div class="detail-card-desc" id="detailDesc"></div>
+      <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+        <img id="likeImg" src="" alt="👍" class="like-img">
+      </button>
     </div>
   </div>
   <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
@@ -386,6 +414,24 @@ html, body {
 <script>
 const BASE_EXP  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/expressions/";
 const BASE_ACT  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
+
+/* =============================================
+   ★ いいね送信の設定 ★
+   Googleフォームを作成したら以下を設定してね。
+   LIKE_FORM_URL : フォームの送信先URL（action属性のURL）
+   LIKE_ENTRY_TITLE : 「特効薬タイトル」のentry.XXXXXXXX
+   LIKE_ENTRY_DATE  : 「日付」のentry.XXXXXXXX
+   ============================================= */
+const LIKE_FORM_URL   = "https://docs.google.com/forms/d/e/XXXXXXXXXX/formResponse";
+const LIKE_ENTRY_TITLE = "entry.000000001"; /* ← フォームのentry IDに変えてね */
+const LIKE_ENTRY_DATE  = "entry.000000002"; /* ← フォームのentry IDに変えてね */
+
+/* セッション中のいいね状態を保持（キー：特効薬テキスト） */
+const likedSet = new Set();
+
+/* いいね画像のURL（後から差し替え可能） */
+const LIKE_IMG_OFF = BASE_ACT + "like-off.png"; /* 未いいね状態の画像 */
+const LIKE_IMG_ON  = BASE_ACT + "like-on.png";  /* いいね済み状態の画像 */
 const IMG = {
   rainbow:        BASE_EXP+"main-rainbow.png",
   smile:          BASE_EXP+"expression-smile.png",
@@ -435,8 +481,8 @@ const Qs=[
     {i:"😌",    ikey:"smile",  l:"だいじょうぶ",  v:"fine"}
   ]},
   {id:"wish",text:"いましたいことは？",opts:[
-    {i:"😴",ikey:"sleepy",  l:"ねむりたい",     v:"sleep"},
     {i:"🎮",ikey:"playwith",   l:"あそびたい",     v:"play"},
+    {i:"😴",ikey:"sleepy",  l:"ねむりたい",     v:"sleep"},
     {i:"🤝",ikey:"kidding", l:"はなしたい",     v:"talk"},
     {i:"😶",ikey:"expressionless", l:"なにもしたくない",v:"nothing"}
   ]}
@@ -659,7 +705,10 @@ function placeBubbles(list){
 }
 
 /* 特効薬バブルをタップしたとき：詳細画面を表示する */
+let currentDetailItem = null; /* 現在表示中のitemを保持 */
+
 function openDetail(item){
+  currentDetailItem = item;
   const img = item.img ? BASE_ACT + item.img : "";
   const di = document.getElementById("detailImg");
   di.src = img;
@@ -671,9 +720,46 @@ function openDetail(item){
   const card = document.getElementById("detailCard");
   card.style.setProperty("--detail-bg", bc.c);
   card.style.setProperty("--detail-tc", bc.tc);
+  /* いいねボタンの状態を復元（同じセッション内で再訪した場合） */
+  const liked = likedSet.has(item.t);
+  const likeBtn = document.getElementById("likeBtn");
+  const likeImg = document.getElementById("likeImg");
+  likeImg.src = liked ? LIKE_IMG_ON : LIKE_IMG_OFF;
+  if(liked){ likeBtn.classList.add("liked"); }else{ likeBtn.classList.remove("liked"); }
+  likeBtn.disabled = liked; /* いいね済みは再押し不可 */
   fadeOut(document.getElementById("actScreen"),()=>{
     fadeIn(document.getElementById("detailScreen"));
   });
+}
+
+/* いいねボタンを押したとき */
+function toggleLike(){
+  if(!currentDetailItem) return;
+  const t = currentDetailItem.t;
+  if(likedSet.has(t)) return; /* 取り消し不可 */
+
+  likedSet.add(t);
+  const likeBtn = document.getElementById("likeBtn");
+  const likeImg = document.getElementById("likeImg");
+  likeImg.src = LIKE_IMG_ON;
+  likeBtn.classList.add("liked");
+  likeBtn.disabled = true;
+
+  /* Googleフォームに送信（日付＋タイトル） */
+  const today = new Date();
+  const dateStr = today.getFullYear() + "年" +
+                  (today.getMonth()+1) + "月" +
+                  today.getDate() + "日";
+  const params = new URLSearchParams();
+  params.append(LIKE_ENTRY_TITLE, t);
+  params.append(LIKE_ENTRY_DATE,  dateStr);
+  /* no-cors で送信（レスポンスは読めないが送信はできる） */
+  fetch(LIKE_FORM_URL, {
+    method: "POST",
+    mode:   "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body:   params.toString(),
+  }).catch(()=>{}); /* エラーは握りつぶす（ユーザーに影響させない） */
 }
 
 /* 詳細画面のもどるボタン：特効薬画面へ戻る */
@@ -695,6 +781,7 @@ function restart(){
   if(document.getElementById("actTtl")) document.getElementById("actTtl").textContent="";
   if(document.getElementById("actDesc")) document.getElementById("actDesc").textContent="";
   chosenBubbles=[];
+  likedSet.clear(); /* もういちど押したらいいね状態をリセット */
   const current =
     document.getElementById("detailScreen").classList.contains("active")
       ? document.getElementById("detailScreen")
