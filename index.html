@@ -662,7 +662,9 @@ function showResult(){
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
   /* 全特効薬を回答との一致度でスコアリングして選択（特効薬画面で使用） */
-  chosenBubbles = selectBubbles(ans, 10);
+  /* スマホ（480px以下）は2×4=8個、PC・タブレットは5×2=10個 */
+  const bubbleCount = window.matchMedia("(max-width:480px)").matches ? 8 : 10;
+  chosenBubbles = selectBubbles(ans, bubbleCount);
   fadeIn(document.getElementById("resultScreen"));
 }
 
