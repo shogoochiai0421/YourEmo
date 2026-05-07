@@ -451,6 +451,9 @@ const IMG = {
   tired:          BASE_EXP+"expression-tired.png",
   playwith:       BASE_EXP+"expression-playwith.png",
   alone:          BASE_EXP+"expression-alone.png",
+  palpitations:   BASE_EXP+"expression-palpitations.png",
+  stuffy:         BASE_EXP+"expression-stuffy.png",
+  talk:          BASE_EXP+"expression-talking.png",
 };
 
 const Qs=[
@@ -473,15 +476,15 @@ const Qs=[
     {i:"😶",ikey:"expressionless",     l:"わからない",     v:"unsure"}
   ]},
   {id:"body",text:"からだはどんなかんじ？",opts:[
-    {i:"💓",    ikey:"panic",   l:"ドキドキしてる", v:"heart"},
-    {i:"😮‍💨",ikey:"amaze",   l:"いきぐるしい",  v:"breath"},
+    {i:"💓",    ikey:"palpitations",   l:"ドキドキしてる", v:"heart"},
+    {i:"😮‍💨",ikey:"stuffy",   l:"いきぐるしい",  v:"breath"},
     {i:"🤢",    ikey:"sickness",l:"きもちわるい<br>あたまがいたい",v:"bad"},
     {i:"😌",    ikey:"smile",  l:"だいじょうぶ",  v:"fine"}
   ]},
   {id:"wish",text:"いましたいことは？",opts:[
     {i:"🎮",ikey:"playwith",   l:"あそびたい",     v:"play"},
     {i:"😴",ikey:"sleepy",  l:"ねむりたい",     v:"sleep"},
-    {i:"🤝",ikey:"kidding", l:"はなしたい",     v:"talk"},
+    {i:"🤝",ikey:"talk", l:"はなしたい",     v:"talk"},
     {i:"😶",ikey:"expressionless", l:"なにもしたくない",v:"nothing"}
   ]}
 ];
