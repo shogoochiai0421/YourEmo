@@ -153,7 +153,7 @@ const BUBBLES = [
    tags:{mood:["sad","anxious"], energy:"low", social:"alone", body:["fine","bad"], wish:"nothing"}},
   {t:"すきなキャラクターをながめてみる",
    g:"気分転換",
-   img:"act-using-tablet.png",
+   img:"act-play-with-dolls.png",
    desc:"すきな キャラクターの グッズや えを、じっくり ながめてみよう。",
    tags:{mood:"sad", energy:"low", social:"alone", body:["fine","bad"], wish:"nothing"}},
   {t:"すきなキャラクターのえをかいてみる",
