@@ -348,15 +348,127 @@ html, body {
   .next-screen-btn { font-size: 16px; padding: 12px 24px; }
 }
 
+
+/* ── 名前選択UI（スタート画面右上） ── */
+.name-bar {
+  position:absolute; top:16px; right:16px;
+  display:flex; align-items:center; gap:8px; z-index:100;
+}
+.name-select {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700;
+  font-size:20px;
+  color:#53433a;
+  background:#fff;
+  border:1.5px solid #FFCC80;
+  border-radius:99px;
+  padding:11px 25px;
+  cursor:pointer;
+  max-width:290px;
+  outline:none;
+}
+.name-add-btn {
+  width:60px; height:60px;
+  background:#ffce65;
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  font-size:40px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  line-height:1;
+}
+.name-add-btn:active { transform:scale(0.92); }
+
+/* ── 名前管理画面 ── */
+#nameScreen {
+  justify-content:flex-start;
+  padding:24px 28px 20px;
+  gap:0;
+  overflow:hidden;
+}
+.name-screen-head {
+  display:flex; align-items:center; gap:10px;
+  width:100%; max-width:600px; margin:0 auto 18px; flex-shrink:0;
+}
+.name-back-btn {
+  background:transparent; border:none;
+  font-size:20px; color:#b09070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  padding:4px 8px; flex-shrink:0;
+}
+.name-screen-title {
+  font-size:20px; font-weight:700; color:#53433a; flex:1;
+}
+.name-count {
+  font-size:13px; color:#c0a888; flex-shrink:0;
+}
+.name-input-row {
+  display:flex; gap:8px; width:100%; max-width:600px;
+  margin:0 auto 20px; flex-shrink:0;
+}
+.name-input {
+  flex:1;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700; font-size:18px;
+  border:1.5px solid #FFCC80; border-radius:12px;
+  padding:10px 14px; color:#53433a;
+  background:#FFF9F0; outline:none;
+}
+.name-input:focus { border-color:#FFA726; }
+.name-confirm-btn {
+  background:#ffce65; color:#fff; border:none;
+  border-radius:12px; padding:10px 20px;
+  font-size:16px; font-weight:700;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  cursor:pointer; flex-shrink:0;
+}
+.name-confirm-btn:active { transform:scale(0.95); }
+.name-list-wrap {
+  flex:1; overflow-y:auto; width:100%; max-width:600px; margin:0 auto;
+}
+.name-list {
+  list-style:none; width:100%;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  padding:4px 0;
+}
+.name-list-item {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fff; border:1.5px solid #FFCC80;
+  border-radius:14px; padding:10px 14px;
+  font-size:17px; color:#53433a;
+}
+.name-del-btn {
+  background:transparent; border:1px solid #ffb3b3;
+  border-radius:99px; padding:3px 12px;
+  font-size:12px; color:#cc7070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  flex-shrink:0; margin-left:6px;
+}
+.name-del-btn:active { transform:scale(0.95); }
+.name-empty {
+  text-align:center; color:#c0a888; font-size:15px;
+  padding:30px 0; grid-column:1/-1;
+}
+
 </style>
 
 <div id="app">
 <div id="startScreen" class="screen active">
+  <!-- 名前選択バー -->
+  <div class="name-bar">
+    <select class="name-select" id="nameSelect" onchange="onNameSelect()">
+      <option value="">なまえを えらぶ</option>
+    </select>
+    <button class="name-add-btn" onclick="goNameScreen()" title="なまえをついかする">＋</button>
+  </div>
 
   <img class="big-img" id="startImg" src="" alt="">
   <div class="ttl">きもちチェック</div>
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
-  <button class="start-btn" onclick="startQ()">はじめる</button>
+  <button class="start-btn" id="startBtn" onclick="startQ()">はじめる</button>
 <div style="position:absolute; bottom:20px; left:30px; display:flex; gap:20px; z-index:100;">
   <div class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:none;">開発 横浜保育教育専門学校 にじいろゼミ</div>
   <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">連絡はこちら</a>
@@ -364,8 +476,26 @@ html, body {
 </div>
 </div>
 
+<!-- 名前管理画面 -->
+<div id="nameScreen" class="screen">
+  <div class="name-screen-head">
+    <button class="name-back-btn" onclick="goBackToStart()">← もどる</button>
+    <span class="name-screen-title">名前を追加する</span>
+    <span class="name-count" id="nameCount"></span>
+  </div>
+  <div class="name-input-row">
+    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="20"
+      onkeydown="if(event.key==='Enter')addName()">
+    <button class="name-confirm-btn" onclick="addName()">追加</button>
+  </div>
+  <div class="name-list-wrap">
+    <ul class="name-list" id="nameList"></ul>
+  </div>
+</div>
+
 <div id="quizScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:0%"></div></div>
+  <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:14px;color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;"></div>
   <div class="q-text" id="qtext"></div>
   <div class="opts" id="opts"></div>
   <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
@@ -373,6 +503,7 @@ html, body {
 </div>
 <!-- 今の気持ち画面 -->
 <div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
+  <div id="resultNameLabel" style="display:none;font-size:18px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;"></div>
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
@@ -579,16 +710,165 @@ function fadeContent(cb){
   setTimeout(()=>{cb();qs.style.opacity="1";setTimeout(()=>{qs.style.transition="";},ms+50);},ms);
 }
 
+/* =============================================
+   ★ 名前データの送信設定 ★
+   GASのURLを設定してね（いいねと別でも同じでもOK）
+   ============================================= */
+const NAME_RESULT_URL = "https://script.google.com/macros/s/XXXXXXXXXX/exec"; /* ← GASのURLに変えてね */
+
+/* ── 名前管理（localStorage） ── */
+const NAMES_KEY = "kimochi_names"; /* localStorageのキー */
+
+/* 名前一覧をlocalStorageから取得 */
+function loadNames(){
+  try { return JSON.parse(localStorage.getItem(NAMES_KEY)) || []; }
+  catch(e){ return []; }
+}
+/* 名前一覧をlocalStorageに保存 */
+function saveNames(list){
+  localStorage.setItem(NAMES_KEY, JSON.stringify(list));
+}
+/* 短いユニークID生成（8文字英数字） */
+function genId(){
+  return Math.random().toString(36).slice(2,10);
+}
+
+/* スタート画面のプルダウンを更新 */
+function refreshNameSelect(){
+  const list = loadNames();
+  const sel = document.getElementById("nameSelect");
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">なまえを えらぶ</option>';
+  list.forEach(n => {
+    const opt = document.createElement("option");
+    opt.value = n.id;
+    opt.textContent = n.name;
+    if(n.id === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  updateStartBtn();
+}
+
+/* 名前を選んだとき：はじめるボタンの文言を変更 */
+function onNameSelect(){
+  updateStartBtn();
+}
+function updateStartBtn(){
+  const sel = document.getElementById("nameSelect");
+  const btn = document.getElementById("startBtn");
+  if(!sel || !btn) return;
+  const selOpt = sel.options[sel.selectedIndex];
+  if(sel.value && selOpt){
+    btn.textContent = selOpt.textContent + "さんと はじめる";
+  } else {
+    btn.textContent = "はじめる";
+  }
+}
+
+/* 現在選択中のユーザー情報を返す（未選択ならnull） */
+function getSelectedUser(){
+  const sel = document.getElementById("nameSelect");
+  if(!sel || !sel.value) return null;
+  const list = loadNames();
+  return list.find(n => n.id === sel.value) || null;
+}
+
+/* 名前管理画面へ遷移 */
+function goNameScreen(){
+  renderNameList();
+  fadeOut(document.getElementById("startScreen"),()=>{
+    document.getElementById("nameInput").value = "";
+    fadeIn(document.getElementById("nameScreen"));
+  });
+}
+/* 名前管理画面からスタート画面へ戻る */
+function goBackToStart(){
+  fadeOut(document.getElementById("nameScreen"),()=>{
+    refreshNameSelect();
+    fadeIn(document.getElementById("startScreen"));
+  });
+}
+
+/* 名前を追加 */
+function addName(){
+  const input = document.getElementById("nameInput");
+  const name = input.value.trim();
+  if(!name) return;
+  const list = loadNames();
+  list.push({id: genId(), name});
+  saveNames(list);
+  input.value = "";
+  input.focus();
+  renderNameList();
+}
+
+/* 削除確認ダイアログ付きで名前を削除 */
+function confirmDeleteName(id, name){
+  if(!confirm(name + " さんを\nほんとうにさくじょしますか？")){return;}
+  deleteName(id);
+}
+function deleteName(id){
+  const list = loadNames().filter(n => n.id !== id);
+  saveNames(list);
+  const sel = document.getElementById("nameSelect");
+  if(sel && sel.value === id){ sel.value = ""; updateStartBtn(); }
+  renderNameList();
+}
+
+/* 名前管理画面のリストを再描画 */
+function renderNameList(){
+  const list = loadNames();
+  const ul = document.getElementById("nameList");
+  const countEl = document.getElementById("nameCount");
+  if(countEl) countEl.textContent = list.length ? list.length+"にん" : "";
+  if(!ul) return;
+  if(!list.length){
+    ul.innerHTML = '<li class="name-empty">まだ なまえが ないよ</li>';
+    return;
+  }
+  ul.innerHTML = list.map(n =>
+    `<li class="name-list-item">
+      <span>${n.name}</span>
+      <button class="name-del-btn" onclick="confirmDeleteName('${n.id}','${n.name}')">削除</button>
+    </li>`
+  ).join("");
+}
+
+/* 結果をGASに送信（名前が選択されている場合） ← 送信内容はここに追加してね */
+function sendResult(){
+  const user = getSelectedUser();
+  if(!user) return; /* 匿名の場合は送信しない */
+  const params = new URLSearchParams();
+  params.append("name", user.name);
+  params.append("uid",  user.id);
+  /* ★ここに送りたいデータを追加してね★ */
+  /* 例: params.append("mood", ans.mood); */
+  const url = NAME_RESULT_URL + "?" + params.toString();
+  if(navigator.sendBeacon){ navigator.sendBeacon(url); }
+  else if(window.fetch){ fetch(url,{mode:"no-cors"}).catch(()=>{}); }
+  else { new Image().src = url; }
+}
+
 /* ページ読み込み完了時：スタート画面の画像をセットしてフェードイン */
 window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.rainbow){si.src=IMG.rainbow;si.style.display="block";}else{si.style.display="none";}
+  refreshNameSelect();
   fadeIn(document.getElementById("startScreen"));
 });
 
 /* はじめるボタンを押したとき：スタート画面をフェードアウトして質問画面へ */
 function startQ(){
   fadeOut(document.getElementById("startScreen"),()=>{
+    /* 名前バッジを更新 */
+    const user = getSelectedUser();
+    const badge = document.getElementById("quizNameBadge");
+    if(user){
+      badge.textContent = user.name + "さん";
+      badge.style.display = "block";
+    } else {
+      badge.style.display = "none";
+    }
     cur=0;ans={};renderQ();
     fadeIn(document.getElementById("quizScreen"));
   });
@@ -692,6 +972,15 @@ function showResult(){
   /* スマホ（480px以下）は2×4=8個、PC・タブレットは5×2=10個 */
   const bubbleCount = window.matchMedia("(max-width:480px)").matches ? 8 : 10;
   chosenBubbles = selectBubbles(ans, bubbleCount);
+  sendResult();
+  const resUser = getSelectedUser();
+  const resLabel = document.getElementById("resultNameLabel");
+  if(resUser){
+    resLabel.textContent = "いまの " + resUser.name + " さんは";
+    resLabel.style.display = "block";
+  } else {
+    resLabel.style.display = "none";
+  }
   fadeIn(document.getElementById("resultScreen"));
 }
 
@@ -806,6 +1095,7 @@ function restart(){
   document.getElementById("subTags").textContent="";
   if(document.getElementById("actTtl")) document.getElementById("actTtl").textContent="";
   if(document.getElementById("actDesc")) document.getElementById("actDesc").textContent="";
+  const rnl=document.getElementById("resultNameLabel"); if(rnl) rnl.style.display="none";
   chosenBubbles=[];
   likedSet.clear(); /* もういちど押したらいいね状態をリセット */
   const current =
