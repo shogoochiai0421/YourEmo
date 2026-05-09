@@ -394,7 +394,7 @@ html, body {
     <div class="act-desc" id="actDesc"></div>
   </div>
   <div class="bubble-grid" id="bscene"></div>
-  <button class="retry-btn" onclick="restart()">もういちど</button>
+  <button class="retry-btn" onclick="restart()">さいしょから</button>
 </div>
 
 <!-- 特効薬詳細画面 -->
@@ -469,7 +469,7 @@ const Qs=[
   {id:"mood",text:"いまのきもちはどれかな？",opts:[
     {i:"😄",ikey:"smile",  l:"たのしいきもち",    v:"happy"},
     {i:"😢",ikey:"cry",    l:"かなしいきもち",    v:"sad"},
-    {i:"😠",ikey:"mad",    l:"いらいらするきもち",v:"angry"},
+    {i:"😠",ikey:"mad",    l:"いらいらする",v:"angry"},
     {i:"😨",ikey:"fear",   l:"なんだかこわいきもち",v:"anxious"}
   ]},
   {id:"energy",text:"からだにげんきはあるかな？",opts:[
@@ -519,18 +519,33 @@ function scoreBubble(bubble, ans){
   return score;
 }
 
-/* スコアに基づく重み付きランダム選択でN個を返す */
+/* スコアに基づく重み付きランダム選択でN個を返す。
+   1点以上を優先し、足りない場合のみ0点から補充する */
 function selectBubbles(ans, n){
-  const scored = BUBBLES.map(b => ({b, w: Math.pow(2, scoreBubble(b, ans))}));
+  const scored = BUBBLES.map(b => {
+    const s = scoreBubble(b, ans);
+    return {b, s, w: Math.pow(2, s)};
+  });
+
+  /* まず1点以上を候補にする */
+  let candidates = scored.filter(x => x.s >= 1);
+
+  /* 足りない場合は0点から不足分を補充 */
+  if(candidates.length < n){
+    const zeros = scored.filter(x => x.s === 0);
+    candidates = candidates.concat(zeros.slice(0, n - candidates.length));
+  }
+
+  /* 重み付き抽選 */
   const result = [];
   const used = new Set();
-  for(let i = 0; i < n && used.size < BUBBLES.length; i++){
-    const total = scored.reduce((s, x, idx) => used.has(idx) ? s : s + x.w, 0);
+  for(let i = 0; i < n && used.size < candidates.length; i++){
+    const total = candidates.reduce((s, x, idx) => used.has(idx) ? s : s + x.w, 0);
     let r = Math.random() * total;
-    for(let j = 0; j < scored.length; j++){
+    for(let j = 0; j < candidates.length; j++){
       if(used.has(j)) continue;
-      r -= scored[j].w;
-      if(r <= 0){ used.add(j); result.push(scored[j].b); break; }
+      r -= candidates[j].w;
+      if(r <= 0){ used.add(j); result.push(candidates[j].b); break; }
     }
   }
   return result;
@@ -704,9 +719,8 @@ function placeBubbles(list){
     const el=document.createElement("div");
     el.className="bubble";
     const bc = item.g && BC[item.g] ? BC[item.g] : {c:item.c||"#FBEAF0", tc:item.tc||"#72243E"};
-    const imgHtml = item.img
-      ? `<img class="bubble-img" src="${BASE_ACT}${item.img}" alt="">`
-      : "";
+    const imgSrc = item.img ? BASE_ACT + item.img : BASE_ACT + "404.png";
+    const imgHtml = `<img class="bubble-img" src="${imgSrc}" alt="">`;
     el.innerHTML = imgHtml + `<span class="bubble-txt">${item.t}</span>`;
     el.style.cssText=`background:${bc.c};color:${bc.tc};cursor:pointer;`;
     el.onclick = () => openDetail(item);
@@ -721,10 +735,10 @@ let currentDetailItem = null; /* 現在表示中のitemを保持 */
 
 function openDetail(item){
   currentDetailItem = item;
-  const img = item.img ? BASE_ACT + item.img : "";
+  const img = BASE_ACT + (item.img || "404.png");
   const di = document.getElementById("detailImg");
   di.src = img;
-  di.style.display = img ? "block" : "none";
+  di.style.display = "block";
   document.getElementById("detailTtl").textContent  = item.t;
   document.getElementById("detailDesc").textContent = item.desc || "";
   /* イメージカラーをカードに適用 */
