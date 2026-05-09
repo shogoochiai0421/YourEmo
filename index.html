@@ -57,7 +57,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 html, body {
-  width:100%; height:100%;
+  width:100%;
+  height:100dvh; /* dynamic viewport height：アドレスバー等を除いた実際の高さ */
   overflow:hidden;
   background-color: rgb(255, 250, 241);
 }
@@ -65,7 +66,8 @@ html, body {
 #app {
   font-family:'M PLUS Rounded 1c',sans-serif;
   font-weight:700;
-  width:100%; height:100%;
+  width:100%;
+  height:100dvh;
   display:flex; flex-direction:column;
   color:#53433a;
   overflow:hidden;
@@ -153,29 +155,35 @@ html, body {
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
 /* ── 特効薬画面 ── */
-#actScreen { padding:16px 16px 8px; justify-content:flex-start; }
-.act-top  { text-align:center; padding:30px 0 10px; flex-shrink:0; width:100%; }
-.act-ttl  { font-size:var(--act-ttl-size);  font-weight:var(--fw-res-ttl);  color:var(--color-text-primary); }
-.act-desc { font-size:var(--act-desc-size); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:4px; line-height:1.5; }
+#actScreen { padding:clamp(8px,1.5vh,16px) 16px clamp(4px,1vh,8px); justify-content:flex-start; }
+.act-top  { text-align:center; padding:clamp(8px,2vh,30px) 0 clamp(4px,1vh,10px); flex-shrink:0; width:100%; }
+.act-ttl  { font-size:clamp(14px, 3vh, var(--act-ttl-size));  font-weight:var(--fw-res-ttl);  color:var(--color-text-primary); }
+.act-desc { font-size:clamp(10px, 1.8vh, var(--act-desc-size)); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:4px; line-height:1.5; }
 
 .bubble-grid {
   display:grid;
-  grid-template-columns: repeat(5, var(--bubble-w));
-  gap:var(--bubble-gap);
+  /* バブル幅をmin()でビューポートに応じて自動縮小 */
+  grid-template-columns: repeat(5, min(var(--bubble-w), 18vw));
+  gap:clamp(6px, 1vw, var(--bubble-gap));
   justify-content:center;
+  align-content:center;
   width:100%;
   flex:1;
-  align-content:center;
   padding:0 8px;
   min-height:0;
   overflow:hidden;
 }
 @media (max-width: 480px) {
-  .bubble-grid { grid-template-columns: repeat(2, var(--bubble-w)); }
+  .bubble-grid {
+    grid-template-columns: repeat(2, min(var(--bubble-w), 44vw));
+    gap:clamp(6px, 2vw, var(--bubble-gap));
+  }
 }
 
-.bubble { width:var(--bubble-w); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:var(--bubble-txt); font-weight:var(--fw-bubble); line-height:1.4; padding:10px 8px; opacity:0; transition:opacity 0.6s ease; gap:4px; }
-.bubble-img { width:var(--bubble-img-size); height:var(--bubble-img-size); object-fit:contain; flex-shrink:0; }
+.bubble { width:100%; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:clamp(10px, 1.2vw, var(--bubble-txt)); font-weight:var(--fw-bubble); line-height:1.4; padding:clamp(6px,1vh,10px) 8px; opacity:0; transition:opacity 0.6s ease; gap:4px; }
+@media (max-width:480px) { .bubble { font-size:clamp(10px, 3vw, var(--bubble-txt)); } }
+.bubble-img { width:min(var(--bubble-img-size), 13vw); height:min(var(--bubble-img-size), 13vw); object-fit:contain; flex-shrink:0; }
+@media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
 .bubble-txt { line-height:1.4; }
 
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
@@ -477,7 +485,7 @@ const Qs=[
     {i:"😶",ikey:"expressionless",     l:"わからない",     v:"unsure"}
   ]},
   {id:"body",text:"からだはどんなかんじ？",opts:[
-    {i:"😌",    ikey:"smile",  l:"げんき",  v:"fine"}
+    {i:"😌",    ikey:"smile",  l:"げんき",  v:"fine"},
     {i:"💓",    ikey:"palpitations",   l:"ドキドキしてる", v:"heart"},
     {i:"😮‍💨",ikey:"stuffy",   l:"いきぐるしい",  v:"breath"},
     {i:"🤢",    ikey:"sickness",l:"きもちわるい<br>あたまがいたい",v:"bad"},
