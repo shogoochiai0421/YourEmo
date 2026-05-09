@@ -452,6 +452,14 @@ html, body {
   text-align:center; color:#c0a888; font-size:15px;
   padding:30px 0; grid-column:1/-1;
 }
+.name-del-all-btn {
+  background:transparent; border:1px solid #ffb3b3;
+  border-radius:99px; padding:5px 14px;
+  font-size:13px; color:#cc7070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  flex-shrink:0;
+}
+.name-del-all-btn:active { transform:scale(0.95); }
 
 </style>
 
@@ -482,6 +490,7 @@ html, body {
     <button class="name-back-btn" onclick="goBackToStart()">← もどる</button>
     <span class="name-screen-title">名前を追加する</span>
     <span class="name-count" id="nameCount"></span>
+    <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
   </div>
   <div class="name-input-row">
     <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="20"
@@ -495,7 +504,7 @@ html, body {
 
 <div id="quizScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:0%"></div></div>
-  <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:14px;color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;"></div>
+  <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:24px;color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;"></div>
   <div class="q-text" id="qtext"></div>
   <div class="opts" id="opts"></div>
   <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
@@ -503,7 +512,7 @@ html, body {
 </div>
 <!-- 今の気持ち画面 -->
 <div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
-  <div id="resultNameLabel" style="display:none;font-size:18px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;"></div>
+  <div id="resultNameLabel" style="display:none;font-size:36px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;margin-bottom:4px;"></div>
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
@@ -521,6 +530,7 @@ html, body {
 <!-- 特効薬画面 -->
 <div id="actScreen" class="screen">
   <div class="act-top">
+    <div id="actNameLabel" style="display:none;font-size:24px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;margin-bottom:4px;"></div>
     <div class="act-ttl" id="actTtl"></div>
     <div class="act-desc" id="actDesc"></div>
   </div>
@@ -804,7 +814,7 @@ function addName(){
 
 /* 削除確認ダイアログ付きで名前を削除 */
 function confirmDeleteName(id, name){
-  if(!confirm(name + " さんを\nほんとうにさくじょしますか？")){return;}
+  if(!confirm(name + " さんを\n本当に削除しますか？")){return;}
   deleteName(id);
 }
 function deleteName(id){
@@ -815,15 +825,26 @@ function deleteName(id){
   renderNameList();
 }
 
+/* すべての名前を削除 */
+function confirmDeleteAllNames(){
+  const list = loadNames();
+  if(!list.length) return;
+  if(!confirm("全ての名前を\n本当に削除しますか？")) return;
+  saveNames([]);
+  const sel = document.getElementById("nameSelect");
+  if(sel){ sel.value = ""; updateStartBtn(); }
+  renderNameList();
+}
+
 /* 名前管理画面のリストを再描画 */
 function renderNameList(){
   const list = loadNames();
   const ul = document.getElementById("nameList");
   const countEl = document.getElementById("nameCount");
-  if(countEl) countEl.textContent = list.length ? list.length+"にん" : "";
+  if(countEl) countEl.textContent = list.length ? list.length+"名" : "";
   if(!ul) return;
   if(!list.length){
-    ul.innerHTML = '<li class="name-empty">まだ なまえが ないよ</li>';
+    ul.innerHTML = '<li class="name-empty">まだ 名前の登録が ありません</li>';
     return;
   }
   ul.innerHTML = list.map(n =>
@@ -989,6 +1010,15 @@ function showActScreen(){
   /* 上部テキスト：きもちラベル（もやもや等）＋サブタグ（つかれている・ひとりでいたい等） */
   document.getElementById("actTtl").textContent  = document.getElementById("cct").textContent;
   document.getElementById("actDesc").textContent = document.getElementById("subTags").textContent;
+  /* 名前ラベル */
+  const actUser = getSelectedUser();
+  const actNameLabel = document.getElementById("actNameLabel");
+  if(actUser){
+    actNameLabel.textContent = "いまの " + actUser.name + " さんのきもちは";
+    actNameLabel.style.display = "block";
+  } else {
+    actNameLabel.style.display = "none";
+  }
   fadeOut(document.getElementById("resultScreen"),()=>{
     fadeIn(document.getElementById("actScreen"));
     setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
@@ -1096,6 +1126,7 @@ function restart(){
   if(document.getElementById("actTtl")) document.getElementById("actTtl").textContent="";
   if(document.getElementById("actDesc")) document.getElementById("actDesc").textContent="";
   const rnl=document.getElementById("resultNameLabel"); if(rnl) rnl.style.display="none";
+  const anl=document.getElementById("actNameLabel"); if(anl) anl.style.display="none";
   chosenBubbles=[];
   likedSet.clear(); /* もういちど押したらいいね状態をリセット */
   const current =
