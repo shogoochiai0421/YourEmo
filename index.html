@@ -461,7 +461,7 @@ const Qs=[
   {id:"mood",text:"いまのきもちはどれかな？",opts:[
     {i:"😄",ikey:"smile",  l:"たのしいきもち",    v:"happy"},
     {i:"😢",ikey:"cry",    l:"かなしいきもち",    v:"sad"},
-    {i:"😠",ikey:"mad",    l:"もやもやするきもち",v:"angry"},
+    {i:"😠",ikey:"mad",    l:"いらいらするきもち",v:"angry"},
     {i:"😨",ikey:"fear",   l:"なんだかこわいきもち",v:"anxious"}
   ]},
   {id:"energy",text:"からだにげんきはあるかな？",opts:[
@@ -477,10 +477,10 @@ const Qs=[
     {i:"😶",ikey:"expressionless",     l:"わからない",     v:"unsure"}
   ]},
   {id:"body",text:"からだはどんなかんじ？",opts:[
+    {i:"😌",    ikey:"smile",  l:"げんき",  v:"fine"}
     {i:"💓",    ikey:"palpitations",   l:"ドキドキしてる", v:"heart"},
     {i:"😮‍💨",ikey:"stuffy",   l:"いきぐるしい",  v:"breath"},
     {i:"🤢",    ikey:"sickness",l:"きもちわるい<br>あたまがいたい",v:"bad"},
-    {i:"😌",    ikey:"smile",  l:"だいじょうぶ",  v:"fine"}
   ]},
   {id:"wish",text:"いましたいことは？",opts:[
     {i:"🎮",ikey:"playwith",   l:"あそびたい",     v:"play"},
@@ -749,11 +749,21 @@ function toggleLike(){
   likeBtn.classList.add("liked");
   likeBtn.disabled = true;
 
-  /* imgタグのGETリクエストでGoogleフォームに送信（CORSを回避できる） */
-const url = LIKE_FORM_URL
-  + "?title=" + encodeURIComponent(t)
-const beacon = new Image();
-beacon.src = url;
+  /* 3段構えで送信（WebView環境でも届くよう） */
+  const url = LIKE_FORM_URL + "?title=" + encodeURIComponent(t);
+
+  /* ① sendBeacon（バックグラウンド送信・一番確実） */
+  if(navigator.sendBeacon){
+    navigator.sendBeacon(url);
+  }
+  /* ② fetch（sendBeaconが使えない場合） */
+  else if(window.fetch){
+    fetch(url, {mode:"no-cors"}).catch(()=>{});
+  }
+  /* ③ Image GET（最終手段・WebView等の古い環境向け） */
+  else {
+    new Image().src = url;
+  }
 }
 
 /* 詳細画面のもどるボタン：特効薬画面へ戻る */
