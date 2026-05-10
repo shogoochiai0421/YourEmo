@@ -461,6 +461,26 @@ html, body {
 }
 .name-del-all-btn:active { transform:scale(0.95); }
 
+/* ── 名前選択ヒント ── */
+#nameSelectHint {
+  position:absolute;
+  top:90px; /* name-bar(top:16px + 高さ約60px) + 余白14px */
+  right:120px;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:400;
+  font-size:18px;
+  color:#7e7d81;
+  pointer-events:none;
+  display:none;
+  animation: hintBounce 1s ease-in-out infinite;
+  z-index:100;
+  white-space:nowrap;
+}
+@keyframes hintBounce {
+  0%,100% { transform:translateY(0); }
+  50%      { transform:translateY(-5px); }
+}
+
 </style>
 
 <div id="app">
@@ -470,8 +490,9 @@ html, body {
     <select class="name-select" id="nameSelect" onchange="onNameSelect()">
       <option value="">なまえを えらぶ</option>
     </select>
-    <button class="name-add-btn" onclick="goNameScreen()" title="なまえをついかする">＋</button>
+    <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
   </div>
+  <div id="nameSelectHint">↑ なまえをせんたく</div>
 
   <img class="big-img" id="startImg" src="" alt="">
   <div class="ttl">きもちチェック</div>
@@ -743,6 +764,20 @@ function genId(){
   return Math.random().toString(36).slice(2,10);
 }
 
+/* 名前選択ヒントの表示／非表示を制御 */
+function updateNameSelectHint(){
+  const hint = document.getElementById("nameSelectHint");
+  if(!hint) return;
+  const list = loadNames();
+  const sel  = document.getElementById("nameSelect");
+  /* 名前がある かつ まだ選択されていない場合のみ表示 */
+  if(list.length > 0 && (!sel || !sel.value)){
+    hint.style.display = "block";
+  } else {
+    hint.style.display = "none";
+  }
+}
+
 /* スタート画面のプルダウンを更新 */
 function refreshNameSelect(){
   const list = loadNames();
@@ -757,11 +792,13 @@ function refreshNameSelect(){
     sel.appendChild(opt);
   });
   updateStartBtn();
+  updateNameSelectHint();
 }
 
 /* 名前を選んだとき：はじめるボタンの文言を変更 */
 function onNameSelect(){
   updateStartBtn();
+  updateNameSelectHint();
 }
 function updateStartBtn(){
   const sel = document.getElementById("nameSelect");
@@ -875,6 +912,7 @@ window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.rainbow){si.src=IMG.rainbow;si.style.display="block";}else{si.style.display="none";}
   refreshNameSelect();
+  updateNameSelectHint();
   fadeIn(document.getElementById("startScreen"));
 });
 
