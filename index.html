@@ -346,6 +346,18 @@ html, body {
   .sub-tags        { font-size: 10px; }
   .retry-btn       { font-size: 10px; margin-bottom: 16px; }
   .next-screen-btn { font-size: 16px; padding: 12px 24px; }
+
+  /* ── 名前選択UI・ヒント（スマホ：PC値の0.7倍） ── */
+  .name-bar        { top: 11px; right: 11px; gap: 6px; }  /* 16×0.7, 16×0.7, 8×0.7 */
+  .name-select     { font-size: 10px; padding: 8px 18px; max-width: 203px; } /* 20×0.7, 11/25×0.7, 290×0.7 */
+  .name-add-btn    { width: 42px; height: 42px; font-size: 28px; }           /* 60×0.7, 40×0.7 */
+  #nameSelectHint  { top: 63px; right: 84px; font-size: 13px; }              /* 11+42+10, 120×0.7, 18×0.7 */
+
+  /* ── 名前追加画面：入力欄＋ボタンを横幅内に収める ── */
+  #nameScreen      { padding: 16px 12px 12px; }
+  .name-input-row  { flex-wrap: nowrap; width: 100%; max-width: 100%; }
+  .name-input      { min-width: 0; font-size: 16px; padding: 10px; }         /* flex縮小を許可 */
+  .name-confirm-btn{ font-size: 14px; padding: 10px 14px; white-space: nowrap; }
 }
 
 
