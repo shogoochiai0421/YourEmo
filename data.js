@@ -614,7 +614,7 @@ const BUBBLES = [
    tags:{mood:["happy","sad"], energy:"any", social:"any", body:"fine", wish:"any"}},
   {t:"ひとにはなすのがむずかしいことをかいてみる",
    g:"表現",
-   img:"act-paper-spring.png",
+   img:"act-writing-letter.png",
    desc:"だれにもいえないことを かみにかいて、そのまま だれにもみせずに びりびりにして すてちゃう。",
    tags:{mood:["sad","angry"], energy:["low","mid"], social:["alone","neutral"], body:"any", wish:"any"}},
   {t:"やってみたいことをたくさんかいてみる",
