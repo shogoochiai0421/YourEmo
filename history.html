@@ -58,13 +58,13 @@ html, body {
   #outer        { left: 32px; }
 
   /* ヘッダー：左パディングを帯幅に合わせ縮小・gap縮小 */
-  .header { padding: 0 8px 0 40px; gap: 6px; height: 50px; }
+  .header { padding: 0 8px 0 8px; gap: 6px; height: 50px; }
 
   /* タイトルを非表示 */
   .header-title { display: none; }
 
   /* もどるボタン：文字を小さく */
-  .back-btn { font-size: 11px; padding: 5px 10px; }
+  .back-btn { font-size: 11px; padding: 1px 10px; }
 
   /* 送信・削除ボタン：アイコンのみ表示 */
   .send-btn    { font-size: 11px; padding: 5px 8px; }
@@ -265,11 +265,11 @@ html, body {
   <span class="header-title">気持ち経過観察画面</span>
   <button class="send-btn" id="sendBtn" onclick="sendToSpreadsheet()">
     <span class="btn-label-full">ゼミにデータを提供する</span>
-    <span class="btn-label-short">📤</span>
+    <span class="btn-label-short">ゼミにデータを提供する</span>
   </button>
   <button class="del-all-btn" onclick="confirmDeleteAll()">
     <span class="btn-label-full">表データ全削除</span>
-    <span class="btn-label-short">🗑</span>
+    <span class="btn-label-short">表データ全削除</span>
   </button>
 </div>
 
