@@ -871,12 +871,26 @@ function addName(){
 
 /* 削除確認ダイアログ付きで名前を削除 */
 function confirmDeleteName(id, name){
-  if(!confirm(name + " さんを\n本当に削除しますか？")){return;}
+  if(!confirm(name + " さんを\n本当に削除しますか？\nこの氏名に紐づいている過去の診断データも併せて消去されます。")){return;}
   deleteName(id);
 }
 function deleteName(id){
   const list = loadNames().filter(n => n.id !== id);
   saveNames(list);
+  /* 紐づく診断履歴を削除 */
+  try{
+    const hist = JSON.parse(localStorage.getItem("kimochi_history")||"[]");
+    localStorage.setItem("kimochi_history", JSON.stringify(hist.filter(r => r.nameId !== id)));
+  }catch(e){}
+  /* 紐づくいいねデータを削除 */
+  try{
+    const likes = JSON.parse(localStorage.getItem("kimochi_likes")||"{}");
+    delete likes[id];
+    localStorage.setItem("kimochi_likes", JSON.stringify(likes));
+  }catch(e){}
+  /* sessionStorageの選択状態もリセット */
+  if(sessionStorage.getItem("kimochi_selected_id") === id)
+    sessionStorage.removeItem("kimochi_selected_id");
   const sel = document.getElementById("nameSelect");
   if(sel && sel.value === id){ sel.value = ""; updateStartBtn(); }
   renderNameList();
@@ -888,6 +902,10 @@ function confirmDeleteAllNames(){
   if(!list.length) return;
   if(!confirm("全ての名前を\n本当に削除しますか？")) return;
   saveNames([]);
+  /* 全員分の診断履歴・いいねデータも削除 */
+  localStorage.removeItem("kimochi_history");
+  localStorage.removeItem("kimochi_likes");
+  sessionStorage.removeItem("kimochi_selected_id");
   const sel = document.getElementById("nameSelect");
   if(sel){ sel.value = ""; updateStartBtn(); }
   renderNameList();

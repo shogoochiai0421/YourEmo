@@ -136,12 +136,12 @@ html, body {
 .cell:last-child { border-right: none; }
 
 /* 背景色 */
-.bg-pos2 { background: #c8f0c8; color: #1a1a1a; }
-.bg-pos1 { background: #e4f7e4; color: #1a1a1a; }
-.bg-neu  { background: #f5f5f0; color: #1a1a1a; }
-.bg-neg1 { background: #fde8e0; color: #1a1a1a; }
-.bg-neg2 { background: #f8c8b8; color: #1a1a1a; }
-.bg-blue { background: #c8e8f8; color: #1a1a1a; }
+.bg-pos2 { background: #c8f0c8; color: #2e2c2c; }
+.bg-pos1 { background: #e4f7e4; color: #2e2c2c; }
+.bg-neu  { background: #f5f5f0; color: #2e2c2c; }
+.bg-neg1 { background: #fde8e0; color: #2e2c2c; }
+.bg-neg2 { background: #f8c8b8; color: #2e2c2c; }
+.bg-blue { background: #c8e8f8; color: #2e2c2c; }
 
 /* ══ いいね画面 ══ */
 #likes-screen {
@@ -186,7 +186,7 @@ html, body {
   background: var(--card-bg, #FBEAF0);
 }
 .like-card-ttl {
-  font-size: 15px; font-weight: 700;
+  font-size: 20px; font-weight: 700;
   color: var(--card-tc, #72243E);
   text-align: center; line-height: 1.3;
 }
@@ -206,7 +206,7 @@ html, body {
   padding: 8px 16px 20px;
 }
 .like-card-desc {
-  font-size: 11px; font-weight: 700; color: #53433a;
+  font-size: 15px; font-weight: 700; color: #53433a;
   text-align: center; line-height: 1.8;
 }
 
@@ -223,8 +223,8 @@ html, body {
 <!-- 固定ヘッダー -->
 <div class="header">
   <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
-  <span class="header-title">気持ち経過観察</span>
-  <button class="del-all-btn" onclick="confirmDeleteAll()">🗑 全データ削除</button>
+  <span class="header-title">気持ち経過観察画面</span>
+  <button class="del-all-btn" onclick="confirmDeleteAll()">表データ削除</button>
 </div>
 
 <!-- 左端 時系列帯 -->
@@ -328,7 +328,7 @@ function loadLikes(){
 
 /* ══ 全データ削除（二重確認） ══ */
 function confirmDeleteAll(){
-  const first = confirm("診断の記録とスタンプをすべて削除します。\nよろしいですか？");
+  const first = confirm("診断結果の記録をすべて削除します\nよろしいですか？(登録した名前は残ります)");
   if(!first) return;
   const second = confirm("本当に削除しますか？\nこの操作は元に戻せません。");
   if(!second) return;
@@ -367,7 +367,7 @@ function openLikes(nameId, name){
   if(kidLikes.length === 0){
     const em = document.createElement("div");
     em.className = "likes-empty";
-    em.innerHTML = "まだいいねした特効薬がありません";
+    em.innerHTML = "まだいいねしたカードがありません";
     body.appendChild(em);
   } else {
     kidLikes.forEach(item => {
@@ -422,7 +422,7 @@ function buildKidBlock(nameId, name, recs){
   nameEl.className = "kid-name";
   nameEl.innerHTML = `
     <span class="name-text">${name}<span class="san">さん</span></span>
-    <button class="like-btn" title="${name}さんのいいね一覧" onclick="openLikes('${nameId}','${name}')">☆</button>
+    <button class="like-btn" title="${name}さんと「いいね！」したカード" onclick="openLikes('${nameId}','${name}')">☆</button>
   `;
   block.appendChild(nameEl);
 
