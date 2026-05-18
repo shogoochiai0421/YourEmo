@@ -797,13 +797,14 @@ function updateNameSelectHint(){
 function refreshNameSelect(){
   const list = loadNames();
   const sel = document.getElementById("nameSelect");
-  const cur = sel.value;
+  /* DOM上の現在値、またはsessionStorageに保存された値を優先して復元 */
+  const savedId = sel.value || sessionStorage.getItem("kimochi_selected_id") || "";
   sel.innerHTML = '<option value="">なまえを えらぶ</option>';
   list.forEach(n => {
     const opt = document.createElement("option");
     opt.value = n.id;
     opt.textContent = n.name;
-    if(n.id === cur) opt.selected = true;
+    if(n.id === savedId) opt.selected = true;
     sel.appendChild(opt);
   });
   updateStartBtn();
@@ -814,6 +815,10 @@ function refreshNameSelect(){
 function onNameSelect(){
   updateStartBtn();
   updateNameSelectHint();
+  /* 選択中の名前IDをsessionStorageに保存（他ページから戻っても復元できるよう） */
+  const sel = document.getElementById("nameSelect");
+  if(sel && sel.value) sessionStorage.setItem("kimochi_selected_id", sel.value);
+  else sessionStorage.removeItem("kimochi_selected_id");
 }
 function updateStartBtn(){
   const sel = document.getElementById("nameSelect");
