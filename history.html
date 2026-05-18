@@ -51,6 +51,37 @@ html, body {
 .send-btn:active { transform: scale(0.95); }
 .send-btn:disabled { opacity: 0.5; cursor: default; }
 
+/* ══ スマホ対応（480px以下） ══ */
+@media (max-width: 480px) {
+  /* 帯を細く */
+  #timeline-bar { width: 32px; }
+  #outer        { left: 32px; }
+
+  /* ヘッダー：左パディングを帯幅に合わせ縮小・gap縮小 */
+  .header { padding: 0 8px 0 40px; gap: 6px; height: 50px; }
+
+  /* タイトルを非表示 */
+  .header-title { display: none; }
+
+  /* もどるボタン：文字を小さく */
+  .back-btn { font-size: 11px; padding: 5px 10px; }
+
+  /* 送信・削除ボタン：アイコンのみ表示 */
+  .send-btn    { font-size: 11px; padding: 5px 8px; }
+  .del-all-btn { font-size: 11px; padding: 5px 8px; }
+  .send-btn    .btn-label-full { display: none; }
+  .del-all-btn .btn-label-full { display: none; }
+  .send-btn    .btn-label-short { display: inline; }
+  .del-all-btn .btn-label-short { display: inline; }
+
+  /* スクロール領域を帯幅・ヘッダー高さに合わせる */
+  #outer { top: 50px; }
+  #timeline-bar { top: 50px; }
+}
+
+/* スマホ以外ではshort labelを隠す */
+.btn-label-short { display: none; }
+
 /* ══ 左端 時系列帯 ══ */
 #timeline-bar {
   position: fixed;
@@ -232,8 +263,14 @@ html, body {
 <div class="header">
   <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
   <span class="header-title">気持ち経過観察画面</span>
-  <button class="send-btn" id="sendBtn" onclick="sendToSpreadsheet()">ゼミにデータを提供する</button>
-  <button class="del-all-btn" onclick="confirmDeleteAll()">表データ削除</button>
+  <button class="send-btn" id="sendBtn" onclick="sendToSpreadsheet()">
+    <span class="btn-label-full">ゼミにデータを提供する</span>
+    <span class="btn-label-short">📤</span>
+  </button>
+  <button class="del-all-btn" onclick="confirmDeleteAll()">
+    <span class="btn-label-full">表データ全削除</span>
+    <span class="btn-label-short">🗑</span>
+  </button>
 </div>
 
 <!-- 左端 時系列帯 -->
@@ -361,7 +398,7 @@ async function sendToSpreadsheet(){
 
   const btn = document.getElementById("sendBtn");
   btn.disabled = true;
-  btn.textContent = "送信中…";
+  btn.innerHTML = "送信中…";
 
   /* 名前をマスクしたコピーを作成（元データは変更しない） */
   const maskedHistory = history.map(rec => ({
@@ -407,7 +444,7 @@ async function sendToSpreadsheet(){
     alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、お手数ですが にじいろゼミ まで不具合報告をお願いいたします。" + err);
   } finally {
     btn.disabled = false;
-    btn.textContent = "📤 送信";
+    btn.innerHTML = '<span class="btn-label-full">ゼミにデータを提供する</span><span class="btn-label-short">📤</span>';
   }
 }
 
