@@ -516,6 +516,7 @@ html, body {
   <div class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:none;">開発 横浜保育教育専門学校 にじいろゼミ</div>
   <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">連絡はこちら</a>
   <a href="about.html" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">使い方・このサイトについて</a>
+  <a href="history.html" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">📊 気持ち経過観察</a>
 </div>
 </div>
 
@@ -1046,6 +1047,21 @@ function showResult(){
   const bubbleCount = window.matchMedia("(max-width:480px)").matches ? 8 : 10;
   chosenBubbles = selectBubbles(ans, bubbleCount);
   sendResult();
+
+  /* ── 診断履歴をlocalStorageに保存（history.html連携） ── */
+  const histUser = getSelectedUser();
+  if(histUser){
+    const HIST_KEY = "kimochi_history";
+    let hist = [];
+    try{ hist = JSON.parse(localStorage.getItem(HIST_KEY)||"[]"); }catch(e){}
+    hist.push({
+      nameId: histUser.id,
+      name:   histUser.name,
+      date:   new Date().toISOString(),
+      ans:    { mood:ans.mood, energy:ans.energy, social:ans.social, body:ans.body, wish:ans.wish }
+    });
+    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  }
   const resUser = getSelectedUser();
   const resLabel = document.getElementById("resultNameLabel");
   if(resUser){
@@ -1141,6 +1157,26 @@ function toggleLike(){
   likeImg.src = LIKE_IMG_ON;
   likeBtn.classList.add("liked");
   likeBtn.disabled = true;
+
+  /* ── いいねをlocalStorageに保存（history.html連携） ── */
+  const likeUser = getSelectedUser();
+  if(likeUser && currentDetailItem){
+    const LIKES_KEY = "kimochi_likes";
+    let likes = {};
+    try{ likes = JSON.parse(localStorage.getItem(LIKES_KEY)||"{}"); }catch(e){}
+    if(!likes[likeUser.id]) likes[likeUser.id] = [];
+    /* 同じタイトルが既に登録済みなら追加しない */
+    const already = likes[likeUser.id].some(x => x.title === currentDetailItem.t);
+    if(!already){
+      likes[likeUser.id].push({
+        title: currentDetailItem.t,
+        genre: currentDetailItem.g  || "",
+        img:   currentDetailItem.img|| "",
+        desc:  currentDetailItem.desc|| ""
+      });
+      localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+    }
+  }
 
   /* 3段構えで送信（WebView環境でも届くよう） */
   const url = LIKE_FORM_URL + "?title=" + encodeURIComponent(t);

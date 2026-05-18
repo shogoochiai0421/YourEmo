@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>きもちチェック｜気持ち経過観察</title>
+</head>
+<body>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  background: #fff9f2;
+  color: #5a3e28;
+  overflow: hidden;
+}
+
+/* ══ 固定ヘッダー ══ */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0; height: 54px;
+  background: #fff9f2;
+  border-bottom: 2px solid #f0d9b8;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 16px 0 68px;
+  z-index: 400;
+}
+.back-btn {
+  background: #fff0dc; border: 2px solid #d4a855; border-radius: 99px;
+  padding: 6px 14px; font-family: inherit; font-weight: 700;
+  font-size: 14px; color: #a07030; cursor: pointer; flex-shrink: 0;
+}
+.back-btn:active { transform: scale(0.95); }
+.header-title { font-size: 18px; font-weight: 700; color: #8b5e2a; white-space: nowrap; }
+
+/* ══ 左端 時系列帯 ══ */
+#timeline-bar {
+  position: fixed;
+  top: 54px; bottom: 0; left: 0; width: 48px;
+  background: #fff0dc;
+  border-right: 2px solid #d4a855;
+  z-index: 350;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  user-select: none;
+}
+.bar-top, .bar-bottom { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-arrow { font-size: 18px; color: #a07030; line-height: 1; }
+.bar-label {
+  font-size: 9px; font-weight: 700; color: #8b6030;
+  writing-mode: vertical-rl; letter-spacing: 2px; line-height: 1.2;
+}
+.bar-line { flex: 1; width: 2px; background: #d4a855; border-radius: 2px; margin: 6px 0; min-height: 20px; }
+
+/* ══ スクロール領域 ══ */
+#outer {
+  position: fixed;
+  top: 54px; bottom: 0; left: 48px; right: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#inner {
+  display: flex; flex-direction: row; align-items: flex-start;
+  gap: 20px; padding: 16px;
+  min-width: max-content;
+}
+
+/* ══ 子どもブロック ══ */
+.kid-block {
+  flex-shrink: 0;
+  border: 2px solid #d4a855; border-radius: 12px;
+  background: #fff; min-width: 300px;
+}
+
+/* 名前ヘッダー */
+.kid-name {
+  position: sticky; top: 0; z-index: 20;
+  background: #fff; color: #8b5e2a;
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 12px;
+  border-bottom: 2px solid #d4a855;
+  border-radius: 10px 10px 0 0;
+  gap: 6px;
+}
+.kid-name .name-text { flex: 1; text-align: center; }
+.kid-name .san { font-size: 11px; font-weight: 400; color: #8b5e2a; }
+.like-btn {
+  flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: #d4a855; padding: 2px 4px;
+  line-height: 1; border-radius: 6px;
+  transition: transform 0.15s;
+}
+.like-btn:hover { transform: scale(1.2); }
+
+/* 列ヘッダー */
+.kid-col-heads {
+  position: sticky; top: 37px; z-index: 19;
+  display: flex; background: #fff0dc;
+  border-bottom: 2px solid #d4a855;
+}
+.col-head-date { width: 52px; flex-shrink: 0; font-size: 10px; color: #b09070; font-weight: 700; text-align: center; padding: 5px 2px; border-right: 1px solid #d4a855; }
+.col-head-time { width: 62px; flex-shrink: 0; font-size: 10px; color: #b09070; font-weight: 700; text-align: center; padding: 5px 2px; border-right: 2px solid #d4a855; }
+.col-head { flex: 1; min-width: 60px; font-size: 10px; color: #a07030; font-weight: 700; text-align: center; padding: 5px 2px; border-right: 1px solid #e8d098; }
+.col-head:last-child { border-right: none; }
+
+/* 本体 */
+.kid-body { display: flex; }
+.date-col { width: 52px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid #d4a855; }
+.date-cell {
+  background: #fdf5e8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #7a6040;
+  text-align: center; line-height: 1.5;
+  border-bottom: 2px solid #d4a855; flex-shrink: 0;
+}
+.date-cell:last-child { border-bottom: none; }
+.rows-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.data-row { display: flex; border-bottom: 1px solid #f0d9b8; flex-shrink: 0; }
+.data-row:last-child { border-bottom: none; }
+.data-row.day-end { border-bottom: 2px solid #d4a855; }
+.cell-time { width: 62px; flex-shrink: 0; font-size: 10px; font-weight: 700; color: #7a6040; text-align: center; padding: 0 2px; border-right: 2px solid #d4a855; background: #fff9f2; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+.cell { flex: 1; min-width: 60px; font-size: 11px; font-weight: 700; text-align: center; padding: 0 2px; border-right: 1px solid #e8d8b0; display: flex; align-items: center; justify-content: center; line-height: 1.3; }
+.cell:last-child { border-right: none; }
+
+/* 背景色 */
+.bg-pos2 { background: #c8f0c8; color: #1a1a1a; }
+.bg-pos1 { background: #e4f7e4; color: #1a1a1a; }
+.bg-neu  { background: #f5f5f0; color: #1a1a1a; }
+.bg-neg1 { background: #fde8e0; color: #1a1a1a; }
+.bg-neg2 { background: #f8c8b8; color: #1a1a1a; }
+.bg-blue { background: #c8e8f8; color: #1a1a1a; }
+
+/* ══ いいね画面 ══ */
+#likes-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #fff9f2;
+  z-index: 500;
+  display: none;
+  flex-direction: column;
+}
+#likes-screen.open { display: flex; }
+
+.likes-header {
+  height: 54px; flex-shrink: 0;
+  background: #fff9f2;
+  border-bottom: 2px solid #f0d9b8;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 16px;
+}
+.likes-title { font-size: 16px; font-weight: 700; color: #8b5e2a; }
+
+.likes-body {
+  flex: 1; overflow-y: auto;
+  padding: 24px 16px;
+  display: flex; flex-wrap: wrap;
+  gap: 24px; align-content: flex-start;
+  justify-content: center;
+}
+
+/* ── ポケカ風カード（index.htmlのdetail-cardをそのまま流用） ── */
+.like-card {
+  width: min(238px, 82vw);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.10);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.55);
+}
+.like-card-header {
+  padding: 20px 12px 4px;
+  background: var(--card-bg, #FBEAF0);
+}
+.like-card-ttl {
+  font-size: 15px; font-weight: 700;
+  color: var(--card-tc, #72243E);
+  text-align: center; line-height: 1.3;
+}
+.like-card-img-wrap {
+  background: var(--card-bg, #FBEAF0);
+  display: flex; justify-content: center; align-items: flex-end;
+  padding: 14px 0 0;
+  overflow: hidden;
+  min-height: 154px;
+}
+.like-card-img {
+  width: 140px; height: 140px;
+  object-fit: contain;
+}
+.like-card-body {
+  background: #fff;
+  padding: 8px 16px 20px;
+}
+.like-card-desc {
+  font-size: 11px; font-weight: 700; color: #53433a;
+  text-align: center; line-height: 1.8;
+}
+
+.likes-empty {
+  width: 100%; text-align: center;
+  color: #c0a888; font-size: 14px;
+  margin-top: 60px; line-height: 2;
+}
+
+/* 空状態 */
+.empty-msg { text-align: center; color: #c0a888; font-size: 15px; margin-top: 80px; line-height: 2.4; width: 100%; }
+</style>
+
+<!-- 固定ヘッダー -->
+<div class="header">
+  <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
+  <span class="header-title">気持ち経過観察</span>
+</div>
+
+<!-- 左端 時系列帯 -->
+<div id="timeline-bar">
+  <div class="bar-top">
+    <div class="bar-arrow">▲</div>
+    <div class="bar-label">最新</div>
+  </div>
+  <div class="bar-line"></div>
+  <div class="bar-bottom">
+    <div class="bar-label">過去</div>
+    <div class="bar-arrow">▼</div>
+  </div>
+</div>
+
+<!-- スクロール領域 -->
+<div id="outer">
+  <div id="inner">
+    <p id="emptyMsg" class="empty-msg" style="display:none">
+      まだ記録がありません。<br>きもちチェックをしてみよう！
+    </p>
+  </div>
+</div>
+
+<!-- いいね画面（全画面） -->
+<div id="likes-screen">
+  <div class="likes-header">
+    <button class="back-btn" onclick="closeLikes()">← もどる</button>
+    <span class="likes-title" id="likes-title"></span>
+  </div>
+  <div class="likes-body" id="likes-body"></div>
+</div>
+
+<script>
+/* ══ ラベル定義（lの内容を参照） ══ */
+const DEF = {
+  mood: {
+    happy:   { t:"たのしいきもち",       bg:"pos2" },
+    sad:     { t:"かなしいきもち",       bg:"neg2" },
+    angry:   { t:"いらいらする",         bg:"neg2" },
+    anxious: { t:"なんだかこわいきもち", bg:"neg1" },
+  },
+  energy: {
+    high:    { t:"げんきいっぱい",       bg:"pos2" },
+    mid:     { t:"ふつうかな",           bg:"pos1" },
+    low:     { t:"つかれたな",           bg:"neg1" },
+    verylow: { t:"ぐったり…",           bg:"neg2" },
+  },
+  social: {
+    social:  { t:"いっしょにいたい",     bg:"pos1" },
+    alone:   { t:"ひとりがいいな",       bg:"neu"  },
+    neutral: { t:"どちらでも",           bg:"neu"  },
+    unsure:  { t:"わからない",           bg:"neg1" },
+  },
+  body: {
+    fine:    { t:"げんき",              bg:"pos2" },
+    heart:   { t:"ドキドキしてる",      bg:"neg2" },
+    breath:  { t:"いきぐるしい",        bg:"neg2" },
+    bad:     { t:"きもちわるい",        bg:"neg2" },
+  },
+  wish: {
+    play:    { t:"あそびたい",          bg:"pos2" },
+    sleep:   { t:"ねむりたい",          bg:"blue" },
+    talk:    { t:"はなしたい",          bg:"pos1" },
+    nothing: { t:"なにもしたくない",    bg:"neg2" },
+  },
+};
+
+
+const KEYS  = ["mood","energy","social","body","wish"];
+const HEADS = ["気持ち","元気度","社交性","体調","したいこと"];
+const ROW_H = 38;
+
+const pad     = n => String(n).padStart(2,"0");
+const dateKey = iso => { const d=new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+
+/* 今日・昨日・一昨日の判定 */
+function dateCellLabel(dk) {
+  const now = new Date();
+  const todayKey = dateKey(now.toISOString());
+  const yest  = new Date(now); yest.setDate(yest.getDate()-1);
+  const yestKey = dateKey(yest.toISOString());
+  const dayb  = new Date(now); dayb.setDate(dayb.getDate()-2);
+  const daybKey = dateKey(dayb.toISOString());
+  if(dk === todayKey) return "今日";
+  if(dk === yestKey)  return "昨日";
+  if(dk === daybKey)  return "一昨日";
+  const [,m,d] = dk.split("-");
+  return `${+m}月<br>${+d}日`;
+}
+
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem("kimochi_history")||"[]"); }
+  catch(e){ return []; }
+}
+
+function loadLikes(){
+  try{ return JSON.parse(localStorage.getItem("kimochi_likes")||"{}"); }
+  catch(e){ return {}; }
+}
+
+function closeLikes(){
+  document.getElementById("likes-screen").classList.remove("open");
+}
+
+/* ══ いいね画面を開く ══ */
+const BASE_ACT = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
+
+const BC = {
+  "発散":        { c:"#FBEAF0", tc:"#72243E" },
+  "落ち着き":    { c:"#E1F5EE", tc:"#085041" },
+  "気分転換":    { c:"#FAEEDA", tc:"#633806" },
+  "人とつながる":{ c:"#E6F1FB", tc:"#0C447C" },
+  "からだ":      { c:"#EAF3DE", tc:"#27500A" },
+  "表現":        { c:"#EEEDFE", tc:"#3C3489" },
+};
+
+function openLikes(nameId, name){
+  const likes = loadLikes();
+  const kidLikes = likes[nameId] || [];
+
+  document.getElementById("likes-title").textContent = name + "さんのいいね";
+  const body = document.getElementById("likes-body");
+  body.innerHTML = "";
+
+  if(kidLikes.length === 0){
+    const em = document.createElement("div");
+    em.className = "likes-empty";
+    em.innerHTML = "まだいいねした特効薬がありません";
+    body.appendChild(em);
+  } else {
+    kidLikes.forEach(item => {
+      const bc = BC[item.genre] || { c:"#FBEAF0", tc:"#72243E" };
+      const card = document.createElement("div");
+      card.className = "like-card";
+      card.style.setProperty("--card-bg", bc.c);
+      card.style.setProperty("--card-tc", bc.tc);
+
+      /* ヘッダー（タイトル） */
+      const hdr = document.createElement("div");
+      hdr.className = "like-card-header";
+      const ttl = document.createElement("div");
+      ttl.className = "like-card-ttl";
+      ttl.textContent = item.title;
+      hdr.appendChild(ttl);
+      card.appendChild(hdr);
+
+      /* 画像エリア */
+      const imgWrap = document.createElement("div");
+      imgWrap.className = "like-card-img-wrap";
+      const img = document.createElement("img");
+      img.className = "like-card-img";
+      img.src = BASE_ACT + (item.img || "404.png");
+      img.alt = item.title;
+      imgWrap.appendChild(img);
+      card.appendChild(imgWrap);
+
+      /* 本文エリア（解説文） */
+      const cardBody = document.createElement("div");
+      cardBody.className = "like-card-body";
+      const desc = document.createElement("div");
+      desc.className = "like-card-desc";
+      desc.textContent = item.desc || "";
+      cardBody.appendChild(desc);
+      card.appendChild(cardBody);
+
+      body.appendChild(card);
+    });
+  }
+
+  document.getElementById("likes-screen").classList.add("open");
+}
+
+/* ══ 子ども1人分ブロック生成 ══ */
+function buildKidBlock(nameId, name, recs){
+  const block = document.createElement("div");
+  block.className = "kid-block";
+
+  /* 名前ヘッダー（sticky）*/
+  const nameEl = document.createElement("div");
+  nameEl.className = "kid-name";
+  nameEl.innerHTML = `
+    <span class="name-text">${name}<span class="san">さん</span></span>
+    <button class="like-btn" title="${name}さんのいいね一覧" onclick="openLikes('${nameId}','${name}')">☆</button>
+  `;
+  block.appendChild(nameEl);
+
+  /* 列ヘッダー（sticky） */
+  const colHeads = document.createElement("div");
+  colHeads.className = "kid-col-heads";
+  [["col-head-date","日付"],["col-head-time","時刻"]].forEach(([cls,txt])=>{
+    const el=document.createElement("div"); el.className=cls; el.textContent=txt; colHeads.appendChild(el);
+  });
+  HEADS.forEach(h=>{ const el=document.createElement("div"); el.className="col-head"; el.textContent=h; colHeads.appendChild(el); });
+  block.appendChild(colHeads);
+
+  /* 新しい順ソート → 日付グループ化 */
+  const sorted = [...recs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const dayGroups = [];
+  sorted.forEach(rec=>{
+    const dk = dateKey(rec.date);
+    if(!dayGroups.length || dayGroups[dayGroups.length-1].dk !== dk)
+      dayGroups.push({dk, rows:[]});
+    dayGroups[dayGroups.length-1].rows.push(rec);
+  });
+
+  const body = document.createElement("div");
+  body.className = "kid-body";
+  const dateCol = document.createElement("div");
+  dateCol.className = "date-col";
+  const rowsCol = document.createElement("div");
+  rowsCol.className = "rows-col";
+
+  dayGroups.forEach(({dk, rows}, gi)=>{
+    const label = dateCellLabel(dk);
+    const dc = document.createElement("div");
+    dc.className = "date-cell";
+    dc.style.height = `${rows.length * ROW_H}px`;
+    dc.innerHTML = label;
+    dateCol.appendChild(dc);
+
+    rows.forEach((rec, ri)=>{
+      const dt = new Date(rec.date);
+      const isLastInDay = ri === rows.length - 1;
+      const isLastGroup = gi === dayGroups.length - 1;
+      const row = document.createElement("div");
+      row.className = "data-row" + (isLastInDay && !isLastGroup ? " day-end" : "");
+      row.style.height = `${ROW_H}px`;
+
+      const te = document.createElement("div");
+      te.className = "cell-time";
+      te.textContent = `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+      row.appendChild(te);
+
+      KEYS.forEach(key=>{
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const val = rec.ans?.[key];
+        const def = DEF[key]?.[val];
+        if(def){ cell.textContent=def.t; cell.classList.add("bg-"+def.bg); }
+        else   { cell.textContent=val||"－"; cell.classList.add("bg-neu"); }
+        row.appendChild(cell);
+      });
+
+      rowsCol.appendChild(row);
+    });
+  });
+
+  body.appendChild(dateCol);
+  body.appendChild(rowsCol);
+  block.appendChild(body);
+  return block;
+}
+
+/* ══ 全体構築 ══ */
+function buildAll(history){
+  const kidMap = {};
+  history.forEach(rec=>{
+    const id = rec.nameId||"__anon__";
+    if(!kidMap[id]) kidMap[id]={name:rec.name||"名前なし", recs:[]};
+    kidMap[id].recs.push(rec);
+  });
+  const inner = document.getElementById("inner");
+  inner.innerHTML = "";
+  Object.entries(kidMap).forEach(([id,k])=>inner.appendChild(buildKidBlock(id, k.name, k.recs)));
+}
+
+/* ══ 初期化 ══ */
+window.addEventListener("load",()=>{
+  const h = loadHistory();
+  if(h.length===0){
+    document.getElementById("emptyMsg").style.display="block";
+  } else {
+    buildAll(h);
+  }
+});
+</script>
+</body>
+</html>
