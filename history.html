@@ -42,6 +42,14 @@ html, body {
   white-space: nowrap;
 }
 .del-all-btn:active { transform: scale(0.95); }
+.send-btn {
+  background: #e8f4e8; border: 1.5px solid #80c080; border-radius: 99px;
+  padding: 5px 12px; font-family: inherit; font-weight: 700;
+  font-size: 12px; color: #3a7a3a; cursor: pointer; flex-shrink: 0;
+  white-space: nowrap; transition: opacity 0.2s;
+}
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.5; cursor: default; }
 
 /* ══ 左端 時系列帯 ══ */
 #timeline-bar {
@@ -224,6 +232,7 @@ html, body {
 <div class="header">
   <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
   <span class="header-title">気持ち経過観察画面</span>
+  <button class="send-btn" id="sendBtn" onclick="sendToSpreadsheet()">ゼミにデータを提供する</button>
   <button class="del-all-btn" onclick="confirmDeleteAll()">表データ削除</button>
 </div>
 
@@ -326,9 +335,85 @@ function loadLikes(){
   catch(e){ return {}; }
 }
 
+/* ══ スプレッドシートへ送信 ══ */
+
+/* ★ GASをデプロイしたら以下のURLを書き換えてください ★ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzngMLGjQyifo9ODGqiiIMEu8KYs1_gvSSmY27F1L1waNk9yOl-zVdRVlZ5BBkH7cXVrg/exec";
+
+/* 名前マスク：1文字→そのまま、2文字→最初だけ残し*、3文字以上→最初と最後を残し中間を* */
+function maskName(name){
+  if(!name || name.length === 0) return name;
+  if(name.length === 1) return name;
+  if(name.length === 2) return name[0] + "▮";
+  return name[0] + "▮".repeat(name.length - 2) + name[name.length - 1];
+}
+
+async function sendToSpreadsheet(){
+  const history = loadHistory();
+  const likes   = loadLikes();
+
+  if(history.length === 0){
+    alert("送信するデータがありません。");
+    return;
+  }
+
+  if(!confirm(`診断データ ${history.length} 件を研究用に にじいろゼミ へ提供します。よろしいですか？\n(子どもの名前は、端末側で匿名処理を行った上で送信されます)`)) return;
+
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
+  btn.textContent = "送信中…";
+
+  /* 名前をマスクしたコピーを作成（元データは変更しない） */
+  const maskedHistory = history.map(rec => ({
+    ...rec,
+    name: maskName(rec.name)
+  }));
+  const maskedLikes = Object.fromEntries(
+    Object.entries(likes).map(([id, items]) => {
+      /* いいねデータのnameIdに対応する名前をhistoryから取得してマスク */
+      const origRec = history.find(r => r.nameId === id);
+      const maskedItems = (items || []).map(item => ({
+        ...item,
+        name: maskName(origRec ? origRec.name : "")
+      }));
+      return [id, maskedItems];
+    })
+  );
+
+  const payload = {
+    history: maskedHistory,
+    likes:   maskedLikes,
+    sentAt:  new Date().toISOString()
+  };
+
+  try {
+    /* no-corsではapplication/jsonヘッダーが送れないため
+       フォームデータ形式（application/x-www-form-urlencoded）でPOST */
+    const formData = new URLSearchParams();
+    formData.append("payload", JSON.stringify({
+      history: maskedHistory,
+      likes:   maskedLikes,
+      sentAt:  new Date().toISOString()
+    }));
+    await fetch(GAS_URL, {
+      method: "POST",
+      mode:   "no-cors",
+      body:   formData
+    });
+    /* no-corsではレスポンスが読めないので、少し待って成功とみなす */
+    await new Promise(r => setTimeout(r, 1500));
+    alert("送信しました！\nご提供頂いた貴重なデータは、ゼミでの研究に活用させていただきます。");
+  } catch(err) {
+    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、お手数ですが にじいろゼミ まで不具合報告をお願いいたします。" + err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📤 送信";
+  }
+}
+
 /* ══ 全データ削除（二重確認） ══ */
 function confirmDeleteAll(){
-  const first = confirm("診断結果の記録をすべて削除します\nよろしいですか？(登録した名前は残ります)");
+  const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名簿は残ります)");
   if(!first) return;
   const second = confirm("本当に削除しますか？\nこの操作は元に戻せません。");
   if(!second) return;
@@ -360,7 +445,7 @@ function openLikes(nameId, name){
   const likes = loadLikes();
   const kidLikes = likes[nameId] || [];
 
-  document.getElementById("likes-title").textContent = name + "さんのいいね";
+  document.getElementById("likes-title").textContent = name + "さんと一緒にいいねしたカード一覧";
   const body = document.getElementById("likes-body");
   body.innerHTML = "";
 
