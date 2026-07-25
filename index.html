@@ -1143,7 +1143,7 @@ function startBubbleHint(){
     const target = (idle.length ? idle : bubbles)[Math.floor(Math.random()*(idle.length ? idle.length : bubbles.length))];
     target.classList.add("hint-pulse");
     target.addEventListener("animationend", ()=>target.classList.remove("hint-pulse"), {once:true});
-  }, 900);
+  }, 2000);
 }
 
 /* ヒントアニメーションのタイマーを停止（画面遷移時に呼ぶ） */
