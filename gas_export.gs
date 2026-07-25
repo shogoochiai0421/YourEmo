@@ -14,14 +14,13 @@
  *  5. デプロイ後に表示される「ウェブアプリのURL」を
  *     history.html の GAS_URL に貼り付ける
  *
- * 【今回の変更点】
- *  ・シート名を「分」単位→「秒」単位に変更し、
- *    同じ分内の複数送信で名前が衝突しないようにした。
- *  ・それでも名前が衝突した場合は "-2" "-3" ... の連番を
- *    付けて別シートとして必ず作成する（既存シートの削除・
- *    上書きは行わない）。
- *  ・LockService でシート作成処理を排他制御し、複数の
- *    リクエストがほぼ同時に届いても取りこぼさないようにした。
+ * 【今回の変更点（速度改善）】
+ *  ・appendRow を1件ずつ呼ぶループをやめ、
+ *    全データをJS配列にまとめてから setValues で
+ *    1回の通信で一括書き込みするように変更。
+ *    → 件数が増えても書き込み時間はほぼ一定になる。
+ *  ・シート名は秒単位＋衝突時連番、LockServiceによる
+ *    排他制御は従来どおり維持。
  * =====================================================
  */
 
@@ -36,12 +35,9 @@ function doPost(e) {
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    /* ══ シート名の重複を避けて確保する（排他制御つき） ══
-       複数のリクエストがほぼ同時に届いても、ロックを取ってから
-       名前を決めて作成するところまでを1件ずつ行うので、
-       名前の衝突や上書きが起きない。 */
+    /* ══ シート名の重複を避けて確保する（排他制御つき） ══ */
     const lock = LockService.getScriptLock();
-    lock.waitLock(30000); /* 最大30秒、順番待ちする */
+    lock.waitLock(30000);
 
     let sheet;
     try {
@@ -51,13 +47,7 @@ function doPost(e) {
       lock.releaseLock();
     }
 
-    /* ══ ① 診断履歴シートを書き込む ══ */
-
-    sheet.appendRow([
-      "子どもの名前", "診断日時",
-      "気持ち", "元気度", "社交性", "体調", "したいこと"
-    ]);
-
+    /* ══ ラベル変換マップ ══ */
     const LABEL = {
       mood:   { happy:"たのしいきもち", sad:"かなしいきもち", angry:"いらいらする", anxious:"なんだかこわいきもち" },
       energy: { high:"げんきいっぱい", mid:"ふつうかな", low:"つかれたな", verylow:"ぐったり…" },
@@ -73,10 +63,13 @@ function doPost(e) {
       } catch(e) { return iso; }
     }
 
+    /* ══ ① 診断履歴：書き込む行を配列にまとめる ══ */
+    const historyHeader = ["子どもの名前", "診断日時", "気持ち", "元気度", "社交性", "体調", "したいこと"];
+
     const sortedHistory = history.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-    sortedHistory.forEach(rec => {
+    const historyRows = sortedHistory.map(rec => {
       const ans = rec.ans || {};
-      sheet.appendRow([
+      return [
         rec.name   || "",
         fmtDate(rec.date),
         LABEL.mood  [ans.mood   ] || ans.mood    || "",
@@ -84,46 +77,61 @@ function doPost(e) {
         LABEL.social[ans.social ] || ans.social  || "",
         LABEL.body  [ans.body   ] || ans.body    || "",
         LABEL.wish  [ans.wish   ] || ans.wish    || ""
-      ]);
+      ];
     });
 
-    const headerRange = sheet.getRange(1, 1, 1, 7);
-    headerRange.setFontWeight("bold");
-    headerRange.setBackground("#fff0dc");
-    sheet.autoResizeColumns(1, 7);
-
-    sheet.appendRow([]);
-
-    /* ══ ② いいねデータを追記 ══ */
-    sheet.appendRow(["【いいねした特効薬】"]);
-    const likesHeader = sheet.getRange(sheet.getLastRow(), 1);
-    likesHeader.setFontWeight("bold");
-    likesHeader.setBackground("#e4f7e4");
-
-    sheet.appendRow(["子どもの名前", "特効薬タイトル", "ジャンル", "解説"]);
-    const likesHeaderRange = sheet.getRange(sheet.getLastRow(), 1, 1, 4);
-    likesHeaderRange.setFontWeight("bold");
-    likesHeaderRange.setBackground("#fff0dc");
-
+    /* ══ ② いいねデータ：書き込む行を配列にまとめる ══ */
     const nameMap = {};
     history.forEach(rec => { if(rec.nameId && rec.name) nameMap[rec.nameId] = rec.name; });
 
+    const likesRows = [];
     Object.entries(likes).forEach(([nameId, items]) => {
       const kidName = nameMap[nameId] || nameId;
       (items || []).forEach(item => {
-        sheet.appendRow([
-          kidName,
-          item.title || "",
-          item.genre || "",
-          item.desc  || ""
-        ]);
+        likesRows.push([kidName, item.title || "", item.genre || "", item.desc || ""]);
       });
     });
 
-    sheet.autoResizeColumns(1, 4);
+    /* ══ 全体を1枚の2次元配列にまとめて、setValuesで一括書き込み ══
+       列数がまちまち（履歴7列／いいね4列）なので、最大列数(7)に
+       右側を空文字で揃えてから1回のsetValuesで流し込む。 */
+    const COLS = 7;
+    const padRow = (row) => {
+      const r = row.slice();
+      while (r.length < COLS) r.push("");
+      return r;
+    };
+
+    const allRows = [];
+    allRows.push(padRow(historyHeader));
+    historyRows.forEach(r => allRows.push(padRow(r)));
+    allRows.push(padRow([]));                                 /* 空行区切り */
+    allRows.push(padRow(["【いいねした特効薬】"]));
+    allRows.push(padRow(["子どもの名前", "特効薬タイトル", "ジャンル", "解説"]));
+    likesRows.forEach(r => allRows.push(padRow(r)));
+
+    /* ── ここが唯一の書き込み通信（件数に関わらず1回） ── */
+    if (allRows.length > 0) {
+      sheet.getRange(1, 1, allRows.length, COLS).setValues(allRows);
+    }
+
+    /* ══ 書式設定（行位置が分かっているので範囲指定で一括適用） ══ */
+    /* 履歴ヘッダー行 */
+    sheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fff0dc");
+
+    /* いいねセクションの見出し行・ヘッダー行の位置を計算 */
+    const likesSectionHeaderRow = 1 + historyRows.length + 1 + 1; /* 履歴ヘッダー+履歴件数+空行+「いいね」見出し行 */
+    const likesHeaderRow        = likesSectionHeaderRow;          /* ↑の行番号を指す */
+    const likesTitleRow         = 1 + historyRows.length + 2;     /* 【いいねした特効薬】の行 */
+
+    sheet.getRange(likesTitleRow, 1).setFontWeight("bold").setBackground("#e4f7e4");
+    sheet.getRange(likesTitleRow + 1, 1, 1, 4).setFontWeight("bold").setBackground("#fff0dc");
+
+    /* 列幅を自動調整（これも呼び出し回数は列数分だけで、行数には依存しない） */
+    sheet.autoResizeColumns(1, 7);
 
     return ContentService
-      .createTextOutput(JSON.stringify({ status: "ok", sheet: sheet.getName() }))
+      .createTextOutput(JSON.stringify({ status: "ok", sheet: sheet.getName(), rows: allRows.length }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
@@ -138,8 +146,6 @@ function doPost(e) {
  * 1. まず「秒」まで含めた名前（例：2025-06-01 10:30:05）を試す
  * 2. それでも既存シートと衝突する場合は "-2" "-3" ... と
  *    連番を付けて、必ず未使用の名前を返す
- * （この関数はLockService内で呼ばれるので、複数リクエストが
- *   同時に来ても名前が重複することはない）
  */
 function makeUniqueSheetName(ss, sentAt) {
   const d = new Date(sentAt);
@@ -148,7 +154,6 @@ function makeUniqueSheetName(ss, sentAt) {
   if (!ss.getSheetByName(base)) {
     return base;
   }
-  /* 秒まで含めても衝突した場合（同一秒内の複数送信）は連番を付与 */
   let n = 2;
   while (ss.getSheetByName(base + "-" + n)) {
     n++;
