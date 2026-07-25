@@ -104,7 +104,7 @@ html, body {
 /* ── スタート画面 ── */
 #startScreen {
   justify-content: flex-start;
-  padding-top: 40px; /* 上に名前選択カードを大きく置くため余白を縮小 */
+  padding-top: 115px; /* 上からの余白で調整 */
 }
 .big-img {width:250px; height:250px; object-fit:contain; margin-bottom:10px; display:block;} /* スタート画面のイラスト */
 .ttl { font-size:35px; color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:30px; }
@@ -185,6 +185,16 @@ html, body {
 .bubble-img { width:min(var(--bubble-img-size), 13vw); height:min(var(--bubble-img-size), 13vw); object-fit:contain; flex-shrink:0; }
 @media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
 .bubble-txt { line-height:1.4; }
+
+/* タップできることを示すヒントアニメーション：ランダムなバブルが軽く拡大して戻る */
+@keyframes bubbleTapHint {
+  0%   { transform:scale(1); }
+  50%  { transform:scale(1.07); }
+  100% { transform:scale(1); }
+}
+.bubble.hint-pulse {
+  animation: bubbleTapHint 0.6s ease-in-out;
+}
 
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
 .next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
@@ -355,46 +365,31 @@ html, body {
 }
 
 
-/* ── 名前選択UI（スタート画面中央・必須） ── */
-.name-pick-card {
-  background:#fff;
-  border:2px solid #FFCC80;
-  border-radius:24px;
-  padding:22px 28px;
-  display:flex; flex-direction:column; align-items:center;
-  gap:14px;
-  margin-bottom:28px;
-  width:100%; max-width:420px;
-  box-shadow:0 4px 14px rgba(0,0,0,0.06);
-}
-.name-pick-label {
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  font-weight:700; font-size:16px; color:#a07030;
-}
+/* ── 名前選択UI（はじめるボタンの真上・中央配置） ── */
 .name-pick-row {
-  display:flex; align-items:center; gap:10px; width:100%;
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:18px;
 }
 .name-select {
   font-family:'M PLUS Rounded 1c',sans-serif;
   font-weight:700;
-  font-size:22px;
+  font-size:20px;
   color:#53433a;
   background:#fff;
   border:1.5px solid #FFCC80;
   border-radius:99px;
-  padding:13px 22px;
+  padding:11px 25px;
   cursor:pointer;
-  flex:1;
-  min-width:0;
+  max-width:290px;
   outline:none;
 }
 .name-add-btn {
-  width:56px; height:56px;
+  width:52px; height:52px;
   background:#ffce65;
   color:#fff;
   border:none;
   border-radius:50%;
-  font-size:34px;
+  font-size:32px;
   font-weight:700;
   cursor:pointer;
   display:flex; align-items:center; justify-content:center;
@@ -403,32 +398,13 @@ html, body {
 }
 .name-add-btn:active { transform:scale(0.92); }
 
-/* 名前が1件もないときの誘導表示 */
-.name-pick-empty {
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  font-size:15px; color:#a07030; text-align:center; line-height:1.6;
+/* 名前未選択時：はじめるボタンをグレーアウトして押せなくする */
+.start-btn:disabled {
+  background:#d8d0c8;
+  color:#fff;
+  cursor:not-allowed;
 }
-.name-pick-empty-btn {
-  background:#ffce65; color:#fff; border:none;
-  border-radius:99px; padding:14px 30px;
-  font-size:17px; font-weight:700;
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  cursor:pointer; width:100%;
-}
-.name-pick-empty-btn:active { transform:scale(0.96); }
-
-/* 未選択で「はじめる」を押したときの警告ゆれアニメ */
-@keyframes shakeWarn {
-  0%,100% { transform:translateX(0); }
-  20%     { transform:translateX(-8px); }
-  40%     { transform:translateX(8px); }
-  60%     { transform:translateX(-6px); }
-  80%     { transform:translateX(6px); }
-}
-.name-pick-card.warn {
-  animation: shakeWarn 0.4s ease;
-  border-color:#ff8a65;
-}
+.start-btn:disabled:active { transform:none; }
 
 /* ── 名前管理画面 ── */
 #nameScreen {
@@ -511,33 +487,28 @@ html, body {
 
 /* ── 名前選択UI スマホ設定（PC用CSSの後に書くことで正しく上書き） ── */
 @media (max-width: 480px) {
-  .name-pick-card  { padding: 16px 18px; max-width: 92vw; margin-bottom: 18px; }
-  .name-pick-label { font-size: 13px; }
-  .name-select     { font-size: 16px; padding: 10px 16px; }
-  .name-add-btn    { width: 44px; height: 44px; font-size: 26px; }
-  .name-pick-empty { font-size: 13px; }
-  .name-pick-empty-btn { font-size: 15px; padding: 12px 24px; }
+  .name-pick-row { gap: 6px; margin-bottom: 14px; }
+  .name-select   { font-size: 15px; padding: 9px 18px; max-width: 70vw; }
+  .name-add-btn  { width: 42px; height: 42px; font-size: 26px; }
 }
 
 </style>
 
 <div id="app">
 <div id="startScreen" class="screen active">
-  <!-- 名前選択カード（必須） -->
-  <div class="name-pick-card" id="namePickCard">
-    <div class="name-pick-label">👤 だれが つかいますか？</div>
-    <div class="name-pick-row" id="namePickRow">
-      <select class="name-select" id="nameSelect" onchange="onNameSelect()">
-        <option value="">なまえを えらぶ</option>
-      </select>
-      <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
-    </div>
-  </div>
-
   <img class="big-img" id="startImg" src="" alt="">
   <div class="ttl">きもちチェック</div>
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
-  <button class="start-btn" id="startBtn" onclick="startQ()">はじめる</button>
+
+  <!-- 名前選択（はじめるボタンの真上） -->
+  <div class="name-pick-row">
+    <select class="name-select" id="nameSelect" onchange="onNameSelect()">
+      <option value="">なまえを えらぶ</option>
+    </select>
+    <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startQ()" disabled>はじめる</button>
 <div style="position:absolute; bottom:20px; left:30px; display:flex; gap:20px; z-index:100;">
   <div class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:none;">開発 横浜保育教育専門学校 にじいろゼミ</div>
   <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">連絡はこちら</a>
@@ -805,39 +776,10 @@ function genId(){
   return Math.random().toString(36).slice(2,10);
 }
 
-/* 名前選択カードの表示を制御：
-   - 名前が1件もない → 「はじめての方はこちら」誘導ボタンに切り替え
-   - 名前がある → 通常のプルダウン＋＋ボタン */
-function updateNamePickCard(){
-  const row = document.getElementById("namePickRow");
-  if(!row) return;
-  const list = loadNames();
-
-  if(list.length === 0){
-    row.innerHTML = `
-      <div class="name-pick-empty">
-        はじめての方は、まず<br>なまえを とうろくしてね
-      </div>
-      <button class="name-pick-empty-btn" onclick="goNameScreen()">＋ なまえを とうろくする</button>
-    `;
-  } else if(!document.getElementById("nameSelect")){
-    /* プルダウンが失われていたら作り直す（0件→登録後の復帰用） */
-    row.innerHTML = `
-      <select class="name-select" id="nameSelect" onchange="onNameSelect()">
-        <option value="">なまえを えらぶ</option>
-      </select>
-      <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
-    `;
-    refreshNameSelect();
-  }
-}
-
 /* スタート画面のプルダウンを更新 */
 function refreshNameSelect(){
-  updateNamePickCard();
-  const sel = document.getElementById("nameSelect");
-  if(!sel) return; /* 0件表示中はプルダウン自体が存在しない */
   const list = loadNames();
+  const sel = document.getElementById("nameSelect");
   /* DOM上の現在値、またはsessionStorageに保存された値を優先して復元 */
   const savedId = sel.value || sessionStorage.getItem("kimochi_selected_id") || "";
   sel.innerHTML = '<option value="">なまえを えらぶ</option>';
@@ -851,7 +793,7 @@ function refreshNameSelect(){
   updateStartBtn();
 }
 
-/* 名前を選んだとき：はじめるボタンの文言を変更 */
+/* 名前を選んだとき：はじめるボタンの文言・活性状態を変更 */
 function onNameSelect(){
   updateStartBtn();
   /* 選択中の名前IDをsessionStorageに保存（他ページから戻っても復元できるよう） */
@@ -859,15 +801,18 @@ function onNameSelect(){
   if(sel && sel.value) sessionStorage.setItem("kimochi_selected_id", sel.value);
   else sessionStorage.removeItem("kimochi_selected_id");
 }
+/* 名前が選ばれているときだけ「はじめる」を押せるようにする */
 function updateStartBtn(){
   const sel = document.getElementById("nameSelect");
   const btn = document.getElementById("startBtn");
-  if(!btn) return;
-  const selOpt = sel ? sel.options[sel.selectedIndex] : null;
-  if(sel && sel.value && selOpt){
+  if(!sel || !btn) return;
+  const selOpt = sel.options[sel.selectedIndex];
+  if(sel.value && selOpt){
     btn.textContent = selOpt.textContent + "さんと はじめる";
+    btn.disabled = false;
   } else {
     btn.textContent = "はじめる";
+    btn.disabled = true;
   }
 }
 
@@ -994,28 +939,12 @@ window.addEventListener("load",()=>{
 
 /* はじめるボタンを押したとき：スタート画面をフェードアウトして質問画面へ */
 function startQ(){
-  /* ── 名前選択必須チェック ── */
-  const list = loadNames();
-  if(list.length === 0){
-    /* 名前が1件も登録されていない → 名前登録画面へ誘導 */
-    goNameScreen();
-    return;
-  }
-  const user = getSelectedUser();
-  if(!user){
-    /* 名前はあるが未選択 → カードを揺らして警告、進ませない */
-    const card = document.getElementById("namePickCard");
-    if(card){
-      card.classList.remove("warn");
-      void card.offsetWidth; /* リフローを強制してアニメを再トリガー */
-      card.classList.add("warn");
-      setTimeout(()=>card.classList.remove("warn"), 450);
-    }
-    return;
-  }
+  /* 名前未選択なら何もしない（本来はボタンがdisabledで押せない） */
+  if(!getSelectedUser()) return;
 
   fadeOut(document.getElementById("startScreen"),()=>{
     /* 名前バッジを更新 */
+    const user = getSelectedUser();
     const badge = document.getElementById("quizNameBadge");
     if(user){
       badge.textContent = user.name + "さん";
@@ -1174,9 +1103,12 @@ function showActScreen(){
 }
 
 /* 特効薬バブルをグリッドに並べる（PC=5列×2段、スマホ=2列×5段） */
+let bubbleHintTimer = null; /* タップヒントアニメーションのインターバルID */
+
 function placeBubbles(list){
   const scene=document.getElementById("bscene");
   scene.querySelectorAll(".bubble").forEach(b=>b.remove());
+  stopBubbleHint(); /* 前回分のタイマーが残っていれば止める */
 
   const INTERVAL = cssVar('--bubble-feed-ms') || 1200; /* 全バブルが出そろうまでの時間（--bubble-feed-ms で設定） */
   const slots = list.map((_,i)=>i);
@@ -1195,12 +1127,35 @@ function placeBubbles(list){
     const delay = (slots[i] / list.length) * INTERVAL + Math.random() * 30;
     setTimeout(()=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.opacity="1"; })); }, delay);
   });
+
+  /* 全バブルが出そろってから、タップできることを伝えるヒントアニメーションを開始 */
+  setTimeout(startBubbleHint, INTERVAL + 300);
+}
+
+/* ランダムなバブルを1つずつ軽く拡大させ、タップ可能であることを直感的に伝える */
+function startBubbleHint(){
+  stopBubbleHint();
+  bubbleHintTimer = setInterval(()=>{
+    const bubbles = document.querySelectorAll("#bscene .bubble");
+    if(bubbles.length === 0) return;
+    /* アニメ中でないバブルの中からランダムに1つ選ぶ */
+    const idle = Array.from(bubbles).filter(b=>!b.classList.contains("hint-pulse"));
+    const target = (idle.length ? idle : bubbles)[Math.floor(Math.random()*(idle.length ? idle.length : bubbles.length))];
+    target.classList.add("hint-pulse");
+    target.addEventListener("animationend", ()=>target.classList.remove("hint-pulse"), {once:true});
+  }, 900);
+}
+
+/* ヒントアニメーションのタイマーを停止（画面遷移時に呼ぶ） */
+function stopBubbleHint(){
+  if(bubbleHintTimer){ clearInterval(bubbleHintTimer); bubbleHintTimer = null; }
 }
 
 /* 特効薬バブルをタップしたとき：詳細画面を表示する */
 let currentDetailItem = null; /* 現在表示中のitemを保持 */
 
 function openDetail(item){
+  stopBubbleHint(); /* 詳細画面表示中はヒントアニメーションを止める */
   currentDetailItem = item;
   const img = BASE_ACT + (item.img || "404.png");
   const di = document.getElementById("detailImg");
@@ -1280,11 +1235,13 @@ function closeDetail(){
   fadeOut(document.getElementById("detailScreen"),()=>{
     document.getElementById("detailScreen").style.background="";
     fadeIn(document.getElementById("actScreen"));
+    startBubbleHint(); /* 特効薬画面に戻ったのでヒントアニメーションを再開 */
   });
 }
 
 /* もう一どやるボタンを押したとき：リセットしてスタート画面へ戻る */
 function restart(){
+  stopBubbleHint(); /* ヒントアニメーションのタイマーを停止 */
   document.getElementById("bscene").querySelectorAll(".bubble").forEach(b=>b.remove());
   document.getElementById("rttl").textContent="";
   document.getElementById("rdesc").textContent="";
