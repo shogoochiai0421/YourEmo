@@ -808,7 +808,7 @@ function updateStartBtn(){
   if(!sel || !btn) return;
   const selOpt = sel.options[sel.selectedIndex];
   if(sel.value && selOpt){
-    btn.textContent = selOpt.textContent + "さんと はじめる";
+    btn.textContent = selOpt.textContent + "さんとして はじめる";
     btn.disabled = false;
   } else {
     btn.textContent = "はじめる";
