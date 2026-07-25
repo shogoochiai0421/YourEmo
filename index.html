@@ -104,7 +104,7 @@ html, body {
 /* ── スタート画面 ── */
 #startScreen {
   justify-content: flex-start;
-  padding-top: 115px; /* 上からの余白で調整 */
+  padding-top: 40px; /* 上に名前選択カードを大きく置くため余白を縮小 */
 }
 .big-img {width:250px; height:250px; object-fit:contain; margin-bottom:10px; display:block;} /* スタート画面のイラスト */
 .ttl { font-size:35px; color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:30px; }
@@ -355,31 +355,46 @@ html, body {
 }
 
 
-/* ── 名前選択UI（スタート画面右上） ── */
-.name-bar {
-  position:absolute; top:16px; right:16px;
-  display:flex; align-items:center; gap:8px; z-index:100;
+/* ── 名前選択UI（スタート画面中央・必須） ── */
+.name-pick-card {
+  background:#fff;
+  border:2px solid #FFCC80;
+  border-radius:24px;
+  padding:22px 28px;
+  display:flex; flex-direction:column; align-items:center;
+  gap:14px;
+  margin-bottom:28px;
+  width:100%; max-width:420px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+.name-pick-label {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700; font-size:16px; color:#a07030;
+}
+.name-pick-row {
+  display:flex; align-items:center; gap:10px; width:100%;
 }
 .name-select {
   font-family:'M PLUS Rounded 1c',sans-serif;
   font-weight:700;
-  font-size:20px;
+  font-size:22px;
   color:#53433a;
   background:#fff;
   border:1.5px solid #FFCC80;
   border-radius:99px;
-  padding:11px 25px;
+  padding:13px 22px;
   cursor:pointer;
-  max-width:290px;
+  flex:1;
+  min-width:0;
   outline:none;
 }
 .name-add-btn {
-  width:60px; height:60px;
+  width:56px; height:56px;
   background:#ffce65;
   color:#fff;
   border:none;
   border-radius:50%;
-  font-size:40px;
+  font-size:34px;
   font-weight:700;
   cursor:pointer;
   display:flex; align-items:center; justify-content:center;
@@ -387,6 +402,33 @@ html, body {
   line-height:1;
 }
 .name-add-btn:active { transform:scale(0.92); }
+
+/* 名前が1件もないときの誘導表示 */
+.name-pick-empty {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-size:15px; color:#a07030; text-align:center; line-height:1.6;
+}
+.name-pick-empty-btn {
+  background:#ffce65; color:#fff; border:none;
+  border-radius:99px; padding:14px 30px;
+  font-size:17px; font-weight:700;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  cursor:pointer; width:100%;
+}
+.name-pick-empty-btn:active { transform:scale(0.96); }
+
+/* 未選択で「はじめる」を押したときの警告ゆれアニメ */
+@keyframes shakeWarn {
+  0%,100% { transform:translateX(0); }
+  20%     { transform:translateX(-8px); }
+  40%     { transform:translateX(8px); }
+  60%     { transform:translateX(-6px); }
+  80%     { transform:translateX(6px); }
+}
+.name-pick-card.warn {
+  animation: shakeWarn 0.4s ease;
+  border-color:#ff8a65;
+}
 
 /* ── 名前管理画面 ── */
 #nameScreen {
@@ -467,46 +509,30 @@ html, body {
 }
 .name-del-all-btn:active { transform:scale(0.95); }
 
-/* ── 名前選択ヒント ── */
-#nameSelectHint {
-  position:absolute;
-  top:90px; /* name-bar(top:16px + 高さ約60px) + 余白14px */
-  right:120px;
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  font-weight:400;
-  font-size:18px;
-  color:#7e7d81;
-  pointer-events:none;
-  display:none;
-  animation: hintBounce 1s ease-in-out infinite;
-  z-index:100;
-  white-space:nowrap;
-}
-@keyframes hintBounce {
-  0%,100% { transform:translateY(0); }
-  50%      { transform:translateY(-5px); }
-}
-
-/* ── 名前選択UI・ヒント スマホ設定（PC用CSSの後に書くことで正しく上書き） ── */
+/* ── 名前選択UI スマホ設定（PC用CSSの後に書くことで正しく上書き） ── */
 @media (max-width: 480px) {
-  .name-bar     { top: 14px; right: 11px; gap: 6px; }
-  .name-select  { font-size: 12px; padding: 8px 18px; max-width: 203px; }
-  .name-add-btn { width: 42px; height: 42px; font-size: 28px; }
-  #nameSelectHint { top: 63px; right: 84px; font-size: 13px; }
+  .name-pick-card  { padding: 16px 18px; max-width: 92vw; margin-bottom: 18px; }
+  .name-pick-label { font-size: 13px; }
+  .name-select     { font-size: 16px; padding: 10px 16px; }
+  .name-add-btn    { width: 44px; height: 44px; font-size: 26px; }
+  .name-pick-empty { font-size: 13px; }
+  .name-pick-empty-btn { font-size: 15px; padding: 12px 24px; }
 }
 
 </style>
 
 <div id="app">
 <div id="startScreen" class="screen active">
-  <!-- 名前選択バー -->
-  <div class="name-bar">
-    <select class="name-select" id="nameSelect" onchange="onNameSelect()">
-      <option value="">なまえを えらぶ</option>
-    </select>
-    <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
+  <!-- 名前選択カード（必須） -->
+  <div class="name-pick-card" id="namePickCard">
+    <div class="name-pick-label">👤 だれが つかいますか？</div>
+    <div class="name-pick-row" id="namePickRow">
+      <select class="name-select" id="nameSelect" onchange="onNameSelect()">
+        <option value="">なまえを えらぶ</option>
+      </select>
+      <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
+    </div>
   </div>
-  <div id="nameSelectHint">↑ なまえをせんたく</div>
 
   <img class="big-img" id="startImg" src="" alt="">
   <div class="ttl">きもちチェック</div>
@@ -779,24 +805,39 @@ function genId(){
   return Math.random().toString(36).slice(2,10);
 }
 
-/* 名前選択ヒントの表示／非表示を制御 */
-function updateNameSelectHint(){
-  const hint = document.getElementById("nameSelectHint");
-  if(!hint) return;
+/* 名前選択カードの表示を制御：
+   - 名前が1件もない → 「はじめての方はこちら」誘導ボタンに切り替え
+   - 名前がある → 通常のプルダウン＋＋ボタン */
+function updateNamePickCard(){
+  const row = document.getElementById("namePickRow");
+  if(!row) return;
   const list = loadNames();
-  const sel  = document.getElementById("nameSelect");
-  /* 名前がある かつ まだ選択されていない場合のみ表示 */
-  if(list.length > 0 && (!sel || !sel.value)){
-    hint.style.display = "block";
-  } else {
-    hint.style.display = "none";
+
+  if(list.length === 0){
+    row.innerHTML = `
+      <div class="name-pick-empty">
+        はじめての方は、まず<br>なまえを とうろくしてね
+      </div>
+      <button class="name-pick-empty-btn" onclick="goNameScreen()">＋ なまえを とうろくする</button>
+    `;
+  } else if(!document.getElementById("nameSelect")){
+    /* プルダウンが失われていたら作り直す（0件→登録後の復帰用） */
+    row.innerHTML = `
+      <select class="name-select" id="nameSelect" onchange="onNameSelect()">
+        <option value="">なまえを えらぶ</option>
+      </select>
+      <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
+    `;
+    refreshNameSelect();
   }
 }
 
 /* スタート画面のプルダウンを更新 */
 function refreshNameSelect(){
-  const list = loadNames();
+  updateNamePickCard();
   const sel = document.getElementById("nameSelect");
+  if(!sel) return; /* 0件表示中はプルダウン自体が存在しない */
+  const list = loadNames();
   /* DOM上の現在値、またはsessionStorageに保存された値を優先して復元 */
   const savedId = sel.value || sessionStorage.getItem("kimochi_selected_id") || "";
   sel.innerHTML = '<option value="">なまえを えらぶ</option>';
@@ -808,13 +849,11 @@ function refreshNameSelect(){
     sel.appendChild(opt);
   });
   updateStartBtn();
-  updateNameSelectHint();
 }
 
 /* 名前を選んだとき：はじめるボタンの文言を変更 */
 function onNameSelect(){
   updateStartBtn();
-  updateNameSelectHint();
   /* 選択中の名前IDをsessionStorageに保存（他ページから戻っても復元できるよう） */
   const sel = document.getElementById("nameSelect");
   if(sel && sel.value) sessionStorage.setItem("kimochi_selected_id", sel.value);
@@ -823,9 +862,9 @@ function onNameSelect(){
 function updateStartBtn(){
   const sel = document.getElementById("nameSelect");
   const btn = document.getElementById("startBtn");
-  if(!sel || !btn) return;
-  const selOpt = sel.options[sel.selectedIndex];
-  if(sel.value && selOpt){
+  if(!btn) return;
+  const selOpt = sel ? sel.options[sel.selectedIndex] : null;
+  if(sel && sel.value && selOpt){
     btn.textContent = selOpt.textContent + "さんと はじめる";
   } else {
     btn.textContent = "はじめる";
@@ -950,15 +989,33 @@ window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.rainbow){si.src=IMG.rainbow;si.style.display="block";}else{si.style.display="none";}
   refreshNameSelect();
-  updateNameSelectHint();
   fadeIn(document.getElementById("startScreen"));
 });
 
 /* はじめるボタンを押したとき：スタート画面をフェードアウトして質問画面へ */
 function startQ(){
+  /* ── 名前選択必須チェック ── */
+  const list = loadNames();
+  if(list.length === 0){
+    /* 名前が1件も登録されていない → 名前登録画面へ誘導 */
+    goNameScreen();
+    return;
+  }
+  const user = getSelectedUser();
+  if(!user){
+    /* 名前はあるが未選択 → カードを揺らして警告、進ませない */
+    const card = document.getElementById("namePickCard");
+    if(card){
+      card.classList.remove("warn");
+      void card.offsetWidth; /* リフローを強制してアニメを再トリガー */
+      card.classList.add("warn");
+      setTimeout(()=>card.classList.remove("warn"), 450);
+    }
+    return;
+  }
+
   fadeOut(document.getElementById("startScreen"),()=>{
     /* 名前バッジを更新 */
-    const user = getSelectedUser();
     const badge = document.getElementById("quizNameBadge");
     if(user){
       badge.textContent = user.name + "さん";
