@@ -150,8 +150,11 @@ html, body {
 .center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
-.center-card .ct { font-size:var(--center-txt-size); font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
-.sub-tags { margin-top:8px; display:flex; flex-direction:column; gap:3px; }
+/* ct（1問目の答え）は見出しとして独立させず、sub-tagsの行の先頭に並べて表示する */
+.ct-tags-row { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; margin-top:8px; }
+.center-card .ct { font-size:14px; font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
+.center-card .ct:not(:empty)::after { content:"・"; color:#888; font-weight:400; }
+.sub-tags { display:inline; }
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
 /* ── 特効薬画面 ── */
@@ -186,14 +189,17 @@ html, body {
 @media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
 .bubble-txt { line-height:1.4; }
 
-/* タップできることを示すヒントアニメーション：ランダムなバブルが軽く拡大して戻る */
+/* タップできることを示すヒントアニメーション：
+   ランダムなバブルが「拡大→1.5秒キープ→縮小」の流れで動く。
+   合計 1.9秒（拡大0.2秒＋キープ1.5秒＋縮小0.2秒） */
 @keyframes bubbleTapHint {
-  0%   { transform:scale(1); }
-  50%  { transform:scale(1.07); }
-  100% { transform:scale(1); }
+  0%    { transform:scale(1);    }
+  10.5% { transform:scale(1.07); } /* 拡大しきる（0.2秒後） */
+  89.5% { transform:scale(1.07); } /* 1.5秒のあいだ拡大したままキープ */
+  100%  { transform:scale(1);    } /* 縮小しきる（1.9秒後） */
 }
 .bubble.hint-pulse {
-  animation: bubbleTapHint 0.6s ease-in-out;
+  animation: bubbleTapHint 2.5s ease-in-out;
 }
 
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
@@ -553,8 +559,10 @@ html, body {
   </div>
   <div class="center-card" style="margin:0 auto;">
     <div class="ce" id="cce"></div>
-    <div class="ct" id="cct"></div>
-    <div class="sub-tags" id="subTags"></div>
+    <div class="ct-tags-row">
+      <div class="ct" id="cct"></div>
+      <div class="sub-tags" id="subTags"></div>
+    </div>
   </div>
   <button class="next-screen-btn" onclick="showActScreen()">これ、やってみる？ →</button>
   <button class="retry-btn" onclick="restart()">もういちど</button>
@@ -1020,10 +1028,51 @@ function selectOpt(val,btn){
   },wait);
 }
 
+/* 各回答値に対応する表示用の要約テキスト ← ここを編集してね
+   ※ moodはQ1の答えそのまま（結果画面の見出し下の小さいラベル用） */
+const ANS_LABEL = {
+  mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい" },
+  energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
+  social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
+  body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき" },
+  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
+};
+
+/* ── 2問目（げんき）と4問目（からだ）をあわせて「からだの状態レベル」を決める ──
+   例えば「げんきいっぱい」と答えていても「たいちょうがわるい」も選んでいたら、
+   げんき度だけで判定せず、からだの不調ぶんだけ状態を1〜2段階重くする。
+   body="fine"（からだはへいき）なら今までどおりenergyの値をそのまま使う。 */
+const ENERGY_ORDER = ["high","mid","low","verylow"]; /* 0=元気 → 3=ぐったり の順 */
+function derivePhysicalLevel(energy, body){
+  const baseIdx = ENERGY_ORDER.indexOf(energy);
+  const idx = baseIdx === -1 ? 1 : baseIdx; /* 不明な値はmid扱い */
+  /* からだの不調の重さ：heart/breathはやや重い、badはより重い、fineは影響なし */
+  const BODY_WEIGHT = { fine:0, heart:1, breath:1, bad:2 };
+  const weight = BODY_WEIGHT[body] ?? 0;
+  const newIdx = Math.min(ENERGY_ORDER.length - 1, idx + weight);
+  return ENERGY_ORDER[newIdx];
+}
+
 /* 結果画面を構築して表示する */
 function showResult(){
-  const mt=ans.mood||"neutral";
-  const d=MD[mt]||MD.neutral;
+  /* ── 最初の質問（きもち）と、2問目（げんき）＋4問目（からだ）を
+     あわせた「からだの状態レベル」の組み合わせでメッセージを選ぶ。
+     例：「たのしい」×「げんきいっぱい」でも「たいちょうがわるい」なら、
+     happy_highではなくhappy_lowのような、より実態に近い結果になる。 ── */
+  const mt = ans.mood || "happy";
+  const physicalLevel = derivePhysicalLevel(ans.energy || "mid", ans.body || "fine");
+  const key = mt + "_" + physicalLevel;
+  let d = MD[key];
+  if(!d){
+    /* 本来16パターンすべて用意してあるので、ここに来るのはバグ。
+       開発者が原因を特定できるよう、詳細をコンソールに残す。 */
+    console.error(
+      `[きもちチェック] MDに未定義の組み合わせです: mood="${mt}", physicalLevel="${physicalLevel}" (key="${key}")。` +
+      `data.jsのMDオブジェクトを確認してください。`
+    );
+    d = MD.error;
+  }
+
   /* 結果画面トップの画像は表示しない */
   document.getElementById("resicon").innerHTML="";
   document.getElementById("rttl").textContent=pick(d.ttls);
@@ -1034,15 +1083,9 @@ function showResult(){
   }else{
     cce.innerHTML="";
   }
-  document.getElementById("cct").textContent=d.ct;
+  /* ct（見出し下の小さいラベル）は純粋にQ1の回答をそのまま表示する */
+  document.getElementById("cct").textContent = ANS_LABEL.mood[mt] || ANS_LABEL.mood.happy;
 
-  /* 各回答値に対応する表示用の要約テキスト ← ここを編集してね */
-  const ANS_LABEL = {
-    energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
-    social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
-    body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき" },
-    wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
-  };
   /* 4つの要約を「、」でつなげて1行で表示 */
   const subTagsEl = document.getElementById("subTags");
   const subIds = ["energy","social","body","wish"];
@@ -1084,9 +1127,17 @@ function showResult(){
 
 /* 今の気持ち画面から特効薬画面へ遷移する */
 function showActScreen(){
-  /* 上部テキスト：きもちラベル（もやもや等）＋サブタグ（つかれている・ひとりでいたい等） */
-  document.getElementById("actTtl").textContent  = document.getElementById("cct").textContent;
-  document.getElementById("actDesc").textContent = document.getElementById("subTags").textContent;
+  /* 上部テキスト：
+     ・大きい見出し（actTtl）には、結果画面ですでに選ばれているttls（例：「なんだかドキドキしてるんだね」）を
+       そのまま引き継いで表示する（再抽選すると結果画面と表記がズレるため rttl の文字列を再利用）
+     ・下の説明行（actDesc）には、1問目の答え（ct）とサブタグ（げんきはふつう・〜）を
+       「・」でつないで1行にまとめて表示する */
+  document.getElementById("actTtl").textContent = document.getElementById("rttl").textContent;
+
+  const ctText  = document.getElementById("cct").textContent;
+  const subText = document.getElementById("subTags").textContent;
+  document.getElementById("actDesc").textContent = [ctText, subText].filter(s => s).join("・");
+
   /* 名前ラベル */
   const actUser = getSelectedUser();
   const actNameLabel = document.getElementById("actNameLabel");
@@ -1143,7 +1194,7 @@ function startBubbleHint(){
     const target = (idle.length ? idle : bubbles)[Math.floor(Math.random()*(idle.length ? idle.length : bubbles.length))];
     target.classList.add("hint-pulse");
     target.addEventListener("animationend", ()=>target.classList.remove("hint-pulse"), {once:true});
-  }, 2000);
+  }, 5200); /* アニメーション本体が1.9秒なので、次のバブルが始まるまで少し間をあける */
 }
 
 /* ヒントアニメーションのタイマーを停止（画面遷移時に呼ぶ） */
