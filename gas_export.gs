@@ -14,13 +14,12 @@
  *  5. デプロイ後に表示される「ウェブアプリのURL」を
  *     history.html の GAS_URL に貼り付ける
  *
- * 【今回の変更点（速度改善）】
- *  ・appendRow を1件ずつ呼ぶループをやめ、
- *    全データをJS配列にまとめてから setValues で
- *    1回の通信で一括書き込みするように変更。
- *    → 件数が増えても書き込み時間はほぼ一定になる。
- *  ・シート名は秒単位＋衝突時連番、LockServiceによる
- *    排他制御は従来どおり維持。
+ * 【今回の変更点】
+ *  ・いいねした特効薬リストの受信・書き込み処理を完全に削除。
+ *    このスプレッドシートには診断履歴（気持ち・元気度・
+ *    社交性・体調・したいこと）のみを蓄積する。
+ *  ・setValues による一括書き込み、シート名の秒単位＋
+ *    衝突時連番、LockServiceによる排他制御は従来どおり維持。
  * =====================================================
  */
 
@@ -29,8 +28,7 @@ function doPost(e) {
     /* フォームデータ形式（application/x-www-form-urlencoded）で受け取る */
     const raw = e.parameter.payload || e.postData.contents || "{}";
     const payload = JSON.parse(raw);
-    const history = payload.history || [];  /* 診断履歴の配列 */
-    const likes   = payload.likes   || {};  /* いいねデータのオブジェクト */
+    const history = payload.history || [];  /* 診断履歴の配列（likesは受け取っても使用しない） */
     const sentAt  = payload.sentAt  || new Date().toISOString();
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -63,8 +61,8 @@ function doPost(e) {
       } catch(e) { return iso; }
     }
 
-    /* ══ ① 診断履歴：書き込む行を配列にまとめる ══ */
-    const historyHeader = ["子どもの名前", "診断日時", "気持ち", "元気度", "社交性", "体調", "したいこと"];
+    /* ══ 診断履歴：書き込む行を配列にまとめる ══ */
+    const header = ["子どもの名前", "診断日時", "気持ち", "元気度", "社交性", "体調", "したいこと"];
 
     const sortedHistory = history.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
     const historyRows = sortedHistory.map(rec => {
@@ -80,55 +78,15 @@ function doPost(e) {
       ];
     });
 
-    /* ══ ② いいねデータ：書き込む行を配列にまとめる ══ */
-    const nameMap = {};
-    history.forEach(rec => { if(rec.nameId && rec.name) nameMap[rec.nameId] = rec.name; });
+    /* ══ 1回のsetValuesで一括書き込み（診断履歴のみ） ══ */
+    const allRows = [header, ...historyRows];
+    sheet.getRange(1, 1, allRows.length, header.length).setValues(allRows);
 
-    const likesRows = [];
-    Object.entries(likes).forEach(([nameId, items]) => {
-      const kidName = nameMap[nameId] || nameId;
-      (items || []).forEach(item => {
-        likesRows.push([kidName, item.title || "", item.genre || "", item.desc || ""]);
-      });
-    });
+    /* ヘッダー行の書式 */
+    sheet.getRange(1, 1, 1, header.length).setFontWeight("bold").setBackground("#fff0dc");
 
-    /* ══ 全体を1枚の2次元配列にまとめて、setValuesで一括書き込み ══
-       列数がまちまち（履歴7列／いいね4列）なので、最大列数(7)に
-       右側を空文字で揃えてから1回のsetValuesで流し込む。 */
-    const COLS = 7;
-    const padRow = (row) => {
-      const r = row.slice();
-      while (r.length < COLS) r.push("");
-      return r;
-    };
-
-    const allRows = [];
-    allRows.push(padRow(historyHeader));
-    historyRows.forEach(r => allRows.push(padRow(r)));
-    allRows.push(padRow([]));                                 /* 空行区切り */
-    allRows.push(padRow(["【いいねした特効薬】"]));
-    allRows.push(padRow(["子どもの名前", "特効薬タイトル", "ジャンル", "解説"]));
-    likesRows.forEach(r => allRows.push(padRow(r)));
-
-    /* ── ここが唯一の書き込み通信（件数に関わらず1回） ── */
-    if (allRows.length > 0) {
-      sheet.getRange(1, 1, allRows.length, COLS).setValues(allRows);
-    }
-
-    /* ══ 書式設定（行位置が分かっているので範囲指定で一括適用） ══ */
-    /* 履歴ヘッダー行 */
-    sheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fff0dc");
-
-    /* いいねセクションの見出し行・ヘッダー行の位置を計算 */
-    const likesSectionHeaderRow = 1 + historyRows.length + 1 + 1; /* 履歴ヘッダー+履歴件数+空行+「いいね」見出し行 */
-    const likesHeaderRow        = likesSectionHeaderRow;          /* ↑の行番号を指す */
-    const likesTitleRow         = 1 + historyRows.length + 2;     /* 【いいねした特効薬】の行 */
-
-    sheet.getRange(likesTitleRow, 1).setFontWeight("bold").setBackground("#e4f7e4");
-    sheet.getRange(likesTitleRow + 1, 1, 1, 4).setFontWeight("bold").setBackground("#fff0dc");
-
-    /* 列幅を自動調整（これも呼び出し回数は列数分だけで、行数には依存しない） */
-    sheet.autoResizeColumns(1, 7);
+    /* 列幅を自動調整 */
+    sheet.autoResizeColumns(1, header.length);
 
     return ContentService
       .createTextOutput(JSON.stringify({ status: "ok", sheet: sheet.getName(), rows: allRows.length }))
