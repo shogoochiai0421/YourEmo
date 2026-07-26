@@ -539,9 +539,13 @@ html, body {
     <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
   </div>
   <div class="name-input-row">
-    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="20"
+    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
+      oninput="checkNameLength()"
       onkeydown="if(event.key==='Enter')addName()">
     <button class="name-confirm-btn" onclick="addName()">追加</button>
+  </div>
+  <div id="nameLimitWarn" style="display:none;color:#c0704a;font-size:13px;text-align:center;margin:-14px 0 14px;">
+    入力できる名前は10文字までです
   </div>
   <div class="name-list-wrap">
     <ul class="name-list" id="nameList"></ul>
@@ -856,6 +860,14 @@ function goBackToStart(){
 }
 
 /* 名前を追加 */
+/* 名前入力欄が10文字に達したら警告を表示する */
+function checkNameLength(){
+  const input = document.getElementById("nameInput");
+  const warn  = document.getElementById("nameLimitWarn");
+  if(!input || !warn) return;
+  warn.style.display = input.value.length >= 10 ? "block" : "none";
+}
+
 function addName(){
   const input = document.getElementById("nameInput");
   const name = input.value.trim();
@@ -865,6 +877,7 @@ function addName(){
   saveNames(list);
   input.value = "";
   input.focus();
+  document.getElementById("nameLimitWarn").style.display = "none";
   renderNameList();
 }
 
@@ -976,6 +989,14 @@ function startQ(){
 function renderQ(){
   busy=false;
   const q=Qs[cur];
+  const qId=q.id; /* ← このrenderで表示している質問のIDをここで固定して覚えておく。
+                      selectOpt側でクリック時に毎回"Qs[cur].id"を読み直すと、
+                      連打などでcurが先に進んでしまったあとに古いボタンのクリックが
+                      遅れて処理されたとき、"次の質問のid"に"今のボタンの値"を
+                      書き込んでしまう事故が起きる（回答がnullや別の質問の値に
+                      入れ替わって見えるバグの原因）。renderのタイミングでqIdを
+                      固定しclosureで持たせることで、後からcurが変わっても
+                      必ず正しい質問キーに書き込まれるようにする。 */
   document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
   document.getElementById("qtext").textContent=q.text;
   /* もどるボタン：最初の質問では隠す */
@@ -986,6 +1007,7 @@ function renderQ(){
   if(cur===0){ topBtn.classList.remove("hidden"); }else{ topBtn.classList.add("hidden"); }
   const g=document.getElementById("opts");
   g.innerHTML="";
+  g.style.pointerEvents="auto"; /* 前の質問で選択後に無効化していた場合に備え、新しい質問では必ず有効化し直す */
   q.opts.forEach(o=>{
     const b=document.createElement("button");
     b.className="opt";
@@ -996,7 +1018,7 @@ function renderQ(){
       iconHtml=`<span class="oi"></span>`;
     }
     b.innerHTML=iconHtml+`<span class="ol">${o.l}</span>`;
-    b.onclick=()=>selectOpt(o.v,b);
+    b.onclick=()=>selectOpt(qId,o.v,b,g);
     g.appendChild(b);
   });
 }
@@ -1017,11 +1039,19 @@ function goTop(){
   });
 }
 
-/* 選択肢が押されたとき：回答を記録し、次の質問または結果画面へ進む */
-function selectOpt(val,btn){
+/* 選択肢が押されたとき：回答を記録し、次の質問または結果画面へ進む
+   qId: この選択肢が描画された時点の質問ID（連打対策のためrenderQ側で固定した値） */
+function selectOpt(qId,val,btn,optsContainer){
   if(busy)return;
   busy=true;
-  ans[Qs[cur].id]=val;
+  /* busyフラグだけに頼らず、この質問の選択肢エリア全体を即座に
+     操作不可にする。こうしておくと、画面が次の質問に切り替わる
+     アニメーションの途中で連打しても、DOM上はこの瞬間から
+     一切クリックを受け付けなくなるので、古いボタンへの遅延タップが
+     すり抜けて悪さをすることがなくなる。 */
+  optsContainer.style.pointerEvents="none";
+  ans[qId]=val; /* renderQ時点で固定したqIdに書き込む。クリック時に毎回curを読み直さないので、
+                    連打でcurが先に進んでいても正しい質問キーに記録される */
   document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));
   btn.classList.add("sel");
   const wait=cssVar('--fade-wait-ms')||320;
