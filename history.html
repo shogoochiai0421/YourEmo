@@ -51,6 +51,50 @@ html, body {
 .send-btn:active { transform: scale(0.95); }
 .send-btn:disabled { opacity: 0.5; cursor: default; }
 
+/* ══ 送信先選択プルダウン ══ */
+.send-wrap { position: relative; flex-shrink: 0; }
+.send-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px); right: 0;
+  width: min(260px, calc(100vw - 70px));
+  background: #fffaf3;
+  border: 2px solid #d4a855;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  padding: 10px;
+  z-index: 450;
+  flex-direction: column; gap: 8px;
+}
+.send-dropdown.open { display: flex; }
+.send-dd-title { font-size: 12px; font-weight: 700; color: #8b5e2a; }
+.send-dd-list {
+  max-height: 240px; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #f0d9b8; border-radius: 8px;
+  background: #fff;
+}
+.send-dd-item {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 9px 12px;
+  border-bottom: 1px solid #f0d9b8;
+  font-size: 14px; font-weight: 700; color: #5a3e28;
+  cursor: pointer;
+}
+.send-dd-item:last-child { border-bottom: none; }
+.send-dd-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.send-dd-item input[type=checkbox] {
+  width: 20px; height: 20px; flex-shrink: 0;
+  accent-color: #5a9a5a; cursor: pointer;
+}
+.send-dd-empty { padding: 14px; text-align: center; font-size: 12px; color: #c0a888; }
+.send-dd-submit {
+  background: #e8f4e8; border: 1.5px solid #80c080; border-radius: 99px;
+  padding: 8px 12px; font-family: inherit; font-weight: 700;
+  font-size: 14px; color: #3a7a3a; cursor: pointer;
+}
+.send-dd-submit:active { transform: scale(0.97); }
+
 /* ══ スマホ対応（480px以下） ══ */
 @media (max-width: 480px) {
   /* 帯を細く */
@@ -314,10 +358,17 @@ html, body {
 <div class="header">
   <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
   <span class="header-title">気持ち経過観察画面</span>
-  <button class="send-btn" id="sendBtn" onclick="sendToSpreadsheet()">
-    <span class="btn-label-full">ゼミにデータを提供する</span>
-    <span class="btn-label-short">ゼミにデータを提供する</span>
-  </button>
+  <div class="send-wrap">
+    <button class="send-btn" id="sendBtn" onclick="toggleSendDropdown(event)">
+      <span class="btn-label-full">ゼミにデータを提供する</span>
+      <span class="btn-label-short">ゼミにデータを提供する</span>
+    </button>
+    <div class="send-dropdown" id="sendDropdown" onclick="event.stopPropagation()">
+      <div class="send-dd-title">送信する人にチェックを入れてください</div>
+      <div class="send-dd-list" id="sendDdList"></div>
+      <button class="send-dd-submit" onclick="sendToSpreadsheet()">送信する</button>
+    </div>
+  </div>
   <button class="del-all-btn" onclick="confirmDeleteAll()">
     <span class="btn-label-full">表データ全削除</span>
     <span class="btn-label-short">表データ全削除</span>
@@ -360,7 +411,7 @@ html, body {
   <div class="send-overlay-box">
     <div class="spinner"></div>
     <div class="send-overlay-msg">データを送信しています…</div>
-    <div class="send-overlay-warn">送信が完了するまで<br>この画面から離れないでください</div>
+    <div class="send-overlay-warn">想定送信時間：10~30秒<br>送信が完了するまで<br>この画面から離れないでください</div>
   </div>
 </div>
 
@@ -445,16 +496,100 @@ function maskName(name){
   return name[0] + "▮".repeat(name.length - 2) + name[name.length - 1];
 }
 
-async function sendToSpreadsheet(){
-  const history = loadHistory();
-  const likes   = loadLikes();
+/* ══ 送信対象の選択（チェック状態はlocalStorageに保持） ══ */
+const SEND_SEL_KEY = "kimochi_send_selection";
 
-  if(history.length === 0){
+function loadSendSelection(){
+  try{ return JSON.parse(localStorage.getItem(SEND_SEL_KEY)||"{}") || {}; }
+  catch(e){ return {}; }
+}
+function saveSendSelection(sel){
+  try{ localStorage.setItem(SEND_SEL_KEY, JSON.stringify(sel)); }catch(e){}
+}
+/* 未保存の名前（新規登録など）は、初期状態でチェックなし */
+function isSelected(sel, id){ return sel[id] === true; }
+
+function getKidList(history){
+  const map = new Map();
+  history.forEach(rec=>{
+    const id = rec.nameId || "__anon__";
+    if(!map.has(id)) map.set(id, rec.name || "名前なし");
+  });
+  return [...map.entries()].map(([id,name])=>({id,name}));
+}
+
+function buildSendDropdown(){
+  const list = document.getElementById("sendDdList");
+  list.innerHTML = "";
+  const kids = getKidList(loadHistory());
+  if(kids.length === 0){
+    const em = document.createElement("div");
+    em.className = "send-dd-empty";
+    em.textContent = "名前がありません";
+    list.appendChild(em);
+    return;
+  }
+  const sel = loadSendSelection();
+  kids.forEach(({id,name})=>{
+    const row = document.createElement("label");
+    row.className = "send-dd-item";
+    const nm = document.createElement("span");
+    nm.className = "send-dd-name";
+    nm.textContent = name;
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = isSelected(sel, id);
+    cb.addEventListener("change", ()=>{
+      const cur = loadSendSelection();
+      cur[id] = cb.checked;
+      saveSendSelection(cur);
+    });
+    row.appendChild(nm);
+    row.appendChild(cb);
+    list.appendChild(row);
+  });
+}
+
+function toggleSendDropdown(e){
+  if(e) e.stopPropagation();
+  const dd = document.getElementById("sendDropdown");
+  if(dd.classList.contains("open")){
+    dd.classList.remove("open");
+  } else {
+    buildSendDropdown();
+    dd.classList.add("open");
+  }
+}
+function closeSendDropdown(){
+  document.getElementById("sendDropdown").classList.remove("open");
+}
+document.addEventListener("click", closeSendDropdown);
+
+async function sendToSpreadsheet(){
+  const allHistory = loadHistory();
+  const allLikes   = loadLikes();
+
+  if(allHistory.length === 0){
+    closeSendDropdown();
     alert("送信するデータがありません。");
     return;
   }
 
-  if(!confirm(`診断データ ${history.length} 件を研究用に にじいろゼミ へ提供します。よろしいですか？\n(子どもの名前は、端末側で匿名処理を行った上で送信されます)`)) return;
+  /* チェックされた名前のデータだけに絞り込む */
+  const sel = loadSendSelection();
+  const history = allHistory.filter(rec => isSelected(sel, rec.nameId || "__anon__"));
+  const likes = Object.fromEntries(
+    Object.entries(allLikes).filter(([id]) => isSelected(sel, id))
+  );
+
+  closeSendDropdown();
+
+  if(history.length === 0){
+    alert("送信する名前が選択されていません。\nチェックを入れてから送信してください。");
+    return;
+  }
+
+  if(!confirm(`診断データ ${history.length} 件を研究用に にじいろゼミ へ提供します。よろしいですか？`)) return;
 
   const btn = document.getElementById("sendBtn");
   btn.disabled = true;
@@ -505,7 +640,7 @@ async function sendToSpreadsheet(){
     await new Promise(r => setTimeout(r, 1500));
     alert("送信しました！\nご提供頂いた貴重なデータは、ゼミでの研究に活用させていただきます。");
   } catch(err) {
-    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、お手数ですが にじいろゼミ まで不具合報告をお願いいたします。" + err);
+    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、再度送信するか、にじいろゼミまで不具合報告をお願いいたします。" + err);
   } finally {
     overlay.classList.remove("show");
     btn.disabled = false;
@@ -515,7 +650,7 @@ async function sendToSpreadsheet(){
 
 /* ══ 全データ削除（二重確認） ══ */
 function confirmDeleteAll(){
-  const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名簿は残ります)");
+  const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名前は残ります)");
   if(!first) return;
   const second = confirm("本当に削除しますか？\nこの操作は元に戻せません。");
   if(!second) return;
