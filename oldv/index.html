@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>きもちチェック</title>
@@ -96,7 +97,11 @@ html, body {
   padding:20px;
   opacity:0;
   transition:opacity calc(var(--fade-ms) * 1ms) ease;
-  overflow:hidden;
+  /* 万一コンテンツが画面に収まりきらない環境でも、
+     内容が消えてしまわないよう縦スクロールできるようにしておく
+     （横方向のはみ出しだけは隠す） */
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 .screen.active  { display:flex; }
 .screen.visible { opacity:1; }
@@ -104,26 +109,26 @@ html, body {
 /* ── スタート画面 ── */
 #startScreen {
   justify-content: flex-start;
-  padding-top: 115px; /* 上からの余白で調整 */
+  padding-top: clamp(24px, 12vh, 115px); /* 上からの余白：画面が低いときは自動で縮む */
 }
-.big-img {width:250px; height:250px; object-fit:contain; margin-bottom:10px; display:block;} /* スタート画面のイラスト */
-.ttl { font-size:35px; color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:30px; }
-.sub { font-size:25px; color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:30px;   font-family:'Zen Maru Gothic',sans-serif;}
-.start-btn { background:#ffce65; color:#fff; border:none; border-radius:99px; padding:30px 50px; font-size:30px; font-weight:500; cursor:pointer; }
+.big-img {width:clamp(90px, 22vh, 250px); height:clamp(90px, 22vh, 250px); object-fit:contain; margin-bottom:10px; display:block;} /* スタート画面のイラスト */
+.ttl { font-size:clamp(22px, 5.5vh, 35px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(12px, 3vh, 30px); }
+.sub { font-size:clamp(14px, 3.2vh, 25px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(14px, 3vh, 30px);   font-family:'Zen Maru Gothic',sans-serif;}
+.start-btn { background:#ffce65; color:#fff; border:none; border-radius:99px; padding:clamp(14px, 3.5vh, 30px) clamp(28px, 7vw, 50px); font-size:clamp(16px, 3.5vh, 30px); font-weight:500; cursor:pointer; }
 .start-btn:active { transform:scale(0.96); }
 
 /* ── 質問画面 ── */
 #quizScreen {
   justify-content: flex-start;
-  padding-top: 60px;
+  padding-top: clamp(16px, 6vh, 60px);
 }
 .pbar-wrap { width:100%; height:7px; background:var(--color-background-secondary); border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
 .pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
-.q-text { font-size:40px; font-weight:var(--fw-q-text); color:var(--color-text-primary); text-align:center; line-height:1.5; margin-bottom:16px; flex-shrink:0; }
-.opts { display:grid; grid-template-columns:1fr 1fr; gap:15px; width:100%; max-width:600px; flex-shrink:0; margin: 0 auto; }
-.opt  { background:#FFF3E0; border:1.5px solid #FFCC80; border-radius:16px; padding:11px 50px; font-size:20px; cursor:pointer; color:var(--color-text-primary); display:flex; flex-direction:column; align-items:center; gap:5px; transition:background .12s,border-color .12s; }
-.opt .oi     { font-size:10px; line-height:1; min-height:50px; display:flex; align-items:center; justify-content:center; }
-.opt .oi img { width:130px; height:130px; object-fit:contain; } /* 選択肢上のイラスト */
+.q-text { font-size:clamp(18px, 5.5vh, 40px); font-weight:var(--fw-q-text); color:var(--color-text-primary); text-align:center; line-height:1.4; margin-bottom:clamp(8px, 2vh, 16px); flex-shrink:0; }
+.opts { display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px, 2vw, 15px); width:100%; max-width:600px; flex-shrink:0; margin: 0 auto; }
+.opt  { background:#FFF3E0; border:1.5px solid #FFCC80; border-radius:16px; padding:clamp(8px, 2vh, 11px) clamp(12px, 6vw, 50px); font-size:clamp(13px, 2.8vh, 20px); cursor:pointer; color:var(--color-text-primary); display:flex; flex-direction:column; align-items:center; gap:5px; transition:background .12s,border-color .12s; }
+.opt .oi     { font-size:10px; line-height:1; min-height:clamp(30px, 8vh, 50px); display:flex; align-items:center; justify-content:center; }
+.opt .oi img { width:clamp(64px, 15vh, 130px); height:clamp(64px, 15vh, 130px); object-fit:contain; } /* 選択肢上のイラスト */
 .opt .ol     { font-weight:var(--fw-opt-label); }
 .opt:hover  { background:#FFE0B2; border-color:#FFA726; }
 .opt.sel    { background:#FFE0B2; border-color:#FFA726; color:#72243E; }
@@ -143,15 +148,18 @@ html, body {
 }
 .res-top  { text-align:center; padding:8px 16px 4px; flex-shrink:0; width:100%; }
 .res-img  { width:var(--res-img-size); height:var(--res-img-size); object-fit:contain; margin:0 auto 3px; display:block;}
-.res-ttl  { font-size:var(--res-ttl-size); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); }
-.res-desc { font-size:var(--res-desc-size); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:3px; line-height:1.5; }
+.res-ttl  { font-size:clamp(18px, 4.5vh, var(--res-ttl-size)); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); line-height:1.3; }
+.res-desc { font-size:clamp(11px, 2.2vh, var(--res-desc-size)); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:3px; line-height:1.5; }
 
 /* ── 今の気持ち画面 ── */
 .center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
-.center-card .ct { font-size:var(--center-txt-size); font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
-.sub-tags { margin-top:8px; display:flex; flex-direction:column; gap:3px; }
+/* ct（1問目の答え）は見出しとして独立させず、sub-tagsの行の先頭に並べて表示する */
+.ct-tags-row { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; margin-top:8px; }
+.center-card .ct { font-size:14px; font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
+.center-card .ct:not(:empty)::after { content:"・"; color:#888; font-weight:400; }
+.sub-tags { display:inline; }
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
 /* ── 特効薬画面 ── */
@@ -170,8 +178,10 @@ html, body {
   width:100%;
   flex:1;
   padding:0 8px;
-  min-height:0;
-  overflow:hidden;
+  /* 以前はoverflow:hiddenで強制的に高さに収めていたが、
+     タイトルの折り返し等で縦に収まりきらないと下段のバブルが
+     見切れてしまっていた。いまは親（.screen）がスクロールできる
+     ので、ここでは切り捨てず、はみ出た分はスクロールで見られるようにする。 */
 }
 @media (max-width: 480px) {
   .bubble-grid {
@@ -186,14 +196,17 @@ html, body {
 @media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
 .bubble-txt { line-height:1.4; }
 
-/* タップできることを示すヒントアニメーション：ランダムなバブルが軽く拡大して戻る */
+/* タップできることを示すヒントアニメーション：
+   ランダムなバブルが「拡大→1.5秒キープ→縮小」の流れで動く。
+   合計 1.9秒（拡大0.2秒＋キープ1.5秒＋縮小0.2秒） */
 @keyframes bubbleTapHint {
-  0%   { transform:scale(1); }
-  50%  { transform:scale(1.07); }
-  100% { transform:scale(1); }
+  0%    { transform:scale(1);    }
+  10.5% { transform:scale(1.07); } /* 拡大しきる（0.2秒後） */
+  89.5% { transform:scale(1.07); } /* 1.5秒のあいだ拡大したままキープ */
+  100%  { transform:scale(1);    } /* 縮小しきる（1.9秒後） */
 }
 .bubble.hint-pulse {
-  animation: bubbleTapHint 0.6s ease-in-out;
+  animation: bubbleTapHint 2.5s ease-in-out;
 }
 
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
@@ -220,11 +233,11 @@ html, body {
 
 /* カードヘッダー（イメージカラー背景） */
 .detail-card-header {
-  padding:32px 18px 5px;
+  padding:clamp(16px, 4vh, 32px) 18px 5px;
   background: var(--detail-bg, #FBEAF0);
 }
 .detail-card-ttl {
-  font-size:var(--detail-ttl-size);
+  font-size:clamp(18px, 4vh, var(--detail-ttl-size));
   font-weight:700;
   color: var(--detail-tc, #72243E);
   text-align:center;
@@ -235,13 +248,13 @@ html, body {
 .detail-card-img-wrap {
   background: var(--detail-bg, #FBEAF0);
   display:flex; justify-content:center; align-items:flex-end;
-  padding:24px 0 0;
+  padding:clamp(12px, 3vh, 24px) 0 0;
   overflow:hidden;
-  min-height:calc(var(--detail-img-size) + 16px);
+  min-height:calc(clamp(120px, 28vh, var(--detail-img-size)) + 16px);
 }
 .detail-img {
-  width:var(--detail-img-size);
-  height:var(--detail-img-size);
+  width:clamp(120px, 28vh, var(--detail-img-size));
+  height:clamp(120px, 28vh, var(--detail-img-size));
   object-fit:contain;
   transform-origin: 50% 80%; /* 下端を基点に揺れる */
   animation: detailSway 5s ease-in-out infinite;
@@ -452,6 +465,7 @@ html, body {
 .name-confirm-btn:active { transform:scale(0.95); }
 .name-list-wrap {
   flex:1; overflow-y:auto; width:100%; max-width:600px; margin:0 auto;
+  min-height:0; /* flexアイテムがコンテンツより縮まないバグ対策：これがないと内部スクロールが効かず外側にはみ出すことがある */
 }
 .name-list {
   list-style:none; width:100%;
@@ -526,9 +540,13 @@ html, body {
     <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
   </div>
   <div class="name-input-row">
-    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="20"
+    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
+      oninput="checkNameLength()"
       onkeydown="if(event.key==='Enter')addName()">
     <button class="name-confirm-btn" onclick="addName()">追加</button>
+  </div>
+  <div id="nameLimitWarn" style="display:none;color:#c0704a;font-size:13px;text-align:center;margin:-14px 0 14px;">
+    入力できる名前は10文字までです
   </div>
   <div class="name-list-wrap">
     <ul class="name-list" id="nameList"></ul>
@@ -537,7 +555,7 @@ html, body {
 
 <div id="quizScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:0%"></div></div>
-  <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:24px;color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;"></div>
+  <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:clamp(14px,3vh,24px);color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;max-width:100%;overflow-wrap:break-word;word-break:break-word;"></div>
   <div class="q-text" id="qtext"></div>
   <div class="opts" id="opts"></div>
   <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
@@ -545,7 +563,7 @@ html, body {
 </div>
 <!-- 今の気持ち画面 -->
 <div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
-  <div id="resultNameLabel" style="display:none;font-size:36px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;margin-bottom:4px;"></div>
+  <div id="resultNameLabel" style="display:none;font-size:clamp(20px,4.5vh,36px);color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;margin-bottom:4px;max-width:92%;margin-left:auto;margin-right:auto;overflow-wrap:break-word;word-break:break-word;"></div>
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
@@ -553,8 +571,10 @@ html, body {
   </div>
   <div class="center-card" style="margin:0 auto;">
     <div class="ce" id="cce"></div>
-    <div class="ct" id="cct"></div>
-    <div class="sub-tags" id="subTags"></div>
+    <div class="ct-tags-row">
+      <div class="ct" id="cct"></div>
+      <div class="sub-tags" id="subTags"></div>
+    </div>
   </div>
   <button class="next-screen-btn" onclick="showActScreen()">これ、やってみる？ →</button>
   <button class="retry-btn" onclick="restart()">もういちど</button>
@@ -563,7 +583,7 @@ html, body {
 <!-- 特効薬画面 -->
 <div id="actScreen" class="screen">
   <div class="act-top">
-    <div id="actNameLabel" style="display:none;font-size:24px;color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;margin-bottom:4px;"></div>
+    <div id="actNameLabel" style="display:none;font-size:clamp(16px,3vh,24px);color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;margin-bottom:4px;max-width:92%;margin-left:auto;margin-right:auto;overflow-wrap:break-word;word-break:break-word;"></div>
     <div class="act-ttl" id="actTtl"></div>
     <div class="act-desc" id="actDesc"></div>
   </div>
@@ -841,6 +861,14 @@ function goBackToStart(){
 }
 
 /* 名前を追加 */
+/* 名前入力欄が10文字に達したら警告を表示する */
+function checkNameLength(){
+  const input = document.getElementById("nameInput");
+  const warn  = document.getElementById("nameLimitWarn");
+  if(!input || !warn) return;
+  warn.style.display = input.value.length >= 10 ? "block" : "none";
+}
+
 function addName(){
   const input = document.getElementById("nameInput");
   const name = input.value.trim();
@@ -850,6 +878,7 @@ function addName(){
   saveNames(list);
   input.value = "";
   input.focus();
+  document.getElementById("nameLimitWarn").style.display = "none";
   renderNameList();
 }
 
@@ -961,6 +990,14 @@ function startQ(){
 function renderQ(){
   busy=false;
   const q=Qs[cur];
+  const qId=q.id; /* ← このrenderで表示している質問のIDをここで固定して覚えておく。
+                      selectOpt側でクリック時に毎回"Qs[cur].id"を読み直すと、
+                      連打などでcurが先に進んでしまったあとに古いボタンのクリックが
+                      遅れて処理されたとき、"次の質問のid"に"今のボタンの値"を
+                      書き込んでしまう事故が起きる（回答がnullや別の質問の値に
+                      入れ替わって見えるバグの原因）。renderのタイミングでqIdを
+                      固定しclosureで持たせることで、後からcurが変わっても
+                      必ず正しい質問キーに書き込まれるようにする。 */
   document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
   document.getElementById("qtext").textContent=q.text;
   /* もどるボタン：最初の質問では隠す */
@@ -971,6 +1008,7 @@ function renderQ(){
   if(cur===0){ topBtn.classList.remove("hidden"); }else{ topBtn.classList.add("hidden"); }
   const g=document.getElementById("opts");
   g.innerHTML="";
+  g.style.pointerEvents="auto"; /* 前の質問で選択後に無効化していた場合に備え、新しい質問では必ず有効化し直す */
   q.opts.forEach(o=>{
     const b=document.createElement("button");
     b.className="opt";
@@ -981,7 +1019,7 @@ function renderQ(){
       iconHtml=`<span class="oi"></span>`;
     }
     b.innerHTML=iconHtml+`<span class="ol">${o.l}</span>`;
-    b.onclick=()=>selectOpt(o.v,b);
+    b.onclick=()=>selectOpt(qId,o.v,b,g);
     g.appendChild(b);
   });
 }
@@ -1002,11 +1040,19 @@ function goTop(){
   });
 }
 
-/* 選択肢が押されたとき：回答を記録し、次の質問または結果画面へ進む */
-function selectOpt(val,btn){
+/* 選択肢が押されたとき：回答を記録し、次の質問または結果画面へ進む
+   qId: この選択肢が描画された時点の質問ID（連打対策のためrenderQ側で固定した値） */
+function selectOpt(qId,val,btn,optsContainer){
   if(busy)return;
   busy=true;
-  ans[Qs[cur].id]=val;
+  /* busyフラグだけに頼らず、この質問の選択肢エリア全体を即座に
+     操作不可にする。こうしておくと、画面が次の質問に切り替わる
+     アニメーションの途中で連打しても、DOM上はこの瞬間から
+     一切クリックを受け付けなくなるので、古いボタンへの遅延タップが
+     すり抜けて悪さをすることがなくなる。 */
+  optsContainer.style.pointerEvents="none";
+  ans[qId]=val; /* renderQ時点で固定したqIdに書き込む。クリック時に毎回curを読み直さないので、
+                    連打でcurが先に進んでいても正しい質問キーに記録される */
   document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));
   btn.classList.add("sel");
   const wait=cssVar('--fade-wait-ms')||320;
@@ -1020,10 +1066,51 @@ function selectOpt(val,btn){
   },wait);
 }
 
+/* 各回答値に対応する表示用の要約テキスト ← ここを編集してね
+   ※ moodはQ1の答えそのまま（結果画面の見出し下の小さいラベル用） */
+const ANS_LABEL = {
+  mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい" },
+  energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
+  social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
+  body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき" },
+  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
+};
+
+/* ── 2問目（げんき）と4問目（からだ）をあわせて「からだの状態レベル」を決める ──
+   例えば「げんきいっぱい」と答えていても「たいちょうがわるい」も選んでいたら、
+   げんき度だけで判定せず、からだの不調ぶんだけ状態を1〜2段階重くする。
+   body="fine"（からだはへいき）なら今までどおりenergyの値をそのまま使う。 */
+const ENERGY_ORDER = ["high","mid","low","verylow"]; /* 0=元気 → 3=ぐったり の順 */
+function derivePhysicalLevel(energy, body){
+  const baseIdx = ENERGY_ORDER.indexOf(energy);
+  const idx = baseIdx === -1 ? 1 : baseIdx; /* 不明な値はmid扱い */
+  /* からだの不調の重さ：heart/breathはやや重い、badはより重い、fineは影響なし */
+  const BODY_WEIGHT = { fine:0, heart:1, breath:1, bad:2 };
+  const weight = BODY_WEIGHT[body] ?? 0;
+  const newIdx = Math.min(ENERGY_ORDER.length - 1, idx + weight);
+  return ENERGY_ORDER[newIdx];
+}
+
 /* 結果画面を構築して表示する */
 function showResult(){
-  const mt=ans.mood||"neutral";
-  const d=MD[mt]||MD.neutral;
+  /* ── 最初の質問（きもち）と、2問目（げんき）＋4問目（からだ）を
+     あわせた「からだの状態レベル」の組み合わせでメッセージを選ぶ。
+     例：「たのしい」×「げんきいっぱい」でも「たいちょうがわるい」なら、
+     happy_highではなくhappy_lowのような、より実態に近い結果になる。 ── */
+  const mt = ans.mood || "happy";
+  const physicalLevel = derivePhysicalLevel(ans.energy || "mid", ans.body || "fine");
+  const key = mt + "_" + physicalLevel;
+  let d = MD[key];
+  if(!d){
+    /* 本来16パターンすべて用意してあるので、ここに来るのはバグ。
+       開発者が原因を特定できるよう、詳細をコンソールに残す。 */
+    console.error(
+      `[きもちチェック] MDに未定義の組み合わせです: mood="${mt}", physicalLevel="${physicalLevel}" (key="${key}")。` +
+      `data.jsのMDオブジェクトを確認してください。`
+    );
+    d = MD.error;
+  }
+
   /* 結果画面トップの画像は表示しない */
   document.getElementById("resicon").innerHTML="";
   document.getElementById("rttl").textContent=pick(d.ttls);
@@ -1034,15 +1121,9 @@ function showResult(){
   }else{
     cce.innerHTML="";
   }
-  document.getElementById("cct").textContent=d.ct;
+  /* ct（見出し下の小さいラベル）は純粋にQ1の回答をそのまま表示する */
+  document.getElementById("cct").textContent = ANS_LABEL.mood[mt] || ANS_LABEL.mood.happy;
 
-  /* 各回答値に対応する表示用の要約テキスト ← ここを編集してね */
-  const ANS_LABEL = {
-    energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
-    social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
-    body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき" },
-    wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
-  };
   /* 4つの要約を「、」でつなげて1行で表示 */
   const subTagsEl = document.getElementById("subTags");
   const subIds = ["energy","social","body","wish"];
@@ -1084,9 +1165,17 @@ function showResult(){
 
 /* 今の気持ち画面から特効薬画面へ遷移する */
 function showActScreen(){
-  /* 上部テキスト：きもちラベル（もやもや等）＋サブタグ（つかれている・ひとりでいたい等） */
-  document.getElementById("actTtl").textContent  = document.getElementById("cct").textContent;
-  document.getElementById("actDesc").textContent = document.getElementById("subTags").textContent;
+  /* 上部テキスト：
+     ・大きい見出し（actTtl）には、結果画面ですでに選ばれているttls（例：「なんだかドキドキしてるんだね」）を
+       そのまま引き継いで表示する（再抽選すると結果画面と表記がズレるため rttl の文字列を再利用）
+     ・下の説明行（actDesc）には、1問目の答え（ct）とサブタグ（げんきはふつう・〜）を
+       「・」でつないで1行にまとめて表示する */
+  document.getElementById("actTtl").textContent = document.getElementById("rttl").textContent;
+
+  const ctText  = document.getElementById("cct").textContent;
+  const subText = document.getElementById("subTags").textContent;
+  document.getElementById("actDesc").textContent = [ctText, subText].filter(s => s).join("・");
+
   /* 名前ラベル */
   const actUser = getSelectedUser();
   const actNameLabel = document.getElementById("actNameLabel");
@@ -1143,7 +1232,7 @@ function startBubbleHint(){
     const target = (idle.length ? idle : bubbles)[Math.floor(Math.random()*(idle.length ? idle.length : bubbles.length))];
     target.classList.add("hint-pulse");
     target.addEventListener("animationend", ()=>target.classList.remove("hint-pulse"), {once:true});
-  }, 2000);
+  }, 5200); /* アニメーション本体が1.9秒なので、次のバブルが始まるまで少し間をあける */
 }
 
 /* ヒントアニメーションのタイマーを停止（画面遷移時に呼ぶ） */
