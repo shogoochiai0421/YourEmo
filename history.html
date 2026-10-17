@@ -110,7 +110,7 @@ html, body {
   /* もどるボタン：文字を小さく */
   .back-btn { font-size: 11px; padding: 1px 10px; }
 
-  /* 送信・削除ボタン：アイコンのみ表示 */
+  /* 送信・削除ボタン：マークのみ表示 */
   .send-btn    { font-size: 11px; padding: 5px 8px; }
   .del-all-btn { font-size: 11px; padding: 5px 8px; }
   .send-btn    .btn-label-full { display: none; }
@@ -166,7 +166,7 @@ html, body {
   background: #fff; min-width: 300px;
 }
 
-/* 名前アイコン（文字サイズに合わせて自動でスケール） */
+/* 名前マーク（文字サイズに合わせて自動でスケール） */
 .name-icon {
   display: inline-block;
   width: 1.2em; height: 1.2em;
@@ -373,7 +373,7 @@ html, body {
       <span class="btn-label-short">ゼミにデータを提供する</span>
     </button>
     <div class="send-dropdown" id="sendDropdown" onclick="event.stopPropagation()">
-      <div class="send-dd-title">送信する人にチェックを入れてください</div>
+      <div class="send-dd-title">研究データの提供に同意されているお子さん名前にチェックを入れてください</div>
       <div class="send-dd-list" id="sendDdList"></div>
       <button class="send-dd-submit" onclick="sendToSpreadsheet()">送信する</button>
     </div>
@@ -518,7 +518,7 @@ function saveSendSelection(sel){
 /* 未保存の名前（新規登録など）は、初期状態でチェックなし */
 function isSelected(sel, id){ return sel[id] === true; }
 
-/* ── 名前アイコン（index.htmlで登録した kimochi_names から取得） ── */
+/* ── 名前マーク（index.htmlで登録した kimochi_names から取得） ── */
 function escHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }

@@ -499,7 +499,7 @@ html, body {
 }
 .name-del-all-btn:active { transform:scale(0.95); }
 
-/* ── 名前アイコン（文字サイズに合わせて自動でスケール） ── */
+/* ── 名前マーク（文字サイズに合わせて自動でスケール） ── */
 .name-icon {
   display:inline-block;
   width:1.2em; height:1.2em;
@@ -508,7 +508,7 @@ html, body {
   margin-right:0.2em;
 }
 
-/* ── スタート画面の名前プルダウン（アイコンを表示するための自前プルダウン） ── */
+/* ── スタート画面の名前プルダウン（マークを表示するための自前プルダウン） ── */
 .name-dd { position:relative; font-size:20px; }
 .name-dd-btn {
   display:flex; align-items:center; gap:8px; text-align:left;
@@ -536,7 +536,7 @@ html, body {
 }
 .name-dd-opt:active { background:#FFF3E0; }
 
-/* ── 名前登録画面：アイコン選択ボタン ── */
+/* ── 名前登録画面：マーク選択ボタン ── */
 .icon-pick-btn {
   width:56px; flex-shrink:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -550,7 +550,7 @@ html, body {
 .icon-pick-cap  { font-size:9px; line-height:1.2; }
 .icon-pick-btn img { width:38px; height:38px; object-fit:contain; }
 
-/* ── アイコン選択画面（オーバーレイ） ── */
+/* ── マーク選択画面（オーバーレイ） ── */
 #iconPicker {
   display:none;
   position:absolute; inset:0; z-index:500;
@@ -604,7 +604,7 @@ html, body {
 
   <!-- 名前選択（はじめるボタンの真上） -->
   <div class="name-pick-row">
-    <!-- 状態保持用（非表示）。表示は下の自前プルダウン（アイコンを出すため） -->
+    <!-- 状態保持用（非表示）。表示は下の自前プルダウン（マークを出すため） -->
     <select class="name-select" id="nameSelect" onchange="onNameSelect()" style="display:none">
       <option value="">なまえを えらぶ</option>
     </select>
@@ -636,7 +636,7 @@ html, body {
     <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
   </div>
   <div class="name-input-row">
-    <button type="button" class="icon-pick-btn" id="iconPickBtn" onclick="openIconPicker()" title="アイコンをえらぶ（なくてもOK）"></button>
+    <button type="button" class="icon-pick-btn" id="iconPickBtn" onclick="openIconPicker()" title="マークをえらぶ（なくてもOK）"></button>
     <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
       oninput="checkNameLength()"
       onkeydown="if(event.key==='Enter')addName()">
@@ -706,11 +706,11 @@ html, body {
   </div>
   <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
 </div>
-<!-- アイコン選択（名前登録画面から開く） -->
+<!-- マーク選択（名前登録画面から開く） -->
 <div id="iconPicker" onclick="closeIconPicker()">
   <div class="icon-picker-card" onclick="event.stopPropagation()">
     <div class="icon-picker-head">
-      <span class="icon-picker-title">アイコンをえらんでね</span>
+      <span class="icon-picker-title">マークをえらんでね</span>
       <button type="button" class="icon-picker-none" onclick="pickIcon('')">なし</button>
       <button type="button" class="icon-picker-close" onclick="closeIconPicker()">✕ とじる</button>
     </div>
@@ -905,18 +905,18 @@ function genId(){
   return Math.random().toString(36).slice(2,10);
 }
 
-/* ── 名前アイコン（任意設定。名前データの icon に画像パスを保存） ── */
+/* ── 名前マーク（任意設定。名前データの icon に画像パスを保存） ── */
 const ICON_LIST = (typeof OPENMOJI_ICONS !== "undefined" && Array.isArray(OPENMOJI_ICONS)) ? OPENMOJI_ICONS : [];
-let pendingIcon = ""; /* 名前登録画面で選択中のアイコン */
+let pendingIcon = ""; /* 名前登録画面で選択中のマーク */
 
 function escHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-/* アイコン画像タグ（アイコン未設定なら空文字。画像が読めない場合は非表示） */
+/* マーク画像タグ（マーク未設定なら空文字。画像が読めない場合は非表示） */
 function iconHtml(icon){
   return icon ? `<img class="name-icon" src="${escHtml(icon)}" alt="" onerror="this.style.display='none'">` : "";
 }
-/* 「アイコン＋名前」のHTML */
+/* 「マーク＋名前」のHTML */
 function nameHtml(user){
   return iconHtml(user.icon) + escHtml(user.name);
 }
@@ -959,7 +959,7 @@ function updateNameDdLabel(){
   lab.innerHTML = u ? nameHtml(u) : "なまえを えらぶ";
 }
 
-/* 名前登録画面：アイコン選択ボタンの表示更新 */
+/* 名前登録画面：マーク選択ボタンの表示更新 */
 function updateIconPickBtn(){
   const b = document.getElementById("iconPickBtn");
   if(!b) return;
@@ -968,17 +968,17 @@ function updateIconPickBtn(){
     b.innerHTML = `<img src="${escHtml(pendingIcon)}" alt="">`;
   } else {
     b.classList.remove("has-icon");
-    b.innerHTML = '<span class="icon-pick-plus">＋</span><span class="icon-pick-cap">アイコン</span>';
+    b.innerHTML = '<span class="icon-pick-plus">＋</span><span class="icon-pick-cap">マーク</span>';
   }
 }
-/* アイコン選択画面 */
+/* マーク選択画面 */
 let iconPickerBuilt = false;
 function openIconPicker(){
   const grid = document.getElementById("iconPickerGrid");
   if(!iconPickerBuilt){
     iconPickerBuilt = true;
     if(!ICON_LIST.length){
-      grid.innerHTML = '<div class="icon-picker-empty">アイコン画像が見つかりません。<br>openmoji-list.js を作成して、index.html と同じ場所に置いてください。</div>';
+      grid.innerHTML = '<div class="icon-picker-empty">マーク画像が見つかりません。<br>openmoji-list.js を作成して、index.html と同じ場所に置いてください。</div>';
     } else {
       const frag = document.createDocumentFragment();
       ICON_LIST.forEach(path => {
@@ -1089,7 +1089,7 @@ function addName(){
   if(!name) return;
   const list = loadNames();
   const entry = {id: genId(), name};
-  if(pendingIcon) entry.icon = pendingIcon; /* アイコンは任意 */
+  if(pendingIcon) entry.icon = pendingIcon; /* マークは任意 */
   list.push(entry);
   saveNames(list);
   pendingIcon = "";
