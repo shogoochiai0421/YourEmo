@@ -166,6 +166,15 @@ html, body {
   background: #fff; min-width: 300px;
 }
 
+/* 名前アイコン（文字サイズに合わせて自動でスケール） */
+.name-icon {
+  display: inline-block;
+  width: 1.2em; height: 1.2em;
+  object-fit: contain;
+  vertical-align: -0.22em;
+  margin-right: 0.2em;
+}
+
 /* 名前ヘッダー */
 .kid-name {
   position: sticky; top: 0; z-index: 20;
@@ -364,7 +373,7 @@ html, body {
       <span class="btn-label-short">ゼミにデータを提供する</span>
     </button>
     <div class="send-dropdown" id="sendDropdown" onclick="event.stopPropagation()">
-      <div class="send-dd-title">対象の名前にチェックを入れてください(研究データの提供に同意されているお子さん)</div>
+      <div class="send-dd-title">送信する人にチェックを入れてください</div>
       <div class="send-dd-list" id="sendDdList"></div>
       <button class="send-dd-submit" onclick="sendToSpreadsheet()">送信する</button>
     </div>
@@ -411,7 +420,7 @@ html, body {
   <div class="send-overlay-box">
     <div class="spinner"></div>
     <div class="send-overlay-msg">データを送信しています…</div>
-    <div class="send-overlay-warn">想定送信時間：10~30秒<br>送信が完了するまで<br>この画面から離れないでください</div>
+    <div class="send-overlay-warn">送信が完了するまで<br>この画面から離れないでください</div>
   </div>
 </div>
 
@@ -509,6 +518,23 @@ function saveSendSelection(sel){
 /* 未保存の名前（新規登録など）は、初期状態でチェックなし */
 function isSelected(sel, id){ return sel[id] === true; }
 
+/* ── 名前アイコン（index.htmlで登録した kimochi_names から取得） ── */
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function loadNameIcons(){
+  try{
+    const list = JSON.parse(localStorage.getItem("kimochi_names")||"[]");
+    const map = {};
+    list.forEach(n => { if(n && n.id && n.icon) map[n.id] = n.icon; });
+    return map;
+  }catch(e){ return {}; }
+}
+function nameIconHtml(nameId){
+  const ic = loadNameIcons()[nameId];
+  return ic ? `<img class="name-icon" src="${escHtml(ic)}" alt="" onerror="this.style.display='none'">` : "";
+}
+
 function getKidList(history){
   const map = new Map();
   history.forEach(rec=>{
@@ -535,7 +561,7 @@ function buildSendDropdown(){
     row.className = "send-dd-item";
     const nm = document.createElement("span");
     nm.className = "send-dd-name";
-    nm.textContent = name;
+    nm.innerHTML = nameIconHtml(id) + escHtml(name);
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.checked = isSelected(sel, id);
@@ -589,7 +615,7 @@ async function sendToSpreadsheet(){
     return;
   }
 
-  if(!confirm(`診断データ ${history.length} 件を研究用に にじいろゼミ へ提供します。よろしいですか？`)) return;
+  if(!confirm(`診断データ ${history.length} 件を研究用に にじいろゼミ へ提供します。よろしいですか？\n(子どもの名前は、端末側で匿名処理を行った上で送信されます)`)) return;
 
   const btn = document.getElementById("sendBtn");
   btn.disabled = true;
@@ -640,7 +666,7 @@ async function sendToSpreadsheet(){
     await new Promise(r => setTimeout(r, 1500));
     alert("送信しました！\nご提供頂いた貴重なデータは、ゼミでの研究に活用させていただきます。");
   } catch(err) {
-    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、再度送信するか、にじいろゼミまで不具合報告をお願いいたします。" + err);
+    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、お手数ですが にじいろゼミ まで不具合報告をお願いいたします。" + err);
   } finally {
     overlay.classList.remove("show");
     btn.disabled = false;
@@ -650,7 +676,7 @@ async function sendToSpreadsheet(){
 
 /* ══ 全データ削除（二重確認） ══ */
 function confirmDeleteAll(){
-  const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名前は残ります)");
+  const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名簿は残ります)");
   if(!first) return;
   const second = confirm("本当に削除しますか？\nこの操作は元に戻せません。");
   if(!second) return;
@@ -682,7 +708,7 @@ function openLikes(nameId, name){
   const likes = loadLikes();
   const kidLikes = likes[nameId] || [];
 
-  document.getElementById("likes-title").textContent = name + "さんと一緒にいいねしたカード";
+  document.getElementById("likes-title").innerHTML = nameIconHtml(nameId) + escHtml(name) + "さんと一緒にいいねしたカード";
   const body = document.getElementById("likes-body");
   body.innerHTML = "";
 
@@ -743,7 +769,7 @@ function buildKidBlock(nameId, name, recs){
   const nameEl = document.createElement("div");
   nameEl.className = "kid-name";
   nameEl.innerHTML = `
-    <span class="name-text">${name}<span class="san">さん</span></span>
+    <span class="name-text">${nameIconHtml(nameId)}${name}<span class="san">さん</span></span>
     <button class="like-btn" title="${name}さんと「いいね！」したカード" onclick="openLikes('${nameId}','${name}')">❏</button>
   `;
   block.appendChild(nameEl);
