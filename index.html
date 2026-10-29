@@ -20,13 +20,10 @@
   --fade-wait-ms:        200;
   --bubble-feed-ms:     300;
   --res-ttl-size:        40px;
-  --center-img-size:    220px;
+  --center-img-size:     clamp(160px, 30vh, 240px); /* 画面の高さに応じて可変 */
   --center-txt-size:     30px;
   --act-ttl-size:        28px;
   --act-desc-size:       16px;
-  --bubble-w:           255px;
-  --bubble-txt:          16px;
-  --bubble-img-size:    150px;
   --bubble-gap:          20px;
   --detail-img-size:    280px;
   --detail-ttl-size:     30px;
@@ -43,7 +40,7 @@
 html, body {
   width:100%;
   height:100dvh;
-  overflow:hidden;
+  overflow:hidden; /* 全体スクロールを禁止 */
   background-color: rgb(255, 250, 241);
 }
 
@@ -72,27 +69,30 @@ html, body {
   font-family:'Zen Maru Gothic',sans-serif;
 }
 
-/* ── 画面共通：フェード ── */
+/* ── 画面共通：フェード ＆ スクロール禁止レイアウト ── */
 .screen {
-  display:none; width:100%; height:100%;
+  position: absolute;
+  top: 0; left: 0;
+  width:100%; height:100%;
+  display:none; 
   flex-direction:column; align-items:center; justify-content:center;
   padding:20px;
   opacity:0;
   transition:opacity calc(var(--fade-ms) * 1ms) ease;
-  overflow-y:auto;
-  overflow-x:hidden;
+  overflow:hidden;
+  z-index: 1;
+  pointer-events: none; /* 非表示の時にクリックを透過させる */
 }
 .screen.active  { display:flex; }
-.screen.visible { opacity:1; }
+.screen.visible { opacity:1; pointer-events: auto; } /* 表示中のみクリックを受け付ける */
 
 /* ── スタート画面 ── */
 #startScreen {
-  justify-content: flex-start;
-  padding-top: clamp(24px, 12vh, 115px);
+  justify-content: center;
 }
 .big-img {width:clamp(90px, 22vh, 250px); height:clamp(90px, 22vh, 250px); object-fit:contain; margin-bottom:10px; display:block;}
 .ttl { font-size:clamp(22px, 5.5vh, 35px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(12px, 3vh, 30px); }
-.sub { font-size:clamp(14px, 3.2vh, 25px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(14px, 3vh, 30px);   font-family:'Zen Maru Gothic',sans-serif;}
+.sub { font-size:clamp(14px, 3.2vh, 25px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(14px, 3vh, 30px); font-family:'Zen Maru Gothic',sans-serif;}
 .start-btn { background:#ffce65; color:#fff; border:none; border-radius:99px; padding:clamp(14px, 3.5vh, 30px) clamp(28px, 7vw, 50px); font-size:clamp(16px, 3.5vh, 30px); font-weight:500; cursor:pointer; }
 .start-btn:active { transform:scale(0.96); }
 
@@ -100,6 +100,7 @@ html, body {
 #quizScreen {
   justify-content: flex-start;
   padding-top: clamp(16px, 6vh, 60px);
+  overflow-y: auto; /* 極端に小さい画面ではスクロール許可 */
 }
 .pbar-wrap { width:100%; height:7px; background:var(--color-background-secondary); border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
 .pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
@@ -127,17 +128,50 @@ html, body {
 
 /* ── 結果画面 ── */
 #resultScreen {
-  padding:0; justify-content:flex-start; 
-  padding-top: 20px;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
 }
 .res-top  { text-align:center; padding:8px 16px 4px; flex-shrink:0; width:100%; }
 .res-img  { width:var(--res-img-size); height:var(--res-img-size); object-fit:contain; margin:0 auto 3px; display:block;}
 .res-ttl  { font-size:clamp(18px, 4.5vh, var(--res-ttl-size)); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); line-height:1.3; }
 
 /* ── 今の気持ち画面 ── */
-.center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
+.center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; position: relative; flex-shrink: 0; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
+
+/* 追加：マップスナップショット */
+.map-snapshot {
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: 3px solid #FFCC80;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  display: inline-block;
+}
+
+/* 丸の下に被せるタイトル */
+.location-title {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  color: #53433a;
+  border: 2px solid #ffce65;
+  border-radius: 99px;
+  padding: 4px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+  display: none; /* 初期状態は非表示 */
+}
+
 .ct-tags-row { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; margin-top:8px; }
 .center-card .ct { font-size:14px; font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
 .center-card .ct:not(:empty)::after { content:"・"; color:#888; font-weight:400; }
@@ -145,32 +179,43 @@ html, body {
 .sub-tag  { font-size:14px; color:#888; line-height:1.4; white-space:nowrap; }
 
 /* ── 特効薬画面 ── */
-#actScreen { padding:clamp(8px,1.5vh,16px) 16px clamp(4px,1vh,8px); justify-content:flex-start; }
+#actScreen {
+  padding: clamp(10px, 2vh, 20px) 16px;
+  justify-content: flex-start;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .act-top  { text-align:center; padding:clamp(8px,2vh,30px) 0 clamp(4px,1vh,10px); flex-shrink:0; width:100%; }
 .act-ttl  { font-size:clamp(14px, 3vh, var(--act-ttl-size));  font-weight:var(--fw-res-ttl);  color:var(--color-text-primary); }
 .act-desc { font-size:clamp(10px, 1.8vh, var(--act-desc-size)); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:4px; line-height:1.5; }
 
+/* グリッドをフレックスで余白いっぱいに広げ、カードを自動拡大 */
 .bubble-grid {
-  display:grid;
-  grid-template-columns: repeat(5, min(var(--bubble-w), 18vw));
-  gap:clamp(6px, 1vw, var(--bubble-gap));
-  justify-content:center;
-  align-content:center;
-  width:100%;
-  flex:1;
-  padding:0 8px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: clamp(10px, 1.5vw, 16px);
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 10px;
+  overflow-y: auto;
+  min-height: 0;
 }
-@media (max-width: 480px) {
+
+@media (max-width: 768px) {
   .bubble-grid {
-    grid-template-columns: repeat(2, min(var(--bubble-w), 44vw));
-    gap:clamp(6px, 2vw, var(--bubble-gap));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: 10px;
+    padding: 5px;
   }
 }
 
-.bubble { width:100%; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:clamp(10px, 1.2vw, var(--bubble-txt)); font-weight:var(--fw-bubble); line-height:1.4; padding:clamp(6px,1vh,10px) 8px; opacity:0; transition:opacity 0.6s ease; gap:4px; }
-@media (max-width:480px) { .bubble { font-size:clamp(10px, 3vw, var(--bubble-txt)); } }
-.bubble-img { width:min(var(--bubble-img-size), 13vw); height:min(var(--bubble-img-size), 13vw); object-fit:contain; flex-shrink:0; }
-@media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
+.bubble { width:100%; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:clamp(12px, 1.5vw, 16px); font-weight:var(--fw-bubble); line-height:1.4; padding:clamp(10px, 2vh, 15px) 8px; opacity:0; transition:opacity 0.6s ease; gap:8px; word-break: break-all; }
+.bubble-img { width: min(100%, 110px); height: auto; aspect-ratio: 1; object-fit:contain; flex-shrink:0; }
 .bubble-txt { line-height:1.4; }
 
 @keyframes bubbleTapHint {
@@ -293,10 +338,6 @@ html, body {
     --center-txt-size:  18px;
     --act-ttl-size:     20px;
     --act-desc-size:    12px;
-    --bubble-w:        140px;
-    --bubble-txt:       12px;
-    --bubble-img-size:  80px;
-    --bubble-gap:        8px;
     --detail-img-size: 200px;
     --detail-ttl-size:  25px;
     --detail-desc-size: 18px;
@@ -413,6 +454,7 @@ html, body {
   justify-content: flex-start;
   padding-top: clamp(16px, 6vh, 60px);
   padding-bottom: 40px;
+  overflow-y: auto;
 }
 .gauge-container {
   display: flex;
@@ -585,13 +627,12 @@ html, body {
   pointer-events: none;
 }
 
-/* ── 「いまどこにいたい？」画面用CSS ── */
+/* ── 「いまどこにいたい？」画面用CSS（高さ最大化） ── */
 #locationScreen {
   justify-content: flex-start;
-  padding-top: clamp(16px, 6vh, 60px);
-  padding-bottom: 20px;
+  padding: 10px;
+  height: 100%;
 }
-
 .q-header {
   width: 100%;
   display: flex;
@@ -600,6 +641,7 @@ html, body {
   gap: 12px;
   margin-bottom: clamp(8px, 2vh, 16px);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .not-here-btn {
@@ -618,17 +660,18 @@ html, body {
 .not-here-btn.selected { background: #FFE0B2; color: #72243E; border-color: #FFA726; }
 
 .map-viewport {
+  flex: 1;
   width: 100%;
   max-width: 100%;
-  height: 60vh;
+  min-height: 0;
   overflow: hidden;
   border-radius: 12px;
   background-color: transparent;
   margin: 0 auto;
-  flex-shrink: 0;
   position: relative;
   cursor: grab;
   touch-action: none;
+  border: 2px solid #ffce65;
 }
 .map-viewport:active { cursor: grabbing; }
 
@@ -641,8 +684,6 @@ html, body {
   background-color: transparent;
   transform-origin: 0 0;
   will-change: transform;
-  border-top: 2px solid #ffce65;
-  border-bottom: 2px solid #ffce65;
 }
 
 .map-bg {
@@ -697,14 +738,15 @@ html, body {
 }
 
 .instruction {
+  flex-shrink: 0;
   font-size: 14px;
   color: #888;
-  margin-top: 12px;
+  margin-top: 8px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
 @media (max-width: 768px) {
-  .map-viewport { height: 50vh; }
   .draggable-person { width: 100px; }
   .name-label { font-size: 12px; top: -8px; padding: 1px 8px; }
 }
@@ -731,7 +773,7 @@ html, body {
   </div>
 
   <button class="start-btn" id="startBtn" onclick="startQ()" disabled>はじめる</button>
-<div style="position:absolute; bottom:20px; left:30px; display:flex; gap:20px; z-index:100;">
+<div style="position:absolute; bottom:20px; left:30px; display:flex; gap:20px; z-index:100; pointer-events: none;">
   <div class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:none;">開発 横浜保育教育専門学校 にじいろゼミ</div>
   <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">連絡はこちら</a>
   <a href="about.html" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">使い方・このサイトについて</a>
@@ -809,18 +851,21 @@ html, body {
 </div>
 
 <!-- 今の気持ち画面 -->
-<div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
+<div id="resultScreen" class="screen">
   <div id="resultNameLabel" style="display:none;font-size:clamp(20px,4.5vh,36px);color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;margin-bottom:4px;max-width:92%;margin-left:auto;margin-right:auto;overflow-wrap:break-word;word-break:break-word;"></div>
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
-  </div>
-  <div class="center-card" style="margin:0 auto;">
-    <div class="ce" id="cce"></div>
+    <!-- sub-tags を res-ttl の真下に移動 -->
     <div class="ct-tags-row">
       <div class="ct" id="cct"></div>
       <div class="sub-tags" id="subTags"></div>
     </div>
+  </div>
+  <div class="center-card" style="margin:0 auto;">
+    <div class="ce" id="cce"></div>
+    <!-- 丸の下に被せるタイトル -->
+    <div class="location-title">いまいたいところ</div>
   </div>
   <button class="next-screen-btn" onclick="showActScreen()">これ、やってみる？ →</button>
   <button class="retry-btn" onclick="restart()">もういちど</button>
@@ -927,7 +972,7 @@ const Qs=[
     {ikey:"playwith",       l:"あそびたい",           v:"play"},
     {ikey:"sleepy",         l:"ねむりたい",           v:"sleep"},
     {ikey:"talk",           l:"はなしたいことが<br>ある",  v:"talk"},
-    {ikey:"expressionless", l:"したいことはない",     v:"nothing"}
+    {ikey:"expressionless", l:"なにもしたくない",     v:"nothing"}
   ]}
 ];
 
@@ -982,7 +1027,13 @@ let isDraggingGauge = false;
 
 function fadeIn(el){
   el.classList.add("active");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("visible")));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    el.classList.add("visible");
+    // 画面が表示された後にマップのフィット計算を実行
+    if (el.id === "locationScreen") {
+      setTimeout(fitMap, 550); // フェードイン完了後
+    }
+  }));
 }
 function fadeOut(el,cb){
   el.classList.remove("visible");
@@ -1392,6 +1443,46 @@ let locPersonDrag = null;
 let locIsPanning = false;
 let locPanMovedDistance = 0;
 
+// 画面のリサイズや表示を監視してマップをフィットさせる
+const mapViewport = document.getElementById('mapViewport');
+const resizeObserver = new ResizeObserver(() => {
+  if (document.getElementById("locationScreen").classList.contains("visible")) {
+    fitMap();
+  }
+});
+resizeObserver.observe(mapViewport);
+
+function fitMap() {
+  const personIcon = document.getElementById('personIcon');
+  if (!personIcon) return;
+
+  const vw = mapViewport.clientWidth;
+  const vh = mapViewport.clientHeight;
+  
+  // mapContainerの実サイズ（960x460）を使用
+  const mw = 960;
+  const mh = 460;
+  
+  if(vw === 0 || vh === 0) return;
+
+  const scaleX = vw / mw;
+  const scaleY = vh / mh;
+  locZoom = Math.min(scaleX, scaleY);
+  
+  locMapX = (vw - mw * locZoom) / 2;
+  locMapY = (vh - mh * locZoom) / 2;
+  
+  const mapContainer = document.getElementById('mapContainer');
+  mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
+  
+  if (!locHasMoved) {
+    const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
+    const centerTop = mh / 2 - personIcon.offsetHeight / 2;
+    personIcon.style.left = centerLeft + 'px';
+    personIcon.style.top = centerTop + 'px';
+  }
+}
+
 function initLocationScreen() {
   busy = false;
   locHasMoved = false;
@@ -1400,12 +1491,10 @@ function initLocationScreen() {
   document.getElementById("locationPbar").style.width = (2/Qs.length*100) + "%";
   
   const personIcon = document.getElementById('personIcon');
-  const mapViewport = document.getElementById('mapViewport');
   const mapContainer = document.getElementById('mapContainer');
   const nextBtn = document.getElementById('locationNextBtn');
   const notHereBtn = document.getElementById('notHereBtn');
 
-  // ボタンは常に有効にする
   nextBtn.disabled = false;
   notHereBtn.classList.remove('selected');
   
@@ -1423,31 +1512,6 @@ function initLocationScreen() {
       mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
     };
 
-    const fitMap = () => {
-      const vw = mapViewport.clientWidth;
-      const vh = mapViewport.clientHeight;
-      const mw = mapContainer.offsetWidth;
-      const mh = mapContainer.offsetHeight;
-      
-      if(vw === 0 || vh === 0) return;
-
-      const scaleX = vw / mw;
-      const scaleY = vh / mh;
-      locZoom = Math.min(scaleX, scaleY);
-      
-      locMapX = (vw - mw * locZoom) / 2;
-      locMapY = (vh - mh * locZoom) / 2;
-      
-      updateMapTransform();
-      
-      if (!locHasMoved) {
-        const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
-        const centerTop = mh / 2 - personIcon.offsetHeight / 2;
-        personIcon.style.left = centerLeft + 'px';
-        personIcon.style.top = centerTop + 'px';
-      }
-    };
-
     const zoomAt = (nextZoom, anchorX, anchorY) => {
       nextZoom = Math.max(0.5, Math.min(2.5, nextZoom));
       if (nextZoom === locZoom) return;
@@ -1462,8 +1526,8 @@ function initLocationScreen() {
     const clampMapPosition = (x, y) => {
       const vw = mapViewport.clientWidth;
       const vh = mapViewport.clientHeight;
-      const mw = mapContainer.offsetWidth * locZoom;
-      const mh = mapContainer.offsetHeight * locZoom;
+      const mw = 960 * locZoom;
+      const mh = 460 * locZoom;
       const padding = 50; 
       
       let minX, maxX, minY, maxY;
@@ -1640,8 +1704,8 @@ function initLocationScreen() {
       let left = (p.x - locMapX) / locZoom - locPersonDrag.offsetX;
       let top = (p.y - locMapY) / locZoom - locPersonDrag.offsetY;
       
-      left = Math.max(0, Math.min(left, mapContainer.offsetWidth - personIcon.offsetWidth));
-      top = Math.max(0, Math.min(top, mapContainer.offsetHeight - personIcon.offsetHeight));
+      left = Math.max(0, Math.min(left, 960 - personIcon.offsetWidth));
+      top = Math.max(0, Math.min(top, 460 - personIcon.offsetHeight));
       
       personIcon.style.left = left + 'px';
       personIcon.style.top = top + 'px';
@@ -1673,51 +1737,13 @@ function initLocationScreen() {
       submitLocation();
     });
 
-    window.addEventListener('resize', fitMap);
-    
-    // 初期位置を即時設定
-    const vw = mapViewport.clientWidth;
-    const vh = mapViewport.clientHeight;
-    const mw = mapContainer.offsetWidth;
-    const mh = mapContainer.offsetHeight;
-    if(vw > 0 && vh > 0) {
-      locZoom = Math.min(vw / mw, vh / mh);
-      locMapX = (vw - mw * locZoom) / 2;
-      locMapY = (vh - mh * locZoom) / 2;
-      mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
-      
-      const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
-      const centerTop = mh / 2 - personIcon.offsetHeight / 2;
-      personIcon.style.left = centerLeft + 'px';
-      personIcon.style.top = centerTop + 'px';
-    }
-    
-    requestAnimationFrame(() => {
-      requestAnimationFrame(fitMap);
-    });
+    // 初回のフィット
+    fitMap();
   } else {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const vw = mapViewport.clientWidth;
-        const vh = mapViewport.clientHeight;
-        const mw = mapContainer.offsetWidth;
-        const mh = mapContainer.offsetHeight;
-        
-        if(vw === 0 || vh === 0) return;
-        
-        locZoom = Math.min(vw / mw, vh / mh);
-        locMapX = (vw - mw * locZoom) / 2;
-        locMapY = (vh - mh * locZoom) / 2;
-        mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
-        
-        const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
-        const centerTop = mh / 2 - personIcon.offsetHeight / 2;
-        personIcon.style.left = centerLeft + 'px';
-        personIcon.style.top = centerTop + 'px';
-        
-        locHasMoved = false;
-      });
-    });
+    // 2回目以降の表示の際は位置をリセット
+    locHasMoved = false;
+    locIsOutside = false;
+    fitMap();
   }
 }
 
@@ -1732,7 +1758,9 @@ function submitLocation() {
   } else {
     const left = parseFloat(personIcon.style.left) || 0;
     const top = parseFloat(personIcon.style.top) || 0;
-    ans.location = `x:${Math.round(left)},y:${Math.round(top)}`;
+    const w = personIcon.offsetWidth || 80;
+    const h = personIcon.offsetHeight || 160;
+    ans.location = { x: left, y: top, w: w, h: h };
   }
   
   fadeOut(document.getElementById("locationScreen"), () => {
@@ -1749,7 +1777,7 @@ function submitLocation() {
 const ANS_LABEL = {
   mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい", normal:"ふつう" },
   body:   { heart:"どきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき", normal:"からだはふつう" },
-  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"はなしたいことがある", nothing:"したいことはない" },
+  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"はなしたいことがある", nothing:"なにもしたくない" },
 };
 
 const ENERGY_ORDER = ["high","mid","low","verylow"];
@@ -1795,11 +1823,43 @@ function showResult(){
   document.getElementById("resicon").innerHTML="";
   document.getElementById("rttl").textContent=pick(d.ttls);
   const cce=document.getElementById("cce");
-  if(d.ce_ikey&&IMG[d.ce_ikey]){
-    cce.innerHTML=`<img src="${IMG[d.ce_ikey]}" style="width:var(--center-img-size);height:var(--center-img-size);object-fit:contain">`;
-  }else{
-    cce.innerHTML="";
+  const locationTitle = document.querySelector('.location-title');
+  
+  if (ans.location && typeof ans.location === 'object') {
+      const loc = ans.location;
+      // CSS変数からサイズを取得するのではなく、常に240px固定でスナップショットを生成する
+      // (拡大させたときに画質が落ちないよう、SIZEを大きくして縮小表示する)
+      const SIZE = 240;
+      
+      const ZOOM = 1.5; 
+      // 円の中心を人物の中心に合わせる
+      const cx = loc.x + loc.w / 2;
+      const cy = loc.y + loc.h / 2;
+      
+      const bgX = SIZE / 2 - cx * ZOOM;
+      const bgY = SIZE / 2 - cy * ZOOM;
+      
+      const pX = bgX + loc.x * ZOOM;
+      const pY = bgY + loc.y * ZOOM;
+      
+      cce.innerHTML = `
+        <div class="map-snapshot" style="width:${SIZE}px; height:${SIZE}px;">
+          <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png" 
+               style="position:absolute; left:${bgX}px; top:${bgY}px; width:${960 * ZOOM}px; height:${460 * ZOOM}px; max-width:none; object-fit:contain;">
+          <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/you.png" 
+               style="position:absolute; left:${pX}px; top:${pY}px; width:${loc.w * ZOOM}px; height:auto; max-width:none;">
+        </div>
+      `;
+      locationTitle.style.display = 'block';
+  } else {
+      if(d.ce_ikey&&IMG[d.ce_ikey]){
+        cce.innerHTML=`<img src="${IMG[d.ce_ikey]}" style="width:var(--center-img-size);height:var(--center-img-size);object-fit:contain">`;
+      }else{
+        cce.innerHTML="";
+      }
+      locationTitle.style.display = 'none';
   }
+
   document.getElementById("cct").textContent = ANS_LABEL.mood[mt] || ANS_LABEL.mood.happy;
 
   const subTagsEl = document.getElementById("subTags");
@@ -1810,7 +1870,8 @@ function showResult(){
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
   
-  const bubbleCount = window.matchMedia("(max-width:480px)").matches ? 8 : 10;
+  // カード枚数の調整: タブレット/PCなら12個、スマホなら9個
+  const bubbleCount = window.matchMedia("(max-width: 768px)").matches ? 9 : 12;
   chosenBubbles = selectBubbles(ans, bubbleCount);
   sendResult();
 
@@ -1992,6 +2053,7 @@ function restart(){
   if(document.getElementById("actDesc")) document.getElementById("actDesc").textContent="";
   const rnl=document.getElementById("resultNameLabel"); if(rnl) rnl.style.display="none";
   const anl=document.getElementById("actNameLabel"); if(anl) anl.style.display="none";
+  const locTitle = document.querySelector('.location-title'); if(locTitle) locTitle.style.display = 'none';
   chosenBubbles=[];
   likedSet.clear();
   const current =
