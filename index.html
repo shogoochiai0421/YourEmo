@@ -20,7 +20,6 @@
   --fade-wait-ms:        200;
   --bubble-feed-ms:     300;
   --res-ttl-size:        40px;
-  --res-desc-size:       25px;
   --center-img-size:    220px;
   --center-txt-size:     30px;
   --act-ttl-size:        28px;
@@ -129,13 +128,11 @@ html, body {
 /* ── 結果画面 ── */
 #resultScreen {
   padding:0; justify-content:flex-start; 
-  justify-content: flex-start;
   padding-top: 20px;
 }
 .res-top  { text-align:center; padding:8px 16px 4px; flex-shrink:0; width:100%; }
 .res-img  { width:var(--res-img-size); height:var(--res-img-size); object-fit:contain; margin:0 auto 3px; display:block;}
 .res-ttl  { font-size:clamp(18px, 4.5vh, var(--res-ttl-size)); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); line-height:1.3; }
-.res-desc { font-size:clamp(11px, 2.2vh, var(--res-desc-size)); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:3px; line-height:1.5; }
 
 /* ── 今の気持ち画面 ── */
 .center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
@@ -323,7 +320,6 @@ html, body {
 
   #resultScreen    { padding-top: 5px; }
   .res-ttl         { font-size: 20px; }
-  .res-desc        { font-size: 8px; }
   .center-card .ct { font-size: 15px; }
   .sub-tags        { font-size: 10px; }
   .retry-btn       { font-size: 10px; margin-bottom: 16px; }
@@ -416,7 +412,7 @@ html, body {
 #gaugeScreen {
   justify-content: flex-start;
   padding-top: clamp(16px, 6vh, 60px);
-  padding-bottom: 40px; /* ボタンが画面外に行かないように余白を追加 */
+  padding-bottom: 40px;
 }
 .gauge-container {
   display: flex;
@@ -455,7 +451,6 @@ html, body {
   margin: 4px 0;
 }
 
-/* メーターの背景（白い枠と目盛り） */
 .gauge-track {
   width: 100%;
   height: 100%;
@@ -467,7 +462,6 @@ html, body {
   z-index: 1;
 }
 
-/* 目盛りの配置（5%おき、25/50/75は長めに） */
 .gauge-track::before {
   content: "";
   position: absolute;
@@ -476,7 +470,7 @@ html, body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 10; /* ゲージより上に表示 */
+  z-index: 10;
   background-image: 
     linear-gradient(to right, #53433a 0, #53433a 24px, transparent 24px),
     linear-gradient(to right, #53433a 0, #53433a 24px, transparent 24px),
@@ -487,7 +481,6 @@ html, body {
   background-repeat: no-repeat;
 }
 
-/* 液体ゲージ（背景色はJSで制御） */
 .gauge-fill {
   position: absolute;
   bottom: 0;
@@ -495,10 +488,9 @@ html, body {
   width: 100%;
   height: 0%;
   pointer-events: none;
-  z-index: 2; /* 目盛りより下に表示 */
+  z-index: 2;
 }
 
-/* 波打ち部分（正弦波） */
 .gauge-fill::before {
   content: "";
   position: absolute;
@@ -524,7 +516,6 @@ html, body {
   100% { transform: translateX(-50%); }
 }
 
-/* スライダーのつまみ（顔画像と矢印） */
 .gauge-thumb {
   position: absolute;
   right: -240px;
@@ -540,7 +531,6 @@ html, body {
   pointer-events: none;
 }
 
-/* 顔画像の背景ボタン風装飾 */
 .gauge-thumb-bg {
   width: 170px;
   height: 170px;
@@ -559,7 +549,6 @@ html, body {
   object-fit: contain;
   pointer-events: none;
 }
-/* 左向きの矢印 */
 .gauge-arrow {
   width: 0;
   height: 0;
@@ -578,7 +567,6 @@ html, body {
   font-weight: 700;
 }
 
-/* 広いドラッグ操作エリア */
 .gauge-drag-area {
   position: absolute;
   top: 0;
@@ -590,12 +578,135 @@ html, body {
 }
 .gauge-drag-area:active { cursor: grabbing; }
 
-/* 上下の基準顔画像 */
 .gauge-fixed-face {
   width: 60px;
   height: 60px;
   object-fit: contain;
   pointer-events: none;
+}
+
+/* ── 「いまどこにいたい？」画面用CSS ── */
+#locationScreen {
+  justify-content: flex-start;
+  padding-top: clamp(16px, 6vh, 60px);
+  padding-bottom: 20px;
+}
+
+.q-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(8px, 2vh, 16px);
+  flex-wrap: wrap;
+}
+
+.not-here-btn {
+  background: #fff;
+  color: #888;
+  border: 2px solid #ffce65;
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.not-here-btn:active { transform:scale(0.96); background: #FFF3E0; }
+.not-here-btn.selected { background: #FFE0B2; color: #72243E; border-color: #FFA726; }
+
+.map-viewport {
+  width: 100%;
+  max-width: 100%;
+  height: 60vh;
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: transparent;
+  margin: 0 auto;
+  flex-shrink: 0;
+  position: relative;
+  cursor: grab;
+  touch-action: none;
+}
+.map-viewport:active { cursor: grabbing; }
+
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 960px;
+  height: 460px;
+  background-color: transparent;
+  transform-origin: 0 0;
+  will-change: transform;
+  border-top: 2px solid #ffce65;
+  border-bottom: 2px solid #ffce65;
+}
+
+.map-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.draggable-person {
+  position: absolute;
+  width: 80px;
+  height: auto;
+  cursor: grab;
+  z-index: 100;
+  touch-action: none;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: left 0.2s, top 0.2s;
+}
+.draggable-person.dragging {
+  transition: none;
+}
+.draggable-person:active {
+  cursor: grabbing;
+}
+
+.draggable-person img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.name-label {
+  position: absolute;
+  top: -20px;
+  background-color: #fff;
+  color: #000;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 2px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+}
+
+.instruction {
+  font-size: 14px;
+  color: #888;
+  margin-top: 12px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .map-viewport { height: 50vh; }
+  .draggable-person { width: 100px; }
+  .name-label { font-size: 12px; top: -8px; padding: 1px 8px; }
 }
 </style>
 
@@ -640,21 +751,18 @@ html, body {
 <!-- 元気度メーター画面 -->
 <div id="gaugeScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="gaugePbar" style="width:0%"></div></div>
-  <div class="q-text" style="margin-bottom:16px;">いまのげんきさをおしえてね</div>
+  <div class="q-text" style="margin-bottom:16px;">いまの げんきさが どのくらいか おしえてね</div>
   
   <div class="gauge-container">
     <div class="gauge-drag-wrapper" id="gaugeDragWrapper">
-      <!-- 上の顔とラベル -->
       <img class="gauge-fixed-face" id="gaugeFaceTop" src="" alt="">
       <div class="gauge-label-top">げんきいっぱい</div>
       
-      <!-- メーターとスライダー -->
       <div class="gauge-track-wrap" id="gaugeTrackWrap">
         <div class="gauge-track">
           <div class="gauge-fill" id="gaugeFill"></div>
         </div>
         
-        <!-- スライダー（矢印＋顔ボタン） -->
         <div class="gauge-thumb" id="gaugeThumb">
           <div class="gauge-arrow"></div>
           <div class="gauge-thumb-bg">
@@ -662,19 +770,42 @@ html, body {
           </div>
         </div>
         
-        <!-- 広いドラッグ判定用エリア -->
         <div class="gauge-drag-area" id="gaugeDragArea"></div>
       </div>
       
-      <!-- 下のラベルと顔 -->
       <div class="gauge-label-bottom">つかれた・げんきがない</div>
       <img class="gauge-fixed-face" id="gaugeFaceBottom" src="" alt="">
     </div>
   </div>
   
-  <!-- これでOKボタンとその下のもどるボタン -->
-  <button class="next-screen-btn" id="gaugeNextBtn" onclick="submitGauge()" style="margin-top:10px;">これでOK</button>
+  <button class="next-screen-btn" id="gaugeNextBtn" onclick="submitGauge()" style="margin-top:10px;">できた</button>
   <button class="back-btn" id="gaugeBackBtn" onclick="goBack()">← もどる</button>
+</div>
+
+<!-- いまどこにいたい？画面 -->
+<div id="locationScreen" class="screen">
+  <div class="pbar-wrap"><div class="pbar" id="locationPbar" style="width:0%"></div></div>
+
+  <div class="q-header">
+    <div class="q-text">いまどこにいたい？</div>
+    <button class="not-here-btn" id="notHereBtn">このなかにはない</button>
+  </div>
+
+  <div class="map-viewport" id="mapViewport">
+    <div class="map-container" id="mapContainer">
+      <img class="map-bg" id="mapBgImg" src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png" alt="保育園の俯瞰図">
+      
+      <div class="draggable-person" id="personIcon">
+        <div class="name-label">きみ</div>
+        <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/you.png" alt="自分" onerror="this.src='https://via.placeholder.com/150x300/cccccc/ffffff?text=You';">
+      </div>
+    </div>
+  </div>
+
+  <div class="instruction">人物を動かすか、背景をタップして場所を選んでね（ドラッグで背景を移動できます）</div>
+
+  <button class="next-screen-btn" id="locationNextBtn" onclick="submitLocation()">これでOK</button>
+  <button class="back-btn" onclick="goBack()">← もどる</button>
 </div>
 
 <!-- 今の気持ち画面 -->
@@ -683,7 +814,6 @@ html, body {
   <div class="res-top">
     <div id="resicon"></div>
     <div class="res-ttl" id="rttl"></div>
-    <div class="res-desc" id="rdesc"></div>
   </div>
   <div class="center-card" style="margin:0 auto;">
     <div class="ce" id="cce"></div>
@@ -777,38 +907,27 @@ for(let i=1; i<=16; i++){
 }
 
 const Qs=[
-  {id:"mood",text:"いまのきもちはどれかな？",opts:[
+  {id:"mood",text:"いまの きもちは どれかな？",opts:[
     {ikey:"smile",          l:"たのしいきもち",       v:"happy"},
     {ikey:"cry",            l:"かなしいきもち",       v:"sad"},
     {ikey:"mad",            l:"いらいらする",         v:"angry"},
     {ikey:"fear",           l:"なんだかこわいきもち", v:"anxious"},
-    {ikey:"normal",         l:"ふつうかな",           v:"normal"}
-  ]},
-  {id:"energy",text:"からだにげんきはあるかな？",opts:[
-    {ikey:"happy",          l:"げんきいっぱい",       v:"high"},
-    {ikey:"tired",          l:"つかれたな",           v:"low"},
-    {ikey:"notfeelingwell", l:"ぐったり…",            v:"verylow"},
-    {ikey:"expressionless", l:"ふつうかな",           v:"mid"}
+    {ikey:"normal",         l:"ふつう",           v:"normal"}
   ]},
   {id:"gauge",text:"いまのげんきさをおしえてね",opts:[]},
-  {id:"social",text:"だれかといたいきもちはある？",opts:[
-    {ikey:"playwith",       l:"いっしょにいたい",     v:"social"},
-    {ikey:"alone",          l:"ひとりがいいな",       v:"alone"},
-    {ikey:"wink",           l:"どちらでもいい",           v:"neutral"},
-    {ikey:"expressionless", l:"わからない",           v:"unsure"}
-  ]},
-  {id:"body",text:"からだはどんなかんじ？",opts:[
+  {id:"location",text:"いまどこにいたい？",opts:[]}, // 以前の social の位置
+  {id:"body",text:"からだは どんなかんじ？",opts:[
     {ikey:"happy",          l:"げんき",               v:"fine"},
     {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
     {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
     {ikey:"sickness",       l:"きもちわるい<br>あたまがいたい", v:"bad"},
     {ikey:"normal",         l:"ふつうかな",           v:"normal"}
   ]},
-  {id:"wish",text:"いましたいことは？",opts:[
+  {id:"wish",text:"いま したいことは？",opts:[
     {ikey:"playwith",       l:"あそびたい",           v:"play"},
     {ikey:"sleepy",         l:"ねむりたい",           v:"sleep"},
     {ikey:"talk",           l:"はなしたいことが<br>ある",  v:"talk"},
-    {ikey:"expressionless", l:"なにもしたくない",     v:"nothing"}
+    {ikey:"expressionless", l:"したいことはない",     v:"nothing"}
   ]}
 ];
 
@@ -821,8 +940,6 @@ function scoreBubble(bubble, ans){
   let score = 0;
   const tags = bubble.tags;
   if(matchTag(tags.mood,   ans.mood))   score++;
-  if(matchTag(tags.energy, ans.energy)) score++;
-  if(matchTag(tags.social, ans.social)) score++;
   if(matchTag(tags.body,   ans.body))   score++;
   if(matchTag(tags.wish,   ans.wish))   score++;
   return score;
@@ -860,7 +977,7 @@ function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Mat
 function cssVar(name){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0;}
 
 let cur=0,ans={},busy=false,chosenBubbles=[];
-let gaugeValue = 7; // 0(元気) 〜 15(最悪)
+let gaugeValue = 7;
 let isDraggingGauge = false;
 
 function fadeIn(el){
@@ -1016,9 +1133,13 @@ function renderQ(){
   const qId=q.id;
 
   if(qId === "gauge"){
-    // ゲージ画面の表示準備
     initGaugeScreen();
     return; 
+  }
+  
+  if(qId === "location"){
+    initLocationScreen();
+    return;
   }
 
   document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
@@ -1042,29 +1163,59 @@ function renderQ(){
 }
 
 function goBack(){
-  if(cur<=0||busy)return;
+  if(cur<=0 || busy) return;
+  busy = true;
 
-  if(Qs[cur].id === "gauge"){
+  const currentQ = Qs[cur].id;
+  const prevQ = Qs[cur-1].id;
+
+  if (currentQ === "gauge") {
     delete ans["gauge"];
     cur--;
-    // ★ フェードアウト完了後に確実に前の画面を表示する
     fadeOut(document.getElementById("gaugeScreen"), () => {
-      renderQ(); // 前の質問画面のDOMを構築
-      fadeIn(document.getElementById("quizScreen")); // フェードイン
+      renderQ();
+      fadeIn(document.getElementById("quizScreen"));
     });
-    return;
+  } else if (currentQ === "location") {
+    delete ans["location"];
+    cur--;
+    if (prevQ === "gauge") {
+      fadeOut(document.getElementById("locationScreen"), () => {
+        initGaugeScreen();
+        fadeIn(document.getElementById("gaugeScreen"));
+      });
+    }
+  } else if (currentQ === "body") {
+    delete ans["body"];
+    cur--;
+    if (prevQ === "location") {
+      fadeOut(document.getElementById("quizScreen"), () => {
+        initLocationScreen();
+        fadeIn(document.getElementById("locationScreen"));
+      });
+    }
+  } else if (currentQ === "wish") {
+    delete ans["wish"];
+    cur--;
+    fadeContent(()=>renderQ());
+  } else {
+    busy = false;
   }
-
-  delete ans[Qs[cur-1].id];
-  cur--;
-  fadeContent(()=>renderQ());
 }
 
 function goTop(){
-  fadeOut(document.getElementById("quizScreen"),()=>{
-    cur=0;ans={};
-    fadeIn(document.getElementById("startScreen"));
-  });
+  if(busy) return;
+  busy = true;
+  const activeScreen = document.querySelector(".screen.active.visible");
+  if (activeScreen) {
+    fadeOut(activeScreen, () => {
+      cur=0;ans={};
+      fadeIn(document.getElementById("startScreen"));
+      busy = false;
+    });
+  } else {
+    busy = false;
+  }
 }
 
 function selectOpt(qId,val,btn,optsContainer){
@@ -1081,10 +1232,14 @@ function selectOpt(qId,val,btn,optsContainer){
     if(cur>=Qs.length){
       fadeOut(document.getElementById("quizScreen"),()=>showResult());
     } else if (Qs[cur].id === "gauge") {
-      // ★ ゲージ画面へ遷移する場合：フェードアウト完了後に確実に表示
       fadeOut(document.getElementById("quizScreen"), () => {
         initGaugeScreen();
         fadeIn(document.getElementById("gaugeScreen"));
+      });
+    } else if (Qs[cur].id === "location") {
+      fadeOut(document.getElementById("quizScreen"), () => {
+        initLocationScreen();
+        fadeIn(document.getElementById("locationScreen"));
       });
     } else {
       fadeContent(()=>renderQ());
@@ -1093,10 +1248,9 @@ function selectOpt(qId,val,btn,optsContainer){
 }
 
 function initGaugeScreen(){
-  // ゲージ画面に入るとき、操作ロックを解除する
   busy = false;
 
-  document.getElementById("gaugePbar").style.width = (2/Qs.length*100) + "%";
+  document.getElementById("gaugePbar").style.width = (1/Qs.length*100) + "%";
   
   document.getElementById("gaugeFaceTop").src = GAUGE_IMAGES[0];
   document.getElementById("gaugeFaceBottom").src = GAUGE_IMAGES[15];
@@ -1155,13 +1309,12 @@ function handleGaugeMove(e){
   updateGaugeUI();
 }
 
-/* ★ 色の変化の設定 ★ */
 const COLOR_STOPS = [
-  { pos: 0.0,  color: [244, 67, 54] },   // 赤
-  { pos: 0.25, color: [255, 152, 0] },   // オレンジ
-  { pos: 0.50, color: [117, 240, 57] },  // 黄緑 (50%の時)
-  { pos: 0.75, color: [76, 175, 80] },   // 緑
-  { pos: 1.0,  color: [42, 151, 60] }     // 濃い緑
+  { pos: 0.0,  color: [244, 67, 54] },
+  { pos: 0.25, color: [255, 152, 0] },
+  { pos: 0.50, color: [117, 240, 57] },
+  { pos: 0.75, color: [76, 175, 80] },
+  { pos: 1.0,  color: [42, 151, 60] }
 ];
 
 function getGaugeColor(percent) {
@@ -1211,10 +1364,380 @@ function submitGauge(){
   
   ans["gauge"] = Math.round(gaugeValue);
   
-  // ★ フェードアウト完了後に次の画面を表示する
   fadeOut(document.getElementById("gaugeScreen"), () => {
     cur++;
     if(cur >= Qs.length){
+      showResult();
+    } else if (Qs[cur].id === "location") {
+      initLocationScreen();
+      fadeIn(document.getElementById("locationScreen"));
+    } else {
+      renderQ();
+      fadeIn(document.getElementById("quizScreen"));
+    }
+  });
+}
+
+/* ── 「いまどこにいたい？」画面のロジック ── */
+let isLocationInitialized = false;
+let locHasMoved = false;
+let locIsOutside = false;
+let locMapX = 0;
+let locMapY = 0;
+let locZoom = 1;
+let locPointers = new Map();
+let locPanStart = null;
+let locPinchStart = null;
+let locPersonDrag = null;
+let locIsPanning = false;
+let locPanMovedDistance = 0;
+
+function initLocationScreen() {
+  busy = false;
+  locHasMoved = false;
+  locIsOutside = false;
+  
+  document.getElementById("locationPbar").style.width = (2/Qs.length*100) + "%";
+  
+  const personIcon = document.getElementById('personIcon');
+  const mapViewport = document.getElementById('mapViewport');
+  const mapContainer = document.getElementById('mapContainer');
+  const nextBtn = document.getElementById('locationNextBtn');
+  const notHereBtn = document.getElementById('notHereBtn');
+
+  // ボタンは常に有効にする
+  nextBtn.disabled = false;
+  notHereBtn.classList.remove('selected');
+  
+  personIcon.style.transform = 'none';
+  
+  if (!isLocationInitialized) {
+    isLocationInitialized = true;
+    
+    const viewportPoint = (e) => {
+      const rect = mapViewport.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
+    const updateMapTransform = () => {
+      mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
+    };
+
+    const fitMap = () => {
+      const vw = mapViewport.clientWidth;
+      const vh = mapViewport.clientHeight;
+      const mw = mapContainer.offsetWidth;
+      const mh = mapContainer.offsetHeight;
+      
+      if(vw === 0 || vh === 0) return;
+
+      const scaleX = vw / mw;
+      const scaleY = vh / mh;
+      locZoom = Math.min(scaleX, scaleY);
+      
+      locMapX = (vw - mw * locZoom) / 2;
+      locMapY = (vh - mh * locZoom) / 2;
+      
+      updateMapTransform();
+      
+      if (!locHasMoved) {
+        const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
+        const centerTop = mh / 2 - personIcon.offsetHeight / 2;
+        personIcon.style.left = centerLeft + 'px';
+        personIcon.style.top = centerTop + 'px';
+      }
+    };
+
+    const zoomAt = (nextZoom, anchorX, anchorY) => {
+      nextZoom = Math.max(0.5, Math.min(2.5, nextZoom));
+      if (nextZoom === locZoom) return;
+      const contentX = (anchorX - locMapX) / locZoom;
+      const contentY = (anchorY - locMapY) / locZoom;
+      locZoom = nextZoom;
+      locMapX = anchorX - contentX * locZoom;
+      locMapY = anchorY - contentY * locZoom;
+      updateMapTransform();
+    };
+
+    const clampMapPosition = (x, y) => {
+      const vw = mapViewport.clientWidth;
+      const vh = mapViewport.clientHeight;
+      const mw = mapContainer.offsetWidth * locZoom;
+      const mh = mapContainer.offsetHeight * locZoom;
+      const padding = 50; 
+      
+      let minX, maxX, minY, maxY;
+      
+      if (mw > vw) {
+        minX = vw - mw - padding;
+        maxX = padding;
+      } else {
+        minX = (vw - mw) / 2 - padding;
+        maxX = (vw - mw) / 2 + padding;
+      }
+      
+      if (mh > vh) {
+        minY = vh - mh - padding;
+        maxY = padding;
+      } else {
+        minY = (vh - mh) / 2 - padding;
+        maxY = (vh - mh) / 2 + padding;
+      }
+      
+      return {
+        x: Math.max(minX, Math.min(maxX, x)),
+        y: Math.max(minY, Math.min(maxY, y))
+      };
+    };
+
+    mapViewport.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.draggable-person')) return;
+      e.preventDefault();
+      mapViewport.setPointerCapture(e.pointerId);
+      locPointers.set(e.pointerId, viewportPoint(e));
+
+      if (locPointers.size === 1) {
+        const p = locPointers.get(e.pointerId);
+        locPanStart = { x: p.x, y: p.y, mapX: locMapX, mapY: locMapY };
+        locPinchStart = null;
+        locIsPanning = true;
+        locPanMovedDistance = 0;
+      } else if (locPointers.size === 2) {
+        const pts = [...locPointers.values()];
+        const dx = pts[1].x - pts[0].x;
+        const dy = pts[1].y - pts[0].y;
+        locPinchStart = {
+          distance: Math.hypot(dx, dy),
+          zoom: locZoom,
+          centerX: (pts[0].x + pts[1].x) / 2,
+          centerY: (pts[0].y + pts[1].y) / 2
+        };
+        locPanStart = null;
+        locIsPanning = false;
+      }
+    });
+
+    mapViewport.addEventListener('pointermove', (e) => {
+      if (!locPointers.has(e.pointerId)) return;
+      locPointers.set(e.pointerId, viewportPoint(e));
+
+      if (locPointers.size >= 2 && locPinchStart) {
+        const pts = [...locPointers.values()];
+        const dx = pts[1].x - pts[0].x;
+        const dy = pts[1].y - pts[0].y;
+        const distance = Math.hypot(dx, dy);
+        const centerX = (pts[0].x + pts[1].x) / 2;
+        const centerY = (pts[0].y + pts[1].y) / 2;
+        
+        const nextZoom = Math.max(0.5, Math.min(2.5,
+          locPinchStart.zoom * distance / Math.max(1, locPinchStart.distance)));
+        const contentX = (locPinchStart.centerX - locMapX) / locZoom;
+        const contentY = (locPinchStart.centerY - locMapY) / locZoom;
+        locZoom = nextZoom;
+        
+        const newMapX = centerX - contentX * locZoom;
+        const newMapY = centerY - contentY * locZoom;
+        const clamped = clampMapPosition(newMapX, newMapY);
+        
+        locMapX = clamped.x;
+        locMapY = clamped.y;
+        updateMapTransform();
+      } else if (locPointers.size === 1 && locPanStart) {
+        const p = locPointers.get(e.pointerId);
+        const dx = p.x - locPanStart.x;
+        const dy = p.y - locPanStart.y;
+        
+        if (locIsPanning) {
+          locPanMovedDistance = Math.hypot(dx, dy);
+        }
+        
+        const newMapX = locPanStart.mapX + dx;
+        const newMapY = locPanStart.mapY + dy;
+        const clamped = clampMapPosition(newMapX, newMapY);
+        
+        locMapX = clamped.x;
+        locMapY = clamped.y;
+        updateMapTransform();
+      }
+    });
+
+    const finishViewportPointer = (e) => {
+      const wasSinglePointer = locPointers.size === 1;
+      locPointers.delete(e.pointerId);
+      
+      if (locPointers.size === 1) {
+        const [id, p] = [...locPointers.entries()][0];
+        locPanStart = { x: p.x, y: p.y, mapX: locMapX, mapY: locMapY };
+        locPinchStart = null;
+      } else if (locPointers.size === 0) {
+        locPanStart = null;
+        locPinchStart = null;
+        
+        if (wasSinglePointer && locIsPanning && locPanMovedDistance < 10) {
+          const rect = mapViewport.getBoundingClientRect();
+          const viewX = e.clientX - rect.left;
+          const viewY = e.clientY - rect.top;
+          
+          const mapLocalX = (viewX - locMapX) / locZoom;
+          const mapLocalY = (viewY - locMapY) / locZoom;
+          
+          const offsetX = personIcon.offsetWidth / 2;
+          const offsetY = personIcon.offsetHeight / 2;
+          
+          personIcon.classList.remove('dragging');
+          personIcon.style.left = (mapLocalX - offsetX) + 'px';
+          personIcon.style.top = (mapLocalY - offsetY) + 'px';
+          
+          locHasMoved = true;
+          
+          if (locIsOutside) {
+            locIsOutside = false;
+            notHereBtn.classList.remove('selected');
+          }
+        }
+        locIsPanning = false;
+        locPanMovedDistance = 0;
+      }
+    };
+    
+    mapViewport.addEventListener('pointerup', finishViewportPointer);
+    mapViewport.addEventListener('pointercancel', finishViewportPointer);
+
+    mapViewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const p = viewportPoint(e);
+      zoomAt(locZoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1), p.x, p.y);
+    }, { passive: false });
+
+    personIcon.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      personIcon.setPointerCapture(e.pointerId);
+      personIcon.classList.add('dragging');
+      
+      const p = viewportPoint(e);
+      const mapLocalX = (p.x - locMapX) / locZoom;
+      const mapLocalY = (p.y - locMapY) / locZoom;
+      
+      const iconRect = personIcon.getBoundingClientRect();
+      const mapRect = mapContainer.getBoundingClientRect();
+      
+      const currentLeft = (iconRect.left - mapRect.left) / locZoom;
+      const currentTop = (iconRect.top - mapRect.top) / locZoom;
+      
+      locPersonDrag = { pointerId: e.pointerId, offsetX: mapLocalX - currentLeft, offsetY: mapLocalY - currentTop };
+      
+      personIcon.style.left = currentLeft + 'px';
+      personIcon.style.top = currentTop + 'px';
+      personIcon.style.cursor = 'grabbing';
+    });
+
+    personIcon.addEventListener('pointermove', (e) => {
+      if (!locPersonDrag || locPersonDrag.pointerId !== e.pointerId) return;
+      e.preventDefault();
+      const p = viewportPoint(e);
+      
+      let left = (p.x - locMapX) / locZoom - locPersonDrag.offsetX;
+      let top = (p.y - locMapY) / locZoom - locPersonDrag.offsetY;
+      
+      left = Math.max(0, Math.min(left, mapContainer.offsetWidth - personIcon.offsetWidth));
+      top = Math.max(0, Math.min(top, mapContainer.offsetHeight - personIcon.offsetHeight));
+      
+      personIcon.style.left = left + 'px';
+      personIcon.style.top = top + 'px';
+
+      if (!locHasMoved) {
+        locHasMoved = true;
+      }
+      if (locIsOutside) {
+        locIsOutside = false;
+        notHereBtn.classList.remove('selected');
+      }
+    });
+
+    const finishPersonDrag = (e) => {
+      if (locPersonDrag && locPersonDrag.pointerId === e.pointerId) {
+        locPersonDrag = null;
+        personIcon.classList.remove('dragging');
+        personIcon.style.cursor = 'grab';
+      }
+    };
+    personIcon.addEventListener('pointerup', finishPersonDrag);
+    personIcon.addEventListener('pointercancel', finishPersonDrag);
+
+    notHereBtn.addEventListener('click', () => {
+      if (busy) return;
+      locIsOutside = true;
+      locHasMoved = true;
+      notHereBtn.classList.add('selected');
+      submitLocation();
+    });
+
+    window.addEventListener('resize', fitMap);
+    
+    // 初期位置を即時設定
+    const vw = mapViewport.clientWidth;
+    const vh = mapViewport.clientHeight;
+    const mw = mapContainer.offsetWidth;
+    const mh = mapContainer.offsetHeight;
+    if(vw > 0 && vh > 0) {
+      locZoom = Math.min(vw / mw, vh / mh);
+      locMapX = (vw - mw * locZoom) / 2;
+      locMapY = (vh - mh * locZoom) / 2;
+      mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
+      
+      const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
+      const centerTop = mh / 2 - personIcon.offsetHeight / 2;
+      personIcon.style.left = centerLeft + 'px';
+      personIcon.style.top = centerTop + 'px';
+    }
+    
+    requestAnimationFrame(() => {
+      requestAnimationFrame(fitMap);
+    });
+  } else {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const vw = mapViewport.clientWidth;
+        const vh = mapViewport.clientHeight;
+        const mw = mapContainer.offsetWidth;
+        const mh = mapContainer.offsetHeight;
+        
+        if(vw === 0 || vh === 0) return;
+        
+        locZoom = Math.min(vw / mw, vh / mh);
+        locMapX = (vw - mw * locZoom) / 2;
+        locMapY = (vh - mh * locZoom) / 2;
+        mapContainer.style.transform = `translate(${locMapX}px, ${locMapY}px) scale(${locZoom})`;
+        
+        const centerLeft = mw / 2 - personIcon.offsetWidth / 2;
+        const centerTop = mh / 2 - personIcon.offsetHeight / 2;
+        personIcon.style.left = centerLeft + 'px';
+        personIcon.style.top = centerTop + 'px';
+        
+        locHasMoved = false;
+      });
+    });
+  }
+}
+
+function submitLocation() {
+  if (busy) return;
+  busy = true;
+  
+  const personIcon = document.getElementById('personIcon');
+  
+  if (locIsOutside) {
+    ans.location = "outside";
+  } else {
+    const left = parseFloat(personIcon.style.left) || 0;
+    const top = parseFloat(personIcon.style.top) || 0;
+    ans.location = `x:${Math.round(left)},y:${Math.round(top)}`;
+  }
+  
+  fadeOut(document.getElementById("locationScreen"), () => {
+    cur++;
+    if (cur >= Qs.length) {
       showResult();
     } else {
       renderQ();
@@ -1225,10 +1748,8 @@ function submitGauge(){
 
 const ANS_LABEL = {
   mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい", normal:"ふつう" },
-  energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
-  social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
-  body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき", normal:"からだはふつう" },
-  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
+  body:   { heart:"どきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき", normal:"からだはふつう" },
+  wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"はなしたいことがある", nothing:"したいことはない" },
 };
 
 const ENERGY_ORDER = ["high","mid","low","verylow"];
@@ -1251,7 +1772,16 @@ function derivePhysicalLevel(energy, body, gaugeVal){
 
 function showResult(){
   const mt = ans.mood || "happy";
-  const physicalLevel = derivePhysicalLevel(ans.energy || "mid", ans.body || "fine", ans.gauge);
+  
+  let derivedEnergy = "mid";
+  if (ans.gauge !== undefined) {
+    if (ans.gauge <= 3) derivedEnergy = "high";
+    else if (ans.gauge <= 8) derivedEnergy = "mid";
+    else if (ans.gauge <= 12) derivedEnergy = "low";
+    else derivedEnergy = "verylow";
+  }
+  
+  const physicalLevel = derivePhysicalLevel(derivedEnergy, ans.body || "fine", ans.gauge);
   const key = mt + "_" + physicalLevel;
   let d = MD[key];
   if(!d){
@@ -1264,7 +1794,6 @@ function showResult(){
 
   document.getElementById("resicon").innerHTML="";
   document.getElementById("rttl").textContent=pick(d.ttls);
-  document.getElementById("rdesc").textContent=pick(d.descs);
   const cce=document.getElementById("cce");
   if(d.ce_ikey&&IMG[d.ce_ikey]){
     cce.innerHTML=`<img src="${IMG[d.ce_ikey]}" style="width:var(--center-img-size);height:var(--center-img-size);object-fit:contain">`;
@@ -1274,7 +1803,7 @@ function showResult(){
   document.getElementById("cct").textContent = ANS_LABEL.mood[mt] || ANS_LABEL.mood.happy;
 
   const subTagsEl = document.getElementById("subTags");
-  const subIds = ["energy","social","body","wish"];
+  const subIds = ["body","wish"];
   const parts = subIds.map(id => {
     if(!ans[id]) return "";
     return (ANS_LABEL[id] && ANS_LABEL[id][ans[id]]) || "";
@@ -1294,7 +1823,7 @@ function showResult(){
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
-      ans:    { mood:ans.mood, energy:ans.energy, social:ans.social, body:ans.body, wish:ans.wish, gauge:ans.gauge }
+      ans:    { mood:ans.mood, body:ans.body, wish:ans.wish, gauge:ans.gauge, location:ans.location }
     });
     localStorage.setItem(HIST_KEY, JSON.stringify(hist));
   }
@@ -1453,9 +1982,9 @@ function closeDetail(){
 
 function restart(){
   stopBubbleHint();
+  busy = false;
   document.getElementById("bscene").querySelectorAll(".bubble").forEach(b=>b.remove());
   document.getElementById("rttl").textContent="";
-  document.getElementById("rdesc").textContent="";
   document.getElementById("cce").innerHTML="";
   document.getElementById("cct").textContent="";
   document.getElementById("subTags").textContent="";
