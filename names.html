@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>名前を追加する｜きもちチェック</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
+
+:root {
+  --fade-ms: 500; /* 画面表示のフェード時間（ミリ秒）。index.html と同じ値 */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html, body {
+  width:100%;
+  height:100dvh;
+  overflow:hidden;
+  background-color: rgb(255, 250, 241);
+}
+
+#app {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700;
+  width:100%;
+  height:100dvh;
+  display:flex; flex-direction:column;
+  color:#53433a;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ── 画面共通：フェード（index.html と同じ） ── */
+.screen {
+  display:none; width:100%; height:100%;
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:20px;
+  opacity:0;
+  transition:opacity calc(var(--fade-ms) * 1ms) ease;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.screen.active  { display:flex; }
+.screen.visible { opacity:1; }
+
+/* ── 名前管理画面 ── */
+#nameScreen {
+  justify-content:flex-start;
+  padding:24px 28px 20px;
+  gap:0;
+  overflow:hidden;
+}
+.name-screen-head {
+  display:flex; align-items:center; gap:10px;
+  width:100%; max-width:600px; margin:0 auto 18px; flex-shrink:0;
+}
+.name-back-btn {
+  background:transparent; border:none;
+  font-size:20px; color:#b09070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  padding:4px 8px; flex-shrink:0;
+}
+.name-screen-title {
+  font-size:20px; font-weight:700; color:#53433a; flex:1;
+}
+.name-count {
+  font-size:13px; color:#c0a888; flex-shrink:0;
+}
+.name-input-row {
+  display:flex; gap:8px; width:100%; max-width:600px;
+  margin:0 auto 20px; flex-shrink:0;
+}
+.name-input {
+  flex:1;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700; font-size:18px;
+  border:1.5px solid #FFCC80; border-radius:12px;
+  padding:10px 14px; color:#53433a;
+  background:#FFF9F0; outline:none;
+}
+.name-input:focus { border-color:#FFA726; }
+.name-confirm-btn {
+  background:#ffce65; color:#fff; border:none;
+  border-radius:12px; padding:10px 20px;
+  font-size:16px; font-weight:700;
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  cursor:pointer; flex-shrink:0;
+}
+.name-confirm-btn:active { transform:scale(0.95); }
+.name-list-wrap {
+  flex:1; overflow-y:auto; width:100%; max-width:600px; margin:0 auto;
+  min-height:0; /* flexアイテムがコンテンツより縮まないバグ対策：これがないと内部スクロールが効かず外側にはみ出すことがある */
+}
+.name-list {
+  list-style:none; width:100%;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  padding:4px 0;
+}
+.name-list-item {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fff; border:1.5px solid #FFCC80;
+  border-radius:14px; padding:10px 14px;
+  font-size:17px; color:#53433a;
+}
+.name-del-btn {
+  background:transparent; border:1px solid #ffb3b3;
+  border-radius:99px; padding:3px 12px;
+  font-size:12px; color:#cc7070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  flex-shrink:0; margin-left:6px;
+}
+.name-del-btn:active { transform:scale(0.95); }
+.name-empty {
+  text-align:center; color:#c0a888; font-size:15px;
+  padding:30px 0; grid-column:1/-1;
+}
+.name-del-all-btn {
+  background:transparent; border:1px solid #ffb3b3;
+  border-radius:99px; padding:5px 14px;
+  font-size:13px; color:#cc7070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  flex-shrink:0;
+}
+.name-del-all-btn:active { transform:scale(0.95); }
+
+/* ── 名前の変更（へんしゅう） ── */
+.name-list-label { flex:1; min-width:0; overflow-wrap:anywhere; }
+.name-list-btns  { display:flex; gap:4px; flex-shrink:0; margin-left:6px; }
+.name-list-btns .name-del-btn { margin-left:0; }
+.name-edit-btn {
+  width:26px; height:26px; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; border:1px solid #FFCC80; border-radius:50%;
+  color:#b09070; cursor:pointer; flex-shrink:0;
+}
+.name-edit-btn svg { width:15px; height:15px; display:block; }
+.name-edit-btn:active { transform:scale(0.92); background:#FFF3E0; }
+
+/* ── 名前の変更ダイアログ（歯車ボタンで手前に開く） ── */
+#editDialog {
+  display:none;
+  position:absolute; inset:0; z-index:400; /* マーク選択(500)より奥、画面より手前 */
+  background:rgba(83,67,58,0.45);
+  align-items:center; justify-content:center;
+  padding:16px;
+}
+#editDialog.open { display:flex; }
+.edit-dialog-card {
+  background:#fffaf1; border:2px solid #FFCC80; border-radius:18px;
+  width:100%; max-width:420px;
+  display:flex; flex-direction:column; gap:14px;
+  padding:20px 18px 18px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  animation:editDialogPop .18s ease-out;
+}
+@keyframes editDialogPop {
+  from { opacity:0; transform:translateY(8px) scale(0.97); }
+  to   { opacity:1; transform:none; }
+}
+.edit-dialog-title { font-size:20px; color:#53433a; text-align:center; }
+.edit-dialog-row   { display:flex; gap:8px; }
+.edit-dialog-row .name-input { min-width:0; }
+.edit-dialog-warn  { display:none; color:#c0704a; font-size:13px; text-align:center; margin-top:-6px; }
+.edit-dialog-btns  { display:flex; gap:10px; justify-content:flex-end; }
+.edit-dialog-cancel {
+  background:transparent; border:1.5px solid #FFCC80; border-radius:12px;
+  padding:10px 18px; font-size:16px; color:#b09070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+}
+.edit-dialog-cancel:active { transform:scale(0.95); }
+
+/* ── 名前マーク（文字サイズに合わせて自動でスケール） ── */
+.name-icon {
+  display:inline-block;
+  width:1.2em; height:1.2em;
+  object-fit:contain;
+  vertical-align:-0.22em;
+  margin-right:0.2em;
+}
+
+/* ── 名前登録画面：マーク選択ボタン ── */
+.icon-pick-btn {
+  width:56px; flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#FFF9F0; border:1.5px dashed #FFCC80; border-radius:12px;
+  color:#c0a888; cursor:pointer; padding:2px;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+}
+.icon-pick-btn.has-icon { border-style:solid; }
+.icon-pick-btn:active { transform:scale(0.95); }
+.icon-pick-plus { font-size:18px; line-height:1; }
+.icon-pick-cap  { font-size:9px; line-height:1.2; }
+.icon-pick-btn img { width:38px; height:38px; object-fit:contain; }
+
+/* ── マーク選択画面（オーバーレイ） ── */
+#iconPicker {
+  display:none;
+  position:absolute; inset:0; z-index:500;
+  background:rgba(83,67,58,0.45);
+  align-items:center; justify-content:center;
+  padding:16px;
+}
+#iconPicker.open { display:flex; }
+.icon-picker-card {
+  background:#fffaf1; border:2px solid #FFCC80; border-radius:18px;
+  width:100%; max-width:560px; max-height:100%;
+  display:flex; flex-direction:column; gap:10px;
+  padding:14px;
+}
+.icon-picker-head { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.icon-picker-title { flex:1; font-size:18px; color:#53433a; }
+.icon-picker-none, .icon-picker-close {
+  background:transparent; border:1px solid #FFCC80; border-radius:99px;
+  padding:5px 12px; font-size:13px; color:#b09070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+}
+.icon-picker-grid {
+  flex:1; min-height:0; overflow-y:auto;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:6px;
+  background:#fff; border:1px solid #f0dcc0; border-radius:12px; padding:8px;
+}
+.icon-picker-item {
+  background:none; border:1.5px solid transparent; border-radius:10px;
+  padding:4px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.icon-picker-item:active { background:#FFF3E0; border-color:#FFCC80; }
+.icon-picker-item img { width:100%; max-width:52px; aspect-ratio:1/1; object-fit:contain; }
+.icon-picker-empty { grid-column:1/-1; text-align:center; color:#c0a888; font-size:13px; padding:20px 8px; line-height:1.6; }
+
+/* ── スマホ向け設定（画面幅 480px 以下） ── */
+@media (max-width: 480px) {
+  /* ── 名前追加画面：入力欄＋ボタンを横幅内に収める ── */
+  #nameScreen      { padding: 16px 12px 12px; }
+  .name-input-row  { flex-wrap: nowrap; width: 100%; max-width: 100%; }
+  .name-input      { min-width: 0; font-size: 16px; padding: 10px; }         /* flex縮小を許可 */
+  .name-confirm-btn{ font-size: 14px; padding: 10px 14px; white-space: nowrap; }
+  .icon-pick-btn   { width: 48px; }
+  .name-list       { grid-template-columns: 1fr; } /* 編集ボタンが増えたので1列にして名前が切れないように */
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 名前管理画面 -->
+<div id="nameScreen" class="screen">
+  <div class="name-screen-head">
+    <button class="name-back-btn" onclick="goBackToStart()">← もどる</button>
+    <span class="name-screen-title" id="nameScreenTitle">名前を追加する</span>
+    <span class="name-count" id="nameCount"></span>
+    <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
+  </div>
+  <div class="name-input-row">
+    <button type="button" class="icon-pick-btn" id="iconPickBtn" onclick="openIconPicker('add')" title="マークをえらぶ（なくてもOK）"></button>
+    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
+      oninput="checkNameLength()"
+      onkeydown="if(event.key==='Enter')submitName()">
+    <button class="name-confirm-btn" id="nameConfirmBtn" onclick="submitName()">追加</button>
+  </div>
+  <div id="nameLimitWarn" style="display:none;color:#c0704a;font-size:13px;text-align:center;margin:-14px 0 14px;">
+    入力できる名前は10文字までです
+  </div>
+  <div class="name-list-wrap">
+    <ul class="name-list" id="nameList"></ul>
+  </div>
+</div>
+
+<!-- 名前の変更ダイアログ（歯車ボタンで開く） -->
+<div id="editDialog" onclick="closeEditDialog()">
+  <div class="edit-dialog-card" role="dialog" aria-modal="true" aria-labelledby="editDialogTitle" onclick="event.stopPropagation()">
+    <div class="edit-dialog-title" id="editDialogTitle">名前を変更する</div>
+    <div class="edit-dialog-row">
+      <button type="button" class="icon-pick-btn" id="editIconBtn" onclick="openIconPicker('edit')" title="マークをえらぶ（なくてもOK）"></button>
+      <input class="name-input" id="editNameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
+        oninput="checkEditLength()"
+        onkeydown="if(event.key==='Enter')saveEdit()">
+    </div>
+    <div class="edit-dialog-warn" id="editWarn"></div>
+    <div class="edit-dialog-btns">
+      <button type="button" class="edit-dialog-cancel" onclick="closeEditDialog()">やめる</button>
+      <button type="button" class="name-confirm-btn" onclick="saveEdit()">こうしん</button>
+    </div>
+  </div>
+</div>
+
+<!-- マーク選択（名前登録画面・変更ダイアログから開く） -->
+<div id="iconPicker" onclick="closeIconPicker()">
+  <div class="icon-picker-card" onclick="event.stopPropagation()">
+    <div class="icon-picker-head">
+      <span class="icon-picker-title">マークをえらんでね</span>
+      <button type="button" class="icon-picker-none" onclick="pickIcon('')">なし</button>
+      <button type="button" class="icon-picker-close" onclick="closeIconPicker()">✕ とじる</button>
+    </div>
+    <div class="icon-picker-grid" id="iconPickerGrid"></div>
+  </div>
+</div>
+
+</div>
+
+<script src="openmoji-list.js"></script>
+<script src="names-common.js"></script>
+<script>
+/* 名前管理画面（names.html）専用の処理。
+   名前の読み書き・表示用の共通関数は names-common.js にあります。 */
+
+const ICON_LIST = (typeof OPENMOJI_ICONS !== "undefined" && Array.isArray(OPENMOJI_ICONS)) ? OPENMOJI_ICONS : [];
+let pendingIcon = ""; /* 名前登録で選択中のマーク */
+
+/* 短いユニークID生成（8文字英数字） */
+function genId(){
+  return Math.random().toString(36).slice(2,10);
+}
+
+/* ── 画面のフェード（index.html と同じ動き） ── */
+function cssVar(name){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0;}
+function fadeIn(el){
+  el.classList.add("active");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("visible")));
+}
+function fadeOut(el,cb){
+  el.classList.remove("visible");
+  setTimeout(()=>{el.classList.remove("active");if(cb)cb();},cssVar('--fade-ms')||300);
+}
+
+/* スタート画面（index.html）へ戻る。
+   選択中の名前は sessionStorage に保存されているので、戻ったあとも復元される */
+function goBackToStart(){
+  fadeOut(document.getElementById("nameScreen"),()=>{ location.href = "index.html"; });
+}
+
+/* ── マーク選択ボタンの表示更新（追加欄・変更ダイアログ共通） ── */
+function renderIconBtn(btn, icon){
+  if(!btn) return;
+  if(icon){
+    btn.classList.add("has-icon");
+    btn.innerHTML = `<img src="${escHtml(icon)}" alt="">`;
+  } else {
+    btn.classList.remove("has-icon");
+    btn.innerHTML = '<span class="icon-pick-plus">＋</span><span class="icon-pick-cap">マーク</span>';
+  }
+}
+function updateIconPickBtn(){ renderIconBtn(document.getElementById("iconPickBtn"), pendingIcon); }
+function updateEditIconBtn(){ renderIconBtn(document.getElementById("editIconBtn"), editPendingIcon); }
+
+/* ── マーク選択画面 ── */
+let iconPickerBuilt = false;
+let iconTarget = "add"; /* マーク選択の結果を入れる先："add"=追加欄 / "edit"=変更ダイアログ */
+function openIconPicker(target){
+  iconTarget = (target === "edit") ? "edit" : "add";
+  const grid = document.getElementById("iconPickerGrid");
+  if(!iconPickerBuilt){
+    iconPickerBuilt = true;
+    if(!ICON_LIST.length){
+      grid.innerHTML = '<div class="icon-picker-empty">マーク画像が見つかりません。<br>openmoji-list.js を作成して、names.html と同じ場所に置いてください。</div>';
+    } else {
+      const frag = document.createDocumentFragment();
+      ICON_LIST.forEach(path => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "icon-picker-item";
+        const im = document.createElement("img");
+        im.src = path; im.alt = ""; im.loading = "lazy"; im.decoding = "async";
+        b.appendChild(im);
+        b.onclick = () => pickIcon(path);
+        frag.appendChild(b);
+      });
+      grid.appendChild(frag);
+    }
+  }
+  document.getElementById("iconPicker").classList.add("open");
+}
+function closeIconPicker(){
+  document.getElementById("iconPicker").classList.remove("open");
+}
+function pickIcon(path){
+  if(iconTarget === "edit"){ editPendingIcon = path; updateEditIconBtn(); }
+  else { pendingIcon = path; updateIconPickBtn(); }
+  closeIconPicker();
+}
+
+/* ── 名前の追加 ── */
+/* 名前入力欄が10文字に達したら警告を表示する */
+function checkNameLength(){
+  const input = document.getElementById("nameInput");
+  const warn  = document.getElementById("nameLimitWarn");
+  if(!input || !warn) return;
+  warn.style.display = input.value.length >= 10 ? "block" : "none";
+}
+
+/* ── 名前の変更ダイアログ ── */
+let editingId = null;     /* 変更中の名前ID */
+let editPendingIcon = ""; /* ダイアログ内で選択中のマーク */
+
+/* 入力が10文字に達したら警告 */
+function checkEditLength(){
+  const input = document.getElementById("editNameInput");
+  const warn  = document.getElementById("editWarn");
+  if(input.value.length >= 10){ warn.textContent = "入力できる名前は10文字までです"; warn.style.display = "block"; }
+  else { warn.style.display = "none"; }
+}
+
+/* 歯車ボタン：ダイアログを開き、いまの名前とマークを入れる */
+function openEditDialog(id){
+  const user = loadNames().find(n => n.id === id);
+  if(!user) return;
+  editingId = id;
+  editPendingIcon = user.icon || "";
+  const input = document.getElementById("editNameInput");
+  input.value = user.name;
+  updateEditIconBtn();
+  checkEditLength();
+  document.getElementById("editDialog").classList.add("open");
+  setTimeout(()=>{ input.focus(); input.select(); }, 30);
+}
+function closeEditDialog(){
+  document.getElementById("editDialog").classList.remove("open");
+  editingId = null;
+}
+
+/* 「こうしん」：名前とマークを上書き（IDは変えないので診断履歴・いいねとの紐づけはそのまま） */
+function saveEdit(){
+  const input = document.getElementById("editNameInput");
+  const name = input.value.trim();
+  if(!name){
+    const warn = document.getElementById("editWarn");
+    warn.textContent = "なまえをいれてね"; warn.style.display = "block";
+    input.focus();
+    return;
+  }
+  const list = loadNames();
+  const entry = list.find(n => n.id === editingId);
+  if(entry){
+    entry.name = name;
+    if(editPendingIcon) entry.icon = editPendingIcon; else delete entry.icon; /* 「なし」を選んだらマークも外す */
+    saveNames(list);
+    /* 診断履歴に保存してある名前も新しい名前にそろえる */
+    try{
+      const hist = JSON.parse(localStorage.getItem("kimochi_history")||"[]");
+      hist.forEach(r => { if(r.nameId === editingId) r.name = name; });
+      localStorage.setItem("kimochi_history", JSON.stringify(hist));
+    }catch(e){}
+  }
+  closeEditDialog();
+  renderNameList();
+}
+
+/* Escキー：マーク選択が開いていればそれを、なければ変更ダイアログを閉じる */
+document.addEventListener("keydown",(e)=>{
+  if(e.key !== "Escape") return;
+  if(document.getElementById("iconPicker").classList.contains("open")) closeIconPicker();
+  else if(document.getElementById("editDialog").classList.contains("open")) closeEditDialog();
+});
+
+/* 「追加」ボタン・Enterキー */
+function submitName(){
+  const input = document.getElementById("nameInput");
+  const name = input.value.trim();
+  if(!name) return;
+  const list = loadNames();
+  const entry = {id: genId(), name};
+  if(pendingIcon) entry.icon = pendingIcon; /* マークは任意 */
+  list.push(entry);
+  saveNames(list);
+  pendingIcon = "";
+  updateIconPickBtn();
+  input.value = "";
+  input.focus();
+  document.getElementById("nameLimitWarn").style.display = "none";
+  renderNameList();
+}
+
+/* ── 名前の削除 ── */
+/* 削除確認ダイアログ付きで名前を削除 */
+function confirmDeleteName(id, name){
+  if(!confirm(name + " さんを\n本当に削除しますか？\nこの氏名に紐づいている過去の診断データも併せて消去されます。")){return;}
+  deleteName(id);
+}
+function deleteName(id){
+  const list = loadNames().filter(n => n.id !== id);
+  saveNames(list);
+  /* 紐づく診断履歴を削除 */
+  try{
+    const hist = JSON.parse(localStorage.getItem("kimochi_history")||"[]");
+    localStorage.setItem("kimochi_history", JSON.stringify(hist.filter(r => r.nameId !== id)));
+  }catch(e){}
+  /* 紐づくいいねデータを削除 */
+  try{
+    const likes = JSON.parse(localStorage.getItem("kimochi_likes")||"{}");
+    delete likes[id];
+    localStorage.setItem("kimochi_likes", JSON.stringify(likes));
+  }catch(e){}
+  /* index.html 側で選択中だった名前なら、選択状態もリセット */
+  if(sessionStorage.getItem("kimochi_selected_id") === id)
+    sessionStorage.removeItem("kimochi_selected_id");
+  renderNameList();
+}
+
+/* すべての名前を削除 */
+function confirmDeleteAllNames(){
+  const list = loadNames();
+  if(!list.length) return;
+  if(!confirm("全ての名前を\n本当に削除しますか？")) return;
+  saveNames([]);
+  /* 全員分の診断履歴・いいねデータも削除 */
+  localStorage.removeItem("kimochi_history");
+  localStorage.removeItem("kimochi_likes");
+  sessionStorage.removeItem("kimochi_selected_id");
+  renderNameList();
+}
+
+/* ── 名前リストの再描画 ── */
+function renderNameList(){
+  const list = loadNames();
+  const ul = document.getElementById("nameList");
+  const countEl = document.getElementById("nameCount");
+  if(countEl) countEl.textContent = list.length ? list.length+"名" : "";
+  if(!ul) return;
+  if(!list.length){
+    ul.innerHTML = '<li class="name-empty">まだ 名前の登録が ありません</li>';
+    return;
+  }
+  ul.innerHTML = list.map(n =>
+    `<li class="name-list-item">
+      <span class="name-list-label">${nameHtml(n)}</span>
+      <span class="name-list-btns">
+        <button type="button" class="name-edit-btn" data-id="${escHtml(n.id)}" title="なまえ・マークを変更" aria-label="なまえ・マークを変更"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <button class="name-del-btn" data-id="${escHtml(n.id)}">削除</button>
+      </span>
+    </li>`
+  ).join("");
+  /* 名前に ' などが入っていても壊れないよう、onclick属性ではなくイベントで処理を呼ぶ */
+  ul.querySelectorAll(".name-edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => openEditDialog(btn.dataset.id));
+  });
+  ul.querySelectorAll(".name-del-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const u = list.find(x => x.id === btn.dataset.id);
+      if(u) confirmDeleteName(u.id, u.name);
+    });
+  });
+}
+
+/* ページ読み込み時：リストを描画してフェードイン */
+window.addEventListener("load",()=>{
+  renderNameList();
+  updateIconPickBtn();
+  fadeIn(document.getElementById("nameScreen"));
+});
+
+/* index.html からブラウザの「進む」で戻ってきたときの対策 */
+window.addEventListener("pageshow",(e)=>{
+  if(!e.persisted) return;
+  renderNameList();
+  const s=document.getElementById("nameScreen");
+  if(!s.classList.contains("active")) fadeIn(s);
+});
+</script>
+</body>
+</html>

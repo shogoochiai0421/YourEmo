@@ -13,45 +13,41 @@
 
 /* =====================================================
    ★ デザイン設定まとめ ★
-   PC・タブレット向け（通常）とスマホ向け（480px以下）を
-   ここに並べて管理できます。数値を変えると見た目が変わります。
    ===================================================== */
 
 /* ── PC・タブレット向け設定 ── */
 :root {
   /* ── フェード・アニメーション ── */
-  --fade-ms:             500;  /* 画面切り替えのフェード時間（ミリ秒） */
-  --fade-wait-ms:        200;  /* 選択肢を押してから次へ行くまでの待ち時間（ミリ秒） */
-  --bubble-feed-ms:     300;  /* 特効薬バブルが出そろうまでの時間（ミリ秒） */
+  --fade-ms:             500;
+  --fade-wait-ms:        200;
+  --bubble-feed-ms:     300;
 
   /* ── 今の気持ち画面 ── */
-  --res-ttl-size:        40px; /* きもちタイトルの文字サイズ */
-  --res-desc-size:       25px; /* きもちの説明文の文字サイズ */
-  --center-img-size:    220px; /* 中央カードの画像サイズ */
-  --center-txt-size:     30px; /* 中央カードのラベル文字サイズ */
+  --res-ttl-size:        40px;
+  --res-desc-size:       25px;
+  --center-img-size:    220px;
+  --center-txt-size:     30px;
 
   /* ── 特効薬画面 ── */
-  --act-ttl-size:        28px; /* 特効薬画面タイトルの文字サイズ */
-  --act-desc-size:       16px; /* 特効薬画面説明文の文字サイズ */
-  --bubble-w:           255px; /* バブルの横幅（5列×2段レイアウト） */
-  --bubble-txt:          16px; /* バブルの文字サイズ */
-  --bubble-img-size:    150px; /* バブルの画像サイズ */
-  --bubble-gap:          20px; /* バブル間のすき間 */
+  --act-ttl-size:        28px;
+  --act-desc-size:       16px;
+  --bubble-w:           255px;
+  --bubble-txt:          16px;
+  --bubble-img-size:    150px;
+  --bubble-gap:          20px;
 
   /* ── 特効薬詳細画面 ── */
-  --detail-img-size:    280px; /* 詳細画面の画像サイズ */
-  --detail-ttl-size:     30px; /* 詳細画面のタイトル文字サイズ */
-  --detail-desc-size:    22px; /* 詳細画面の解説文字サイズ */
+  --detail-img-size:    280px;
+  --detail-ttl-size:     30px;
+  --detail-desc-size:    22px;
 
-  /* ── 太字の設定（400=ふつう / 700=太字） ── */
-  --fw-q-text:           700;  /* 質問文の太さ */
-  --fw-opt-label:        700;  /* 選択肢のラベルの太さ */
-  --fw-res-ttl:          700;  /* 今の気持ち画面タイトルの太さ */
-  --fw-res-desc:         700;  /* 各画面の説明文の太さ */
-  --fw-bubble:           700;  /* 特効薬バブルの文字の太さ */
+  /* ── 太字の設定 ── */
+  --fw-q-text:           700;
+  --fw-opt-label:        700;
+  --fw-res-ttl:          700;
+  --fw-res-desc:         700;
+  --fw-bubble:           700;
 }
-
-
 
 /* ===================================================== */
 
@@ -59,7 +55,7 @@
 
 html, body {
   width:100%;
-  height:100dvh; /* dynamic viewport height：アドレスバー等を除いた実際の高さ */
+  height:100dvh;
   overflow:hidden;
   background-color: rgb(255, 250, 241);
 }
@@ -82,7 +78,6 @@ html, body {
   font-family:'Zen Maru Gothic',sans-serif;
 }
 
-
 .footer-text {
   position:absolute; bottom:20px; left:30px;
   font-size:16px; color:#7e7d81;
@@ -97,9 +92,6 @@ html, body {
   padding:20px;
   opacity:0;
   transition:opacity calc(var(--fade-ms) * 1ms) ease;
-  /* 万一コンテンツが画面に収まりきらない環境でも、
-     内容が消えてしまわないよう縦スクロールできるようにしておく
-     （横方向のはみ出しだけは隠す） */
   overflow-y:auto;
   overflow-x:hidden;
 }
@@ -109,9 +101,9 @@ html, body {
 /* ── スタート画面 ── */
 #startScreen {
   justify-content: flex-start;
-  padding-top: clamp(24px, 12vh, 115px); /* 上からの余白：画面が低いときは自動で縮む */
+  padding-top: clamp(24px, 12vh, 115px);
 }
-.big-img {width:clamp(90px, 22vh, 250px); height:clamp(90px, 22vh, 250px); object-fit:contain; margin-bottom:10px; display:block;} /* スタート画面のイラスト */
+.big-img {width:clamp(90px, 22vh, 250px); height:clamp(90px, 22vh, 250px); object-fit:contain; margin-bottom:10px; display:block;}
 .ttl { font-size:clamp(22px, 5.5vh, 35px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(12px, 3vh, 30px); }
 .sub { font-size:clamp(14px, 3.2vh, 25px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(14px, 3vh, 30px);   font-family:'Zen Maru Gothic',sans-serif;}
 .start-btn { background:#ffce65; color:#fff; border:none; border-radius:99px; padding:clamp(14px, 3.5vh, 30px) clamp(28px, 7vw, 50px); font-size:clamp(16px, 3.5vh, 30px); font-weight:500; cursor:pointer; }
@@ -125,18 +117,24 @@ html, body {
 .pbar-wrap { width:100%; height:7px; background:var(--color-background-secondary); border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
 .pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
 .q-text { font-size:clamp(18px, 5.5vh, 40px); font-weight:var(--fw-q-text); color:var(--color-text-primary); text-align:center; line-height:1.4; margin-bottom:clamp(8px, 2vh, 16px); flex-shrink:0; }
-.opts { display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px, 2vw, 15px); width:100%; max-width:600px; flex-shrink:0; margin: 0 auto; }
-.opt  { background:#FFF3E0; border:1.5px solid #FFCC80; border-radius:16px; padding:clamp(8px, 2vh, 11px) clamp(12px, 6vw, 50px); font-size:clamp(13px, 2.8vh, 20px); cursor:pointer; color:var(--color-text-primary); display:flex; flex-direction:column; align-items:center; gap:5px; transition:background .12s,border-color .12s; }
+.opts { --opt-gap:clamp(8px, 2vw, 15px); display:grid; grid-template-columns:1fr 1fr; gap:var(--opt-gap); width:100%; max-width:600px; flex-shrink:0; margin: 0 auto; }
+.opts .opt:nth-child(odd):last-child { grid-column:1 / -1; justify-self:center; width:calc((100% - var(--opt-gap)) / 2); }
+.opts.opts-5 .opt .oi img { width:clamp(48px, 11vh, 100px); height:clamp(48px, 11vh, 100px); }
+.opt  { background:#FFF3E0; border:1.5px solid #FFCC80; border-radius:16px; padding:clamp(8px, 2vh, 11px) clamp(12px, 6vw, 50px); font-size:clamp(13px, 2.8vh, 20px); cursor:pointer; color:var(--color-text-primary); display:flex; flex-direction:column; align-items:center; gap:5px; transition:background .12s,border-color .12s; -webkit-tap-highlight-color:transparent; }
 .opt .oi     { font-size:10px; line-height:1; min-height:clamp(30px, 8vh, 50px); display:flex; align-items:center; justify-content:center; }
-.opt .oi img { width:clamp(64px, 15vh, 130px); height:clamp(64px, 15vh, 130px); object-fit:contain; } /* 選択肢上のイラスト */
+.opt .oi img { width:clamp(64px, 15vh, 130px); height:clamp(64px, 15vh, 130px); object-fit:contain; }
 .opt .ol     { font-weight:var(--fw-opt-label); }
-.opt:hover  { background:#FFE0B2; border-color:#FFA726; }
+@media (hover:hover) and (pointer:fine) {
+  .opt:hover  { background:#FFE0B2; border-color:#FFA726; }
+}
 .opt.sel    { background:#FFE0B2; border-color:#FFA726; color:#72243E; }
 .opt:active { transform:scale(0.95); }
 
 /* ── もどるボタン ── */
 .back-btn { align-self:center; margin-top:12px; background:transparent; border:none; font-size:18px; color:#bbbbbb; cursor:pointer; padding:4px 8px; flex-shrink:0; }
-.back-btn:hover { color:#888; }
+@media (hover:hover) and (pointer:fine) {
+  .back-btn:hover { color:#888; }
+}
 .back-btn:active { transform:scale(0.95); }
 .back-btn.hidden { visibility:hidden; pointer-events:none; }
 
@@ -155,7 +153,6 @@ html, body {
 .center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
-/* ct（1問目の答え）は見出しとして独立させず、sub-tagsの行の先頭に並べて表示する */
 .ct-tags-row { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; margin-top:8px; }
 .center-card .ct { font-size:14px; font-weight:700; color:var(--color-text-secondary); line-height:1.4; white-space:nowrap; }
 .center-card .ct:not(:empty)::after { content:"・"; color:#888; font-weight:400; }
@@ -170,7 +167,6 @@ html, body {
 
 .bubble-grid {
   display:grid;
-  /* バブル幅をmin()でビューポートに応じて自動縮小 */
   grid-template-columns: repeat(5, min(var(--bubble-w), 18vw));
   gap:clamp(6px, 1vw, var(--bubble-gap));
   justify-content:center;
@@ -178,10 +174,6 @@ html, body {
   width:100%;
   flex:1;
   padding:0 8px;
-  /* 以前はoverflow:hiddenで強制的に高さに収めていたが、
-     タイトルの折り返し等で縦に収まりきらないと下段のバブルが
-     見切れてしまっていた。いまは親（.screen）がスクロールできる
-     ので、ここでは切り捨てず、はみ出た分はスクロールで見られるようにする。 */
 }
 @media (max-width: 480px) {
   .bubble-grid {
@@ -196,14 +188,11 @@ html, body {
 @media (max-width:480px) { .bubble-img { width:min(var(--bubble-img-size), 35vw); height:min(var(--bubble-img-size), 35vw); } }
 .bubble-txt { line-height:1.4; }
 
-/* タップできることを示すヒントアニメーション：
-   ランダムなバブルが「拡大→1.5秒キープ→縮小」の流れで動く。
-   合計 1.9秒（拡大0.2秒＋キープ1.5秒＋縮小0.2秒） */
 @keyframes bubbleTapHint {
   0%    { transform:scale(1);    }
-  10.5% { transform:scale(1.07); } /* 拡大しきる（0.2秒後） */
-  89.5% { transform:scale(1.07); } /* 1.5秒のあいだ拡大したままキープ */
-  100%  { transform:scale(1);    } /* 縮小しきる（1.9秒後） */
+  10.5% { transform:scale(1.07); }
+  89.5% { transform:scale(1.07); }
+  100%  { transform:scale(1);    }
 }
 .bubble.hint-pulse {
   animation: bubbleTapHint 2.5s ease-in-out;
@@ -220,7 +209,6 @@ html, body {
   background:transparent;
 }
 
-/* カード本体 */
 .detail-card {
   width:min(400px, 88vw);
   border-radius:20px;
@@ -231,7 +219,6 @@ html, body {
   border: 3px solid rgba(255,255,255,0.55);
 }
 
-/* カードヘッダー（イメージカラー背景） */
 .detail-card-header {
   padding:clamp(16px, 4vh, 32px) 18px 5px;
   background: var(--detail-bg, #FBEAF0);
@@ -244,7 +231,6 @@ html, body {
   line-height:1.3;
 }
 
-/* イラストエリア */
 .detail-card-img-wrap {
   background: var(--detail-bg, #FBEAF0);
   display:flex; justify-content:center; align-items:flex-end;
@@ -256,23 +242,19 @@ html, body {
   width:clamp(120px, 28vh, var(--detail-img-size));
   height:clamp(120px, 28vh, var(--detail-img-size));
   object-fit:contain;
-  transform-origin: 50% 80%; /* 下端を基点に揺れる */
+  transform-origin: 50% 80%;
   animation: detailSway 5s ease-in-out infinite;
 }
 @keyframes detailSway {
-  
   0%   { transform: rotate(0deg); }
   5%   { transform: rotate(3deg); }
   15%  { transform: rotate(-4deg); }
   25%  { transform: rotate(3deg); }
   40%  { transform: rotate(-1deg); }
   55%  { transform: rotate(0deg); }
-
-  /* 25%から100%（9秒間）は0度のまま固定 = 静止 */
   100% { transform: rotate(0deg); }
 }
 
-/* 解説テキストエリア */
 .detail-card-body {
   background:#fff;
   padding:10px 22px 30px;
@@ -284,7 +266,6 @@ html, body {
   line-height:1.8;
 }
 
-/* もどるボタン */
 .detail-back-btn {
   background:rgba(255,255,255,0.75);
   border:1.5px solid rgba(0,0,0,0.12);
@@ -299,7 +280,6 @@ html, body {
 }
 .detail-back-btn:active { transform:scale(0.96); }
 
-/* ── いいねボタン ── */
 .detail-card-body {
   position: relative;
 }
@@ -321,30 +301,22 @@ html, body {
 }
 .like-btn.liked .like-img { transform:scale(1.15); }
 
-
-
-/* ── スマホ向け設定（画面幅 480px 以下） ── */
+/* ── スマホ向け設定 ── */
 @media (max-width: 480px) {
   :root {
-    /* 今の気持ち画面 */
     --center-img-size:  120px;
     --center-txt-size:  18px;
-
-    /* 特効薬画面 */
     --act-ttl-size:     20px;
     --act-desc-size:    12px;
     --bubble-w:        140px;
     --bubble-txt:       12px;
     --bubble-img-size:  80px;
     --bubble-gap:        8px;
-
-    /* 特効薬詳細画面 */
     --detail-img-size: 200px;
     --detail-ttl-size:  25px;
     --detail-desc-size: 18px;
   }
 
-  /* スタート画面 */
   #startScreen { padding-top: 60px; }
   .big-img     { width: 150px; height: 150px; }
   .ttl         { font-size: 32px; margin-bottom: 16px; }
@@ -353,15 +325,14 @@ html, body {
   .footer-text { font-size: 10px; bottom: 10px; left: 8px; }
   .header-text { font-size: 4px; bottom: 12px; right: 16px; }
 
-  /* 質問画面 */
   #quizScreen  { padding-top:20px; }
   .q-text      { font-size: 28px; margin-bottom: 10px; }
-  .opts        { gap: 10px; max-width: 100%; }
+  .opts        { --opt-gap: 10px; max-width: 100%; }
   .opt         { padding: 8px 12px; font-size: 14px; }
   .opt .oi img { width: 110px; height: 110px; }
+  .opts.opts-5 .opt .oi img { width: 84px; height: 84px; }
   .back-btn    { font-size: 10px; }
 
-  /* 今の気持ち画面 */
   #resultScreen    { padding-top: 5px; }
   .res-ttl         { font-size: 20px; }
   .res-desc        { font-size: 8px; }
@@ -369,16 +340,9 @@ html, body {
   .sub-tags        { font-size: 10px; }
   .retry-btn       { font-size: 10px; margin-bottom: 16px; }
   .next-screen-btn { font-size: 16px; padding: 12px 24px; }
-
-  /* ── 名前追加画面：入力欄＋ボタンを横幅内に収める ── */
-  #nameScreen      { padding: 16px 12px 12px; }
-  .name-input-row  { flex-wrap: nowrap; width: 100%; max-width: 100%; }
-  .name-input      { min-width: 0; font-size: 16px; padding: 10px; }         /* flex縮小を許可 */
-  .name-confirm-btn{ font-size: 14px; padding: 10px 14px; white-space: nowrap; }
 }
 
-
-/* ── 名前選択UI（はじめるボタンの真上・中央配置） ── */
+/* ── 名前選択UI ── */
 .name-pick-row {
   display:flex; align-items:center; gap:10px;
   margin-bottom:18px;
@@ -411,7 +375,6 @@ html, body {
 }
 .name-add-btn:active { transform:scale(0.92); }
 
-/* 名前未選択時：はじめるボタンをグレーアウトして押せなくする */
 .start-btn:disabled {
   background:#d8d0c8;
   color:#fff;
@@ -419,87 +382,6 @@ html, body {
 }
 .start-btn:disabled:active { transform:none; }
 
-/* ── 名前管理画面 ── */
-#nameScreen {
-  justify-content:flex-start;
-  padding:24px 28px 20px;
-  gap:0;
-  overflow:hidden;
-}
-.name-screen-head {
-  display:flex; align-items:center; gap:10px;
-  width:100%; max-width:600px; margin:0 auto 18px; flex-shrink:0;
-}
-.name-back-btn {
-  background:transparent; border:none;
-  font-size:20px; color:#b09070; cursor:pointer;
-  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
-  padding:4px 8px; flex-shrink:0;
-}
-.name-screen-title {
-  font-size:20px; font-weight:700; color:#53433a; flex:1;
-}
-.name-count {
-  font-size:13px; color:#c0a888; flex-shrink:0;
-}
-.name-input-row {
-  display:flex; gap:8px; width:100%; max-width:600px;
-  margin:0 auto 20px; flex-shrink:0;
-}
-.name-input {
-  flex:1;
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  font-weight:700; font-size:18px;
-  border:1.5px solid #FFCC80; border-radius:12px;
-  padding:10px 14px; color:#53433a;
-  background:#FFF9F0; outline:none;
-}
-.name-input:focus { border-color:#FFA726; }
-.name-confirm-btn {
-  background:#ffce65; color:#fff; border:none;
-  border-radius:12px; padding:10px 20px;
-  font-size:16px; font-weight:700;
-  font-family:'M PLUS Rounded 1c',sans-serif;
-  cursor:pointer; flex-shrink:0;
-}
-.name-confirm-btn:active { transform:scale(0.95); }
-.name-list-wrap {
-  flex:1; overflow-y:auto; width:100%; max-width:600px; margin:0 auto;
-  min-height:0; /* flexアイテムがコンテンツより縮まないバグ対策：これがないと内部スクロールが効かず外側にはみ出すことがある */
-}
-.name-list {
-  list-style:none; width:100%;
-  display:grid; grid-template-columns:1fr 1fr; gap:10px;
-  padding:4px 0;
-}
-.name-list-item {
-  display:flex; align-items:center; justify-content:space-between;
-  background:#fff; border:1.5px solid #FFCC80;
-  border-radius:14px; padding:10px 14px;
-  font-size:17px; color:#53433a;
-}
-.name-del-btn {
-  background:transparent; border:1px solid #ffb3b3;
-  border-radius:99px; padding:3px 12px;
-  font-size:12px; color:#cc7070; cursor:pointer;
-  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
-  flex-shrink:0; margin-left:6px;
-}
-.name-del-btn:active { transform:scale(0.95); }
-.name-empty {
-  text-align:center; color:#c0a888; font-size:15px;
-  padding:30px 0; grid-column:1/-1;
-}
-.name-del-all-btn {
-  background:transparent; border:1px solid #ffb3b3;
-  border-radius:99px; padding:5px 14px;
-  font-size:13px; color:#cc7070; cursor:pointer;
-  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
-  flex-shrink:0;
-}
-.name-del-all-btn:active { transform:scale(0.95); }
-
-/* ── 名前マーク（文字サイズに合わせて自動でスケール） ── */
 .name-icon {
   display:inline-block;
   width:1.2em; height:1.2em;
@@ -508,7 +390,6 @@ html, body {
   margin-right:0.2em;
 }
 
-/* ── スタート画面の名前プルダウン（マークを表示するための自前プルダウン） ── */
 .name-dd { position:relative; font-size:20px; }
 .name-dd-btn {
   display:flex; align-items:center; gap:8px; text-align:left;
@@ -536,64 +417,101 @@ html, body {
 }
 .name-dd-opt:active { background:#FFF3E0; }
 
-/* ── 名前登録画面：マーク選択ボタン ── */
-.icon-pick-btn {
-  width:56px; flex-shrink:0;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  background:#FFF9F0; border:1.5px dashed #FFCC80; border-radius:12px;
-  color:#c0a888; cursor:pointer; padding:2px;
-  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
-}
-.icon-pick-btn.has-icon { border-style:solid; }
-.icon-pick-btn:active { transform:scale(0.95); }
-.icon-pick-plus { font-size:18px; line-height:1; }
-.icon-pick-cap  { font-size:9px; line-height:1.2; }
-.icon-pick-btn img { width:38px; height:38px; object-fit:contain; }
-
-/* ── マーク選択画面（オーバーレイ） ── */
-#iconPicker {
-  display:none;
-  position:absolute; inset:0; z-index:500;
-  background:rgba(83,67,58,0.45);
-  align-items:center; justify-content:center;
-  padding:16px;
-}
-#iconPicker.open { display:flex; }
-.icon-picker-card {
-  background:#fffaf1; border:2px solid #FFCC80; border-radius:18px;
-  width:100%; max-width:560px; max-height:100%;
-  display:flex; flex-direction:column; gap:10px;
-  padding:14px;
-}
-.icon-picker-head { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-.icon-picker-title { flex:1; font-size:18px; color:#53433a; }
-.icon-picker-none, .icon-picker-close {
-  background:transparent; border:1px solid #FFCC80; border-radius:99px;
-  padding:5px 12px; font-size:13px; color:#b09070; cursor:pointer;
-  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
-}
-.icon-picker-grid {
-  flex:1; min-height:0; overflow-y:auto;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:6px;
-  background:#fff; border:1px solid #f0dcc0; border-radius:12px; padding:8px;
-}
-.icon-picker-item {
-  background:none; border:1.5px solid transparent; border-radius:10px;
-  padding:4px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-}
-.icon-picker-item:active { background:#FFF3E0; border-color:#FFCC80; }
-.icon-picker-item img { width:100%; max-width:52px; aspect-ratio:1/1; object-fit:contain; }
-.icon-picker-empty { grid-column:1/-1; text-align:center; color:#c0a888; font-size:13px; padding:20px 8px; line-height:1.6; }
-
-/* ── 名前選択UI スマホ設定（PC用CSSの後に書くことで正しく上書き） ── */
 @media (max-width: 480px) {
   .name-pick-row { gap: 6px; margin-bottom: 14px; }
   .name-select   { font-size: 15px; padding: 9px 18px; max-width: 70vw; }
   .name-add-btn  { width: 42px; height: 42px; font-size: 26px; }
   .name-dd       { font-size: 15px; }
-  .icon-pick-btn { width: 48px; }
 }
 
+/* ── 元気度メーター画面 ── */
+#gaugeScreen {
+  justify-content: flex-start;
+  padding-top: clamp(16px, 6vh, 60px);
+}
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-shrink: 0;
+  position: relative;
+}
+.gauge-track-wrap {
+  position: relative;
+  width: 60px;
+  height: clamp(220px, 45vh, 380px);
+  display: flex;
+  justify-content: center;
+}
+/* メーターの背景（白い枠と目盛り） */
+.gauge-track {
+  width: 100%;
+  height: 100%;
+  border: 3px solid #53433a;
+  border-radius: 10px;
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+  /* 目盛り線を追加 */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 0,
+    transparent calc(100% / 15 - 2px),
+    #ccc calc(100% / 15 - 2px),
+    #ccc calc(100% / 15)
+  );
+}
+/* 緑色のゲージ */
+.gauge-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: #8BC34A;
+  transition: height 0.1s ease-out;
+  pointer-events: none;
+}
+/* スライダーのつまみ（顔画像） */
+.gauge-thumb {
+  position: absolute;
+  right: -75px;
+  width: 70px;
+  height: 70px;
+  transform: translateY(50%);
+  cursor: grab;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: bottom 0.05s linear;
+}
+.gauge-thumb:active { cursor: grabbing; }
+.gauge-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+/* 上下の基準顔画像 */
+.gauge-fixed-face {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+/* スライダー操作エリア（透明なバー） */
+.gauge-drag-area {
+  position: absolute;
+  top: -35px;
+  bottom: -35px;
+  right: -100px;
+  width: 100px;
+  cursor: grab;
+  z-index: 5;
+}
+.gauge-drag-area:active { cursor: grabbing; }
 </style>
 
 <div id="app">
@@ -627,29 +545,6 @@ html, body {
 </div>
 </div>
 
-<!-- 名前管理画面 -->
-<div id="nameScreen" class="screen">
-  <div class="name-screen-head">
-    <button class="name-back-btn" onclick="goBackToStart()">← もどる</button>
-    <span class="name-screen-title">名前を追加する</span>
-    <span class="name-count" id="nameCount"></span>
-    <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
-  </div>
-  <div class="name-input-row">
-    <button type="button" class="icon-pick-btn" id="iconPickBtn" onclick="openIconPicker()" title="マークをえらぶ（なくてもOK）"></button>
-    <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
-      oninput="checkNameLength()"
-      onkeydown="if(event.key==='Enter')addName()">
-    <button class="name-confirm-btn" onclick="addName()">追加</button>
-  </div>
-  <div id="nameLimitWarn" style="display:none;color:#c0704a;font-size:13px;text-align:center;margin:-14px 0 14px;">
-    入力できる名前は10文字までです
-  </div>
-  <div class="name-list-wrap">
-    <ul class="name-list" id="nameList"></ul>
-  </div>
-</div>
-
 <div id="quizScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:0%"></div></div>
   <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:clamp(14px,3vh,24px);color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;max-width:100%;overflow-wrap:break-word;word-break:break-word;"></div>
@@ -658,6 +553,37 @@ html, body {
   <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
   <button class="back-btn hidden" id="topBtn" onclick="goTop()">← さいしょにもどる</button>
 </div>
+
+<!-- 元気度メーター画面 -->
+<div id="gaugeScreen" class="screen">
+  <div class="pbar-wrap"><div class="pbar" id="gaugePbar" style="width:0%"></div></div>
+  <div class="q-text" style="margin-bottom:10px;">いまのげんきさをおしえてね</div>
+  
+  <div class="gauge-container">
+    <!-- 上の顔（元気） -->
+    <img class="gauge-fixed-face" id="gaugeFaceTop" src="" alt="">
+    
+    <!-- メーターとスライダー -->
+    <div class="gauge-track-wrap" id="gaugeTrackWrap">
+      <div class="gauge-track">
+        <div class="gauge-fill" id="gaugeFill"></div>
+      </div>
+      <!-- ドラッグ可能な顔（スライダー） -->
+      <div class="gauge-thumb" id="gaugeThumb">
+        <img id="gaugeThumbImg" src="" alt="">
+      </div>
+      <!-- ドラッグ判定用の透明なエリア -->
+      <div class="gauge-drag-area" id="gaugeDragArea"></div>
+    </div>
+    
+    <!-- 下の顔（疲れ） -->
+    <img class="gauge-fixed-face" id="gaugeFaceBottom" src="" alt="">
+  </div>
+  
+  <button class="back-btn hidden" id="gaugeBackBtn" onclick="goBack()">← もどる</button>
+  <button class="next-screen-btn" id="gaugeNextBtn" onclick="submitGauge()" style="margin-top:10px;">これでOK</button>
+</div>
+
 <!-- 今の気持ち画面 -->
 <div id="resultScreen" class="screen" style="justify-content:center;gap:16px;padding:20px;">
   <div id="resultNameLabel" style="display:none;font-size:clamp(20px,4.5vh,36px);color:#b09070;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;text-align:center;flex-shrink:0;margin-bottom:4px;max-width:92%;margin-left:auto;margin-right:auto;overflow-wrap:break-word;word-break:break-word;"></div>
@@ -706,41 +632,24 @@ html, body {
   </div>
   <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
 </div>
-<!-- マーク選択（名前登録画面から開く） -->
-<div id="iconPicker" onclick="closeIconPicker()">
-  <div class="icon-picker-card" onclick="event.stopPropagation()">
-    <div class="icon-picker-head">
-      <span class="icon-picker-title">マークをえらんでね</span>
-      <button type="button" class="icon-picker-none" onclick="pickIcon('')">なし</button>
-      <button type="button" class="icon-picker-close" onclick="closeIconPicker()">✕ とじる</button>
-    </div>
-    <div class="icon-picker-grid" id="iconPickerGrid"></div>
-  </div>
-</div>
 </div>
 
 <script src="data.js"></script>
-<script src="openmoji-list.js"></script>
+<script src="names-common.js"></script>
 
 <script>
+/* 画像ベースURLの定義 */
 const BASE_EXP  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/expressions/";
 const BASE_ACT  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
+const BASE_IMG  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/";
 
-/* =============================================
-   ★ いいね送信の設定 ★
-   Googleフォームを作成したら以下を設定してね。
-   LIKE_FORM_URL : フォームの送信先URL（action属性のURL）
-   LIKE_ENTRY_TITLE : 「特効薬タイトル」のentry.XXXXXXXX
-   LIKE_ENTRY_DATE  : 「日付」のentry.XXXXXXXX
-   ============================================= */
 const LIKE_FORM_URL   = "https://script.google.com/macros/s/AKfycbzcbklm2r93eMbRuo10ryAoTPb1KR7Ywkg7BBp_znLUmYcDFJIES6ClpmjMCGLkPTg/exec";
 
-/* セッション中のいいね状態を保持（キー：特効薬テキスト） */
 const likedSet = new Set();
 
-/* いいね画像のURL（後から差し替え可能） */
-const LIKE_IMG_OFF = BASE_ACT + "like-off.png"; /* 未いいね状態の画像 */
-const LIKE_IMG_ON  = BASE_ACT + "like-on.png";  /* いいね済み状態の画像 */
+const LIKE_IMG_OFF = BASE_ACT + "like-off.png";
+const LIKE_IMG_ON  = BASE_ACT + "like-on.png";
+
 const IMG = {
   rainbow:        BASE_EXP+"main-rainbow.png",
   smile:          BASE_EXP+"expression-smile.png",
@@ -768,47 +677,52 @@ const IMG = {
   happy:          BASE_EXP+"expression-happy.png",
 };
 
+/* メーター用の画像（1.png=元気 〜 16.png=最悪） */
+const GAUGE_IMAGES = [];
+for(let i=1; i<=16; i++){
+  GAUGE_IMAGES.push(BASE_IMG + "gauge/" + i + ".png");
+}
+
 const Qs=[
   {id:"mood",text:"いまのきもちはどれかな？",opts:[
-    {i:"😄",ikey:"smile",  l:"たのしいきもち",    v:"happy"},
-    {i:"😢",ikey:"cry",    l:"かなしいきもち",    v:"sad"},
-    {i:"😠",ikey:"mad",    l:"いらいらする",v:"angry"},
-    {i:"😨",ikey:"fear",   l:"なんだかこわいきもち",v:"anxious"}
+    {ikey:"smile",          l:"たのしいきもち",       v:"happy"},
+    {ikey:"cry",            l:"かなしいきもち",       v:"sad"},
+    {ikey:"mad",            l:"いらいらする",         v:"angry"},
+    {ikey:"fear",           l:"なんだかこわいきもち", v:"anxious"},
+    {ikey:"normal",         l:"ふつうかな",           v:"normal"}
   ]},
   {id:"energy",text:"からだにげんきはあるかな？",opts:[
-    {i:"🔥",ikey:"happy",         l:"げんきいっぱい",v:"high"},
-    {i:"😴",ikey:"tired",         l:"つかれたな",   v:"low"},
-    {i:"🤒",ikey:"notfeelingwell",l:"ぐったり…",   v:"verylow"},
-    {i:"😐",ikey:"expressionless",l:"ふつうかな",   v:"mid"},
+    {ikey:"happy",          l:"げんきいっぱい",       v:"high"},
+    {ikey:"tired",          l:"つかれたな",           v:"low"},
+    {ikey:"notfeelingwell", l:"ぐったり…",            v:"verylow"},
+    {ikey:"expressionless", l:"ふつうかな",           v:"mid"}
   ]},
+  // ★ ダミー質問：専用のメーター画面を表示
+  {id:"gauge",text:"いまのげんきさをおしえてね",opts:[]},
   {id:"social",text:"だれかといたいきもちはある？",opts:[
-    {i:"🤗",ikey:"playwith",     l:"いっしょにいたい",v:"social"},
-    {i:"🏠",ikey:"alone",     l:"ひとりがいいな", v:"alone"},
-    {i:"🙂",ikey:"wink", l:"どちらでも",     v:"neutral"},
-    {i:"😶",ikey:"expressionless",     l:"わからない",     v:"unsure"}
+    {ikey:"playwith",       l:"いっしょにいたい",     v:"social"},
+    {ikey:"alone",          l:"ひとりがいいな",       v:"alone"},
+    {ikey:"wink",           l:"どちらでもいい",           v:"neutral"},
+    {ikey:"expressionless", l:"わからない",           v:"unsure"}
   ]},
   {id:"body",text:"からだはどんなかんじ？",opts:[
-    {i:"😌",    ikey:"smile",  l:"げんき",  v:"fine"},
-    {i:"💓",    ikey:"palpitations",   l:"ドキドキしてる", v:"heart"},
-    {i:"😮‍💨",ikey:"stuffy",   l:"いきぐるしい",  v:"breath"},
-    {i:"🤢",    ikey:"sickness",l:"きもちわるい<br>あたまがいたい",v:"bad"},
+    {ikey:"happy",          l:"げんき",               v:"fine"},
+    {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
+    {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
+    {ikey:"sickness",       l:"きもちわるい<br>あたまがいたい", v:"bad"},
+    {ikey:"normal",         l:"ふつうかな",           v:"normal"}
   ]},
   {id:"wish",text:"いましたいことは？",opts:[
-    {i:"🎮",ikey:"playwith",   l:"あそびたい",     v:"play"},
-    {i:"😴",ikey:"sleepy",  l:"ねむりたい",     v:"sleep"},
-    {i:"🤝",ikey:"talk", l:"はなしたい",     v:"talk"},
-    {i:"😶",ikey:"expressionless", l:"なにもしたくない",v:"nothing"}
+    {ikey:"playwith",       l:"あそびたい",           v:"play"},
+    {ikey:"sleepy",         l:"ねむりたい",           v:"sleep"},
+    {ikey:"talk",           l:"はなしたいことが<br>ある",  v:"talk"},
+    {ikey:"expressionless", l:"なにもしたくない",     v:"nothing"}
   ]}
 ];
 
-
-/* 配列からランダムに1つ選んで返す *//* 回答とバブルのタグを照合してスコアを計算する。
-   各タグは文字列または配列で複数指定可能。
-   "any" はスコアに加算しない（除外しないだけ）。
-   回答値と一致したタグ1つにつき +1点。重みは 2^score。 */
 function matchTag(tag, val){
-  if(!tag || tag === "any") return false;        /* any は加点しない */
-  if(Array.isArray(tag)) return tag.includes(val); /* 配列なら includes で判定 */
+  if(!tag || tag === "any") return false;
+  if(Array.isArray(tag)) return tag.includes(val);
   return tag === val;
 }
 function scoreBubble(bubble, ans){
@@ -822,24 +736,19 @@ function scoreBubble(bubble, ans){
   return score;
 }
 
-/* スコアに基づく重み付きランダム選択でN個を返す。
-   1点以上を優先し、足りない場合のみ0点から補充する */
 function selectBubbles(ans, n){
   const scored = BUBBLES.map(b => {
     const s = scoreBubble(b, ans);
     return {b, s, w: Math.pow(2, s)};
   });
 
-  /* まず1点以上を候補にする */
   let candidates = scored.filter(x => x.s >= 1);
 
-  /* 足りない場合は0点から不足分を補充 */
   if(candidates.length < n){
     const zeros = scored.filter(x => x.s === 0);
     candidates = candidates.concat(zeros.slice(0, n - candidates.length));
   }
 
-  /* 重み付き抽選 */
   const result = [];
   const used = new Set();
   for(let i = 0; i < n && used.size < candidates.length; i++){
@@ -854,26 +763,22 @@ function selectBubbles(ans, n){
   return result;
 }
 
-/* 配列からランダムに1つ選んで返す */
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
-/* 配列をランダムにシャッフルして返す */
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-/* CSSカスタムプロパティ（:root変数）の値を数値で取得する */
 function cssVar(name){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0;}
 
 let cur=0,ans={},busy=false,chosenBubbles=[];
+let gaugeValue = 7; // 0(元気) 〜 15(最悪)
+let isDraggingGauge = false;
 
-/* 指定した画面要素をフェードインで表示する */
 function fadeIn(el){
   el.classList.add("active");
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("visible")));
 }
-/* 指定した画面要素をフェードアウトし、完了後にコールバックを実行する */
 function fadeOut(el,cb){
   el.classList.remove("visible");
   setTimeout(()=>{el.classList.remove("active");if(cb)cb();},cssVar('--fade-ms')||300);
 }
-/* 質問画面のコンテンツだけをふわっと切り替える（画面全体ではなく中身のみ） */
 function fadeContent(cb){
   const qs=document.getElementById("quizScreen");
   const ms=(cssVar('--fade-ms')||300)*0.6;
@@ -882,46 +787,8 @@ function fadeContent(cb){
   setTimeout(()=>{cb();qs.style.opacity="1";setTimeout(()=>{qs.style.transition="";},ms+50);},ms);
 }
 
-/* =============================================
-   ★ 名前データの送信設定 ★
-   GASのURLを設定してね（いいねと別でも同じでもOK）
-   ============================================= */
-const NAME_RESULT_URL = "https://script.google.com/macros/s/XXXXXXXXXX/exec"; /* ← GASのURLに変えてね */
+const NAME_RESULT_URL = "https://script.google.com/macros/s/XXXXXXXXXX/exec";
 
-/* ── 名前管理（localStorage） ── */
-const NAMES_KEY = "kimochi_names"; /* localStorageのキー */
-
-/* 名前一覧をlocalStorageから取得 */
-function loadNames(){
-  try { return JSON.parse(localStorage.getItem(NAMES_KEY)) || []; }
-  catch(e){ return []; }
-}
-/* 名前一覧をlocalStorageに保存 */
-function saveNames(list){
-  localStorage.setItem(NAMES_KEY, JSON.stringify(list));
-}
-/* 短いユニークID生成（8文字英数字） */
-function genId(){
-  return Math.random().toString(36).slice(2,10);
-}
-
-/* ── 名前マーク（任意設定。名前データの icon に画像パスを保存） ── */
-const ICON_LIST = (typeof OPENMOJI_ICONS !== "undefined" && Array.isArray(OPENMOJI_ICONS)) ? OPENMOJI_ICONS : [];
-let pendingIcon = ""; /* 名前登録画面で選択中のマーク */
-
-function escHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-/* マーク画像タグ（マーク未設定なら空文字。画像が読めない場合は非表示） */
-function iconHtml(icon){
-  return icon ? `<img class="name-icon" src="${escHtml(icon)}" alt="" onerror="this.style.display='none'">` : "";
-}
-/* 「マーク＋名前」のHTML */
-function nameHtml(user){
-  return iconHtml(user.icon) + escHtml(user.name);
-}
-
-/* スタート画面の名前プルダウン（自前）の開閉・描画 */
 function toggleNameDd(e){
   if(e) e.stopPropagation();
   document.getElementById("nameDdMenu").classList.toggle("open");
@@ -959,57 +826,9 @@ function updateNameDdLabel(){
   lab.innerHTML = u ? nameHtml(u) : "なまえを えらぶ";
 }
 
-/* 名前登録画面：マーク選択ボタンの表示更新 */
-function updateIconPickBtn(){
-  const b = document.getElementById("iconPickBtn");
-  if(!b) return;
-  if(pendingIcon){
-    b.classList.add("has-icon");
-    b.innerHTML = `<img src="${escHtml(pendingIcon)}" alt="">`;
-  } else {
-    b.classList.remove("has-icon");
-    b.innerHTML = '<span class="icon-pick-plus">＋</span><span class="icon-pick-cap">マーク</span>';
-  }
-}
-/* マーク選択画面 */
-let iconPickerBuilt = false;
-function openIconPicker(){
-  const grid = document.getElementById("iconPickerGrid");
-  if(!iconPickerBuilt){
-    iconPickerBuilt = true;
-    if(!ICON_LIST.length){
-      grid.innerHTML = '<div class="icon-picker-empty">マーク画像が見つかりません。<br>openmoji-list.js を作成して、index.html と同じ場所に置いてください。</div>';
-    } else {
-      const frag = document.createDocumentFragment();
-      ICON_LIST.forEach(path => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "icon-picker-item";
-        const im = document.createElement("img");
-        im.src = path; im.alt = ""; im.loading = "lazy"; im.decoding = "async";
-        b.appendChild(im);
-        b.onclick = () => pickIcon(path);
-        frag.appendChild(b);
-      });
-      grid.appendChild(frag);
-    }
-  }
-  document.getElementById("iconPicker").classList.add("open");
-}
-function closeIconPicker(){
-  document.getElementById("iconPicker").classList.remove("open");
-}
-function pickIcon(path){
-  pendingIcon = path;
-  updateIconPickBtn();
-  closeIconPicker();
-}
-
-/* スタート画面のプルダウンを更新 */
 function refreshNameSelect(){
   const list = loadNames();
   const sel = document.getElementById("nameSelect");
-  /* DOM上の現在値、またはsessionStorageに保存された値を優先して復元 */
   const savedId = sel.value || sessionStorage.getItem("kimochi_selected_id") || "";
   sel.innerHTML = '<option value="">なまえを えらぶ</option>';
   list.forEach(n => {
@@ -1023,15 +842,12 @@ function refreshNameSelect(){
   updateStartBtn();
 }
 
-/* 名前を選んだとき：はじめるボタンの文言・活性状態を変更 */
 function onNameSelect(){
   updateStartBtn();
-  /* 選択中の名前IDをsessionStorageに保存（他ページから戻っても復元できるよう） */
   const sel = document.getElementById("nameSelect");
   if(sel && sel.value) sessionStorage.setItem("kimochi_selected_id", sel.value);
   else sessionStorage.removeItem("kimochi_selected_id");
 }
-/* 名前が選ばれているときだけ「はじめる」を押せるようにする */
 function updateStartBtn(){
   const sel = document.getElementById("nameSelect");
   const btn = document.getElementById("startBtn");
@@ -1048,7 +864,6 @@ function updateStartBtn(){
   updateNameDdLabel();
 }
 
-/* 現在選択中のユーザー情報を返す（未選択ならnull） */
 function getSelectedUser(){
   const sel = document.getElementById("nameSelect");
   if(!sel || !sel.value) return null;
@@ -1056,142 +871,40 @@ function getSelectedUser(){
   return list.find(n => n.id === sel.value) || null;
 }
 
-/* 名前管理画面へ遷移 */
 function goNameScreen(){
-  renderNameList();
-  fadeOut(document.getElementById("startScreen"),()=>{
-    document.getElementById("nameInput").value = "";
-    pendingIcon = "";
-    updateIconPickBtn();
-    fadeIn(document.getElementById("nameScreen"));
-  });
-}
-/* 名前管理画面からスタート画面へ戻る */
-function goBackToStart(){
-  fadeOut(document.getElementById("nameScreen"),()=>{
-    refreshNameSelect();
-    fadeIn(document.getElementById("startScreen"));
-  });
+  fadeOut(document.getElementById("startScreen"),()=>{ location.href = "names.html"; });
 }
 
-/* 名前を追加 */
-/* 名前入力欄が10文字に達したら警告を表示する */
-function checkNameLength(){
-  const input = document.getElementById("nameInput");
-  const warn  = document.getElementById("nameLimitWarn");
-  if(!input || !warn) return;
-  warn.style.display = input.value.length >= 10 ? "block" : "none";
-}
-
-function addName(){
-  const input = document.getElementById("nameInput");
-  const name = input.value.trim();
-  if(!name) return;
-  const list = loadNames();
-  const entry = {id: genId(), name};
-  if(pendingIcon) entry.icon = pendingIcon; /* マークは任意 */
-  list.push(entry);
-  saveNames(list);
-  pendingIcon = "";
-  updateIconPickBtn();
-  input.value = "";
-  input.focus();
-  document.getElementById("nameLimitWarn").style.display = "none";
-  renderNameList();
-}
-
-/* 削除確認ダイアログ付きで名前を削除 */
-function confirmDeleteName(id, name){
-  if(!confirm(name + " さんを\n本当に削除しますか？\nこの氏名に紐づいている過去の診断データも併せて消去されます。")){return;}
-  deleteName(id);
-}
-function deleteName(id){
-  const list = loadNames().filter(n => n.id !== id);
-  saveNames(list);
-  /* 紐づく診断履歴を削除 */
-  try{
-    const hist = JSON.parse(localStorage.getItem("kimochi_history")||"[]");
-    localStorage.setItem("kimochi_history", JSON.stringify(hist.filter(r => r.nameId !== id)));
-  }catch(e){}
-  /* 紐づくいいねデータを削除 */
-  try{
-    const likes = JSON.parse(localStorage.getItem("kimochi_likes")||"{}");
-    delete likes[id];
-    localStorage.setItem("kimochi_likes", JSON.stringify(likes));
-  }catch(e){}
-  /* sessionStorageの選択状態もリセット */
-  if(sessionStorage.getItem("kimochi_selected_id") === id)
-    sessionStorage.removeItem("kimochi_selected_id");
-  const sel = document.getElementById("nameSelect");
-  if(sel && sel.value === id){ sel.value = ""; updateStartBtn(); }
-  renderNameList();
-}
-
-/* すべての名前を削除 */
-function confirmDeleteAllNames(){
-  const list = loadNames();
-  if(!list.length) return;
-  if(!confirm("全ての名前を\n本当に削除しますか？")) return;
-  saveNames([]);
-  /* 全員分の診断履歴・いいねデータも削除 */
-  localStorage.removeItem("kimochi_history");
-  localStorage.removeItem("kimochi_likes");
-  sessionStorage.removeItem("kimochi_selected_id");
-  const sel = document.getElementById("nameSelect");
-  if(sel){ sel.value = ""; updateStartBtn(); }
-  renderNameList();
-}
-
-/* 名前管理画面のリストを再描画 */
-function renderNameList(){
-  const list = loadNames();
-  const ul = document.getElementById("nameList");
-  const countEl = document.getElementById("nameCount");
-  if(countEl) countEl.textContent = list.length ? list.length+"名" : "";
-  if(!ul) return;
-  if(!list.length){
-    ul.innerHTML = '<li class="name-empty">まだ 名前の登録が ありません</li>';
-    return;
-  }
-  ul.innerHTML = list.map(n =>
-    `<li class="name-list-item">
-      <span>${nameHtml(n)}</span>
-      <button class="name-del-btn" onclick="confirmDeleteName('${n.id}','${n.name}')">削除</button>
-    </li>`
-  ).join("");
-}
-
-/* 結果をGASに送信（名前が選択されている場合） ← 送信内容はここに追加してね */
 function sendResult(){
   const user = getSelectedUser();
-  if(!user) return; /* 匿名の場合は送信しない */
+  if(!user) return;
   const params = new URLSearchParams();
   params.append("name", user.name);
   params.append("uid",  user.id);
-  /* ★ここに送りたいデータを追加してね★ */
-  /* 例: params.append("mood", ans.mood); */
   const url = NAME_RESULT_URL + "?" + params.toString();
   if(navigator.sendBeacon){ navigator.sendBeacon(url); }
   else if(window.fetch){ fetch(url,{mode:"no-cors"}).catch(()=>{}); }
   else { new Image().src = url; }
 }
 
-/* ページ読み込み完了時：スタート画面の画像をセットしてフェードイン */
 window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.rainbow){si.src=IMG.rainbow;si.style.display="block";}else{si.style.display="none";}
   refreshNameSelect();
-  updateIconPickBtn();
   fadeIn(document.getElementById("startScreen"));
 });
 
-/* はじめるボタンを押したとき：スタート画面をフェードアウトして質問画面へ */
+window.addEventListener("pageshow",(e)=>{
+  if(!e.persisted) return;
+  refreshNameSelect();
+  const s=document.getElementById("startScreen");
+  if(!s.classList.contains("active")) fadeIn(s);
+});
+
 function startQ(){
-  /* 名前未選択なら何もしない（本来はボタンがdisabledで押せない） */
   if(!getSelectedUser()) return;
 
   fadeOut(document.getElementById("startScreen"),()=>{
-    /* 名前バッジを更新 */
     const user = getSelectedUser();
     const badge = document.getElementById("quizNameBadge");
     if(user){
@@ -1205,53 +918,57 @@ function startQ(){
   });
 }
 
-/* 現在の質問（cur番目）を画面に描画する。もどるボタンの表示も更新する */
 function renderQ(){
   busy=false;
   const q=Qs[cur];
-  const qId=q.id; /* ← このrenderで表示している質問のIDをここで固定して覚えておく。
-                      selectOpt側でクリック時に毎回"Qs[cur].id"を読み直すと、
-                      連打などでcurが先に進んでしまったあとに古いボタンのクリックが
-                      遅れて処理されたとき、"次の質問のid"に"今のボタンの値"を
-                      書き込んでしまう事故が起きる（回答がnullや別の質問の値に
-                      入れ替わって見えるバグの原因）。renderのタイミングでqIdを
-                      固定しclosureで持たせることで、後からcurが変わっても
-                      必ず正しい質問キーに書き込まれるようにする。 */
+  const qId=q.id;
+
+  if(qId === "gauge"){
+    fadeOut(document.getElementById("quizScreen"), () => {
+      initGaugeScreen();
+      fadeIn(document.getElementById("gaugeScreen"));
+    });
+    return;
+  }
+
   document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
   document.getElementById("qtext").textContent=q.text;
-  /* もどるボタン：最初の質問では隠す */
   const backBtn=document.getElementById("backBtn");
   if(cur===0){ backBtn.classList.add("hidden"); }else{ backBtn.classList.remove("hidden"); }
-  /* さいしょにもどるボタン：最初の質問のみ表示 */
   const topBtn=document.getElementById("topBtn");
   if(cur===0){ topBtn.classList.remove("hidden"); }else{ topBtn.classList.add("hidden"); }
   const g=document.getElementById("opts");
   g.innerHTML="";
-  g.style.pointerEvents="auto"; /* 前の質問で選択後に無効化していた場合に備え、新しい質問では必ず有効化し直す */
+  g.classList.toggle("opts-5", q.opts.length===5);
+  g.style.pointerEvents="auto";
   q.opts.forEach(o=>{
     const b=document.createElement("button");
     b.className="opt";
-    let iconHtml;
-    if(o.ikey&&IMG[o.ikey]){
-      iconHtml=`<span class="oi"><img src="${IMG[o.ikey]}" width="30" height="30" style="object-fit:contain"></span>`;
-    }else{
-      iconHtml=`<span class="oi"></span>`;
-    }
-    b.innerHTML=iconHtml+`<span class="ol">${o.l}</span>`;
+    const src=IMG[o.ikey];
+    b.innerHTML=`<span class="oi">${src?`<img src="${src}" alt="">`:""}</span><span class="ol">${o.l}</span>`;
     b.onclick=()=>selectOpt(qId,o.v,b,g);
     g.appendChild(b);
   });
 }
 
-/* 一つ前の質問に戻る。そのときに記録した回答も消す */
 function goBack(){
   if(cur<=0||busy)return;
+
+  if(Qs[cur].id === "gauge"){
+    delete ans["gauge"];
+    cur--;
+    fadeOut(document.getElementById("gaugeScreen"), () => {
+      fadeIn(document.getElementById("quizScreen"));
+      renderQ();
+    });
+    return;
+  }
+
   delete ans[Qs[cur-1].id];
   cur--;
   fadeContent(()=>renderQ());
 }
 
-/* さいしょにもどるボタン：スタート画面に戻る */
 function goTop(){
   fadeOut(document.getElementById("quizScreen"),()=>{
     cur=0;ans={};
@@ -1259,19 +976,11 @@ function goTop(){
   });
 }
 
-/* 選択肢が押されたとき：回答を記録し、次の質問または結果画面へ進む
-   qId: この選択肢が描画された時点の質問ID（連打対策のためrenderQ側で固定した値） */
 function selectOpt(qId,val,btn,optsContainer){
   if(busy)return;
   busy=true;
-  /* busyフラグだけに頼らず、この質問の選択肢エリア全体を即座に
-     操作不可にする。こうしておくと、画面が次の質問に切り替わる
-     アニメーションの途中で連打しても、DOM上はこの瞬間から
-     一切クリックを受け付けなくなるので、古いボタンへの遅延タップが
-     すり抜けて悪さをすることがなくなる。 */
   optsContainer.style.pointerEvents="none";
-  ans[qId]=val; /* renderQ時点で固定したqIdに書き込む。クリック時に毎回curを読み直さないので、
-                    連打でcurが先に進んでいても正しい質問キーに記録される */
+  ans[qId]=val;
   document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));
   btn.classList.add("sel");
   const wait=cssVar('--fade-wait-ms')||320;
@@ -1285,44 +994,144 @@ function selectOpt(qId,val,btn,optsContainer){
   },wait);
 }
 
-/* 各回答値に対応する表示用の要約テキスト ← ここを編集してね
-   ※ moodはQ1の答えそのまま（結果画面の見出し下の小さいラベル用） */
+function initGaugeScreen(){
+  document.getElementById("gaugePbar").style.width = (2/Qs.length*100) + "%";
+  
+  // 固定画像の設定：1.pngが一番元気、16.pngが一番不調
+  document.getElementById("gaugeFaceTop").src = GAUGE_IMAGES[0];  // 1.png (元気)
+  document.getElementById("gaugeFaceBottom").src = GAUGE_IMAGES[15]; // 16.png (最悪)
+  
+  // 初期値（中央付近）
+  gaugeValue = 7; 
+  updateGaugeUI();
+  
+  const dragArea = document.getElementById("gaugeDragArea");
+  
+  if(!dragArea.dataset.listenerAdded){
+    dragArea.dataset.listenerAdded = "true";
+    
+    const startDrag = (e) => {
+      e.preventDefault();
+      isDraggingGauge = true;
+      // ドラッグ中はスライダーのアニメーションを無効化して滑らかに
+      document.getElementById("gaugeThumb").style.transition = "none";
+      handleGaugeMove(e);
+    };
+    
+    const moveDrag = (e) => {
+      if(!isDraggingGauge) return;
+      e.preventDefault();
+      handleGaugeMove(e);
+    };
+    
+    const endDrag = () => {
+      if(!isDraggingGauge) return;
+      isDraggingGauge = false;
+      // ドラッグ終了後はアニメーションを元に戻す
+      document.getElementById("gaugeThumb").style.transition = "bottom 0.05s linear";
+    };
+
+    // マウス・タッチ両対応
+    dragArea.addEventListener("mousedown", startDrag);
+    dragArea.addEventListener("touchstart", startDrag, {passive: false});
+    window.addEventListener("mousemove", moveDrag);
+    window.addEventListener("touchmove", moveDrag, {passive: false});
+    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("touchend", endDrag);
+    
+    // マウスがドラッグエリア外に出ても追従するように
+    window.addEventListener("blur", endDrag);
+  }
+}
+
+function handleGaugeMove(e){
+  const trackWrap = document.getElementById("gaugeTrackWrap");
+  const rect = trackWrap.getBoundingClientRect();
+  
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  let relativeY = clientY - rect.top;
+  
+  // 範囲外を防ぐ
+  relativeY = Math.max(0, Math.min(relativeY, rect.height));
+  
+  // 0(元気) 〜 15(最悪) の値に変換
+  // relativeYが0(上端)のときgaugeValue=0, rect.height(下端)のときgaugeValue=15
+  let val = Math.round((relativeY / rect.height) * 15);
+  gaugeValue = Math.max(0, Math.min(15, val));
+  
+  updateGaugeUI();
+}
+
+function updateGaugeUI(){
+  const fill = document.getElementById("gaugeFill");
+  const thumb = document.getElementById("gaugeThumb");
+  const thumbImg = document.getElementById("gaugeThumbImg");
+  
+  // ゲージの高さ：下から上へ伸びる（0%〜100%）
+  // gaugeValue=0(元気)のとき100%、gaugeValue=15(最悪)のとき0%
+  const percent = (1 - (gaugeValue / 15)) * 100;
+  fill.style.height = percent + "%";
+  
+  // つまみの位置（bottomプロパティで制御）
+  thumb.style.bottom = percent + "%";
+  
+  // 顔画像の更新（gaugeValue 0=1.png, 15=16.png）
+  thumbImg.src = GAUGE_IMAGES[gaugeValue];
+}
+
+function submitGauge(){
+  if(busy) return;
+  busy = true;
+  
+  ans["gauge"] = gaugeValue;
+  
+  fadeOut(document.getElementById("gaugeScreen"), () => {
+    cur++;
+    if(cur >= Qs.length){
+      showResult();
+    } else {
+      renderQ();
+      fadeIn(document.getElementById("quizScreen"));
+    }
+  });
+}
+
 const ANS_LABEL = {
-  mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい" },
+  mood:   { happy:"たのしい", sad:"かなしい", angry:"もやもや", anxious:"しんぱい", normal:"ふつう" },
   energy: { high:"げんきいっぱい", mid:"げんきはふつう", low:"つかれている", verylow:"ぐったり" },
   social: { social:"だれかといたい", alone:"ひとりでいたい", neutral:"ひとりでもみんなでも", unsure:"どうしてたいかわからない" },
-  body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき" },
+  body:   { heart:"むねがどきどきしてる", breath:"いきぐるしい", bad:"たいちょうがわるい", fine:"からだはへいき", normal:"からだはふつう" },
   wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"だれかとはなしたい", nothing:"なにもしたくない" },
 };
 
-/* ── 2問目（げんき）と4問目（からだ）をあわせて「からだの状態レベル」を決める ──
-   例えば「げんきいっぱい」と答えていても「たいちょうがわるい」も選んでいたら、
-   げんき度だけで判定せず、からだの不調ぶんだけ状態を1〜2段階重くする。
-   body="fine"（からだはへいき）なら今までどおりenergyの値をそのまま使う。 */
-const ENERGY_ORDER = ["high","mid","low","verylow"]; /* 0=元気 → 3=ぐったり の順 */
-function derivePhysicalLevel(energy, body){
+const ENERGY_ORDER = ["high","mid","low","verylow"];
+function derivePhysicalLevel(energy, body, gaugeVal){
   const baseIdx = ENERGY_ORDER.indexOf(energy);
-  const idx = baseIdx === -1 ? 1 : baseIdx; /* 不明な値はmid扱い */
-  /* からだの不調の重さ：heart/breathはやや重い、badはより重い、fineは影響なし */
-  const BODY_WEIGHT = { fine:0, heart:1, breath:1, bad:2 };
+  let idx = baseIdx === -1 ? 1 : baseIdx;
+  
+  const BODY_WEIGHT = { fine:0, normal:0, heart:1, breath:1, bad:2 };
   const weight = BODY_WEIGHT[body] ?? 0;
-  const newIdx = Math.min(ENERGY_ORDER.length - 1, idx + weight);
-  return ENERGY_ORDER[newIdx];
+  idx += weight;
+  
+  // ゲージの値（0=元気, 15=最悪）による補正
+  // 12〜15: とても疲れている (+2)
+  // 7〜11: やや疲れている (+1)
+  // 0〜6: 元気 (0)
+  if(gaugeVal !== undefined){
+    if(gaugeVal >= 12) idx += 2;
+    else if(gaugeVal >= 7) idx += 1;
+  }
+  
+  idx = Math.min(ENERGY_ORDER.length - 1, idx);
+  return ENERGY_ORDER[idx];
 }
 
-/* 結果画面を構築して表示する */
 function showResult(){
-  /* ── 最初の質問（きもち）と、2問目（げんき）＋4問目（からだ）を
-     あわせた「からだの状態レベル」の組み合わせでメッセージを選ぶ。
-     例：「たのしい」×「げんきいっぱい」でも「たいちょうがわるい」なら、
-     happy_highではなくhappy_lowのような、より実態に近い結果になる。 ── */
   const mt = ans.mood || "happy";
-  const physicalLevel = derivePhysicalLevel(ans.energy || "mid", ans.body || "fine");
+  const physicalLevel = derivePhysicalLevel(ans.energy || "mid", ans.body || "fine", ans.gauge);
   const key = mt + "_" + physicalLevel;
   let d = MD[key];
   if(!d){
-    /* 本来16パターンすべて用意してあるので、ここに来るのはバグ。
-       開発者が原因を特定できるよう、詳細をコンソールに残す。 */
     console.error(
       `[きもちチェック] MDに未定義の組み合わせです: mood="${mt}", physicalLevel="${physicalLevel}" (key="${key}")。` +
       `data.jsのMDオブジェクトを確認してください。`
@@ -1330,7 +1139,6 @@ function showResult(){
     d = MD.error;
   }
 
-  /* 結果画面トップの画像は表示しない */
   document.getElementById("resicon").innerHTML="";
   document.getElementById("rttl").textContent=pick(d.ttls);
   document.getElementById("rdesc").textContent=pick(d.descs);
@@ -1340,10 +1148,8 @@ function showResult(){
   }else{
     cce.innerHTML="";
   }
-  /* ct（見出し下の小さいラベル）は純粋にQ1の回答をそのまま表示する */
   document.getElementById("cct").textContent = ANS_LABEL.mood[mt] || ANS_LABEL.mood.happy;
 
-  /* 4つの要約を「、」でつなげて1行で表示 */
   const subTagsEl = document.getElementById("subTags");
   const subIds = ["energy","social","body","wish"];
   const parts = subIds.map(id => {
@@ -1351,13 +1157,11 @@ function showResult(){
     return (ANS_LABEL[id] && ANS_LABEL[id][ans[id]]) || "";
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
-  /* 全特効薬を回答との一致度でスコアリングして選択（特効薬画面で使用） */
-  /* スマホ（480px以下）は2×4=8個、PC・タブレットは5×2=10個 */
+  
   const bubbleCount = window.matchMedia("(max-width:480px)").matches ? 8 : 10;
   chosenBubbles = selectBubbles(ans, bubbleCount);
   sendResult();
 
-  /* ── 診断履歴をlocalStorageに保存（history.html連携） ── */
   const histUser = getSelectedUser();
   if(histUser){
     const HIST_KEY = "kimochi_history";
@@ -1367,7 +1171,7 @@ function showResult(){
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
-      ans:    { mood:ans.mood, energy:ans.energy, social:ans.social, body:ans.body, wish:ans.wish }
+      ans:    { mood:ans.mood, energy:ans.energy, social:ans.social, body:ans.body, wish:ans.wish, gauge:ans.gauge }
     });
     localStorage.setItem(HIST_KEY, JSON.stringify(hist));
   }
@@ -1382,20 +1186,13 @@ function showResult(){
   fadeIn(document.getElementById("resultScreen"));
 }
 
-/* 今の気持ち画面から特効薬画面へ遷移する */
 function showActScreen(){
-  /* 上部テキスト：
-     ・大きい見出し（actTtl）には、結果画面ですでに選ばれているttls（例：「なんだかドキドキしてるんだね」）を
-       そのまま引き継いで表示する（再抽選すると結果画面と表記がズレるため rttl の文字列を再利用）
-     ・下の説明行（actDesc）には、1問目の答え（ct）とサブタグ（げんきはふつう・〜）を
-       「・」でつないで1行にまとめて表示する */
   document.getElementById("actTtl").textContent = document.getElementById("rttl").textContent;
 
   const ctText  = document.getElementById("cct").textContent;
   const subText = document.getElementById("subTags").textContent;
   document.getElementById("actDesc").textContent = [ctText, subText].filter(s => s).join("・");
 
-  /* 名前ラベル */
   const actUser = getSelectedUser();
   const actNameLabel = document.getElementById("actNameLabel");
   if(actUser){
@@ -1410,15 +1207,14 @@ function showActScreen(){
   });
 }
 
-/* 特効薬バブルをグリッドに並べる（PC=5列×2段、スマホ=2列×5段） */
-let bubbleHintTimer = null; /* タップヒントアニメーションのインターバルID */
+let bubbleHintTimer = null;
 
 function placeBubbles(list){
   const scene=document.getElementById("bscene");
   scene.querySelectorAll(".bubble").forEach(b=>b.remove());
-  stopBubbleHint(); /* 前回分のタイマーが残っていれば止める */
+  stopBubbleHint();
 
-  const INTERVAL = cssVar('--bubble-feed-ms') || 1200; /* 全バブルが出そろうまでの時間（--bubble-feed-ms で設定） */
+  const INTERVAL = cssVar('--bubble-feed-ms') || 1200;
   const slots = list.map((_,i)=>i);
   for(let k=slots.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[slots[k],slots[j]]=[slots[j],slots[k]];}
 
@@ -1436,34 +1232,29 @@ function placeBubbles(list){
     setTimeout(()=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.opacity="1"; })); }, delay);
   });
 
-  /* 全バブルが出そろってから、タップできることを伝えるヒントアニメーションを開始 */
   setTimeout(startBubbleHint, INTERVAL + 300);
 }
 
-/* ランダムなバブルを1つずつ軽く拡大させ、タップ可能であることを直感的に伝える */
 function startBubbleHint(){
   stopBubbleHint();
   bubbleHintTimer = setInterval(()=>{
     const bubbles = document.querySelectorAll("#bscene .bubble");
     if(bubbles.length === 0) return;
-    /* アニメ中でないバブルの中からランダムに1つ選ぶ */
     const idle = Array.from(bubbles).filter(b=>!b.classList.contains("hint-pulse"));
     const target = (idle.length ? idle : bubbles)[Math.floor(Math.random()*(idle.length ? idle.length : bubbles.length))];
     target.classList.add("hint-pulse");
     target.addEventListener("animationend", ()=>target.classList.remove("hint-pulse"), {once:true});
-  }, 5200); /* アニメーション本体が1.9秒なので、次のバブルが始まるまで少し間をあける */
+  }, 5200);
 }
 
-/* ヒントアニメーションのタイマーを停止（画面遷移時に呼ぶ） */
 function stopBubbleHint(){
   if(bubbleHintTimer){ clearInterval(bubbleHintTimer); bubbleHintTimer = null; }
 }
 
-/* 特効薬バブルをタップしたとき：詳細画面を表示する */
-let currentDetailItem = null; /* 現在表示中のitemを保持 */
+let currentDetailItem = null;
 
 function openDetail(item){
-  stopBubbleHint(); /* 詳細画面表示中はヒントアニメーションを止める */
+  stopBubbleHint();
   currentDetailItem = item;
   const img = BASE_ACT + (item.img || "404.png");
   const di = document.getElementById("detailImg");
@@ -1471,24 +1262,21 @@ function openDetail(item){
   di.style.display = "block";
   document.getElementById("detailTtl").textContent  = item.t;
   document.getElementById("detailDesc").textContent = item.desc || "";
-  /* イメージカラーをカードに適用 */
   const bc = item.g && BC[item.g] ? BC[item.g] : {c:"#FBEAF0", tc:"#72243E"};
   const card = document.getElementById("detailCard");
   card.style.setProperty("--detail-bg", bc.c);
   card.style.setProperty("--detail-tc", bc.tc);
-  /* いいねボタンの状態を復元（同じセッション内で再訪した場合） */
   const liked = likedSet.has(item.t);
   const likeBtn = document.getElementById("likeBtn");
   const likeImg = document.getElementById("likeImg");
   likeImg.src = liked ? LIKE_IMG_ON : LIKE_IMG_OFF;
   if(liked){ likeBtn.classList.add("liked"); }else{ likeBtn.classList.remove("liked"); }
-  likeBtn.disabled = liked; /* いいね済みは再押し不可 */
+  likeBtn.disabled = liked;
   fadeOut(document.getElementById("actScreen"),()=>{
     fadeIn(document.getElementById("detailScreen"));
   });
 }
 
-/* いいねボタンを押したとき */
 function toggleLike(){
   if(!currentDetailItem) return;
   const t = currentDetailItem.t;
@@ -1501,14 +1289,12 @@ function toggleLike(){
   likeBtn.classList.add("liked");
   likeBtn.disabled = true;
 
-  /* ── いいねをlocalStorageに保存（history.html連携） ── */
   const likeUser = getSelectedUser();
   if(likeUser && currentDetailItem){
     const LIKES_KEY = "kimochi_likes";
     let likes = {};
     try{ likes = JSON.parse(localStorage.getItem(LIKES_KEY)||"{}"); }catch(e){}
     if(!likes[likeUser.id]) likes[likeUser.id] = [];
-    /* 同じタイトルが既に登録済みなら追加しない */
     const already = likes[likeUser.id].some(x => x.title === currentDetailItem.t);
     if(!already){
       likes[likeUser.id].push({
@@ -1521,35 +1307,29 @@ function toggleLike(){
     }
   }
 
-  /* 3段構えで送信（WebView環境でも届くよう） */
   const url = LIKE_FORM_URL + "?title=" + encodeURIComponent(t);
 
-  /* ① sendBeacon（バックグラウンド送信・一番確実） */
   if(navigator.sendBeacon){
     navigator.sendBeacon(url);
   }
-  /* ② fetch（sendBeaconが使えない場合） */
   else if(window.fetch){
     fetch(url, {mode:"no-cors"}).catch(()=>{});
   }
-  /* ③ Image GET（最終手段・WebView等の古い環境向け） */
   else {
     new Image().src = url;
   }
 }
 
-/* 詳細画面のもどるボタン：特効薬画面へ戻る */
 function closeDetail(){
   fadeOut(document.getElementById("detailScreen"),()=>{
     document.getElementById("detailScreen").style.background="";
     fadeIn(document.getElementById("actScreen"));
-    startBubbleHint(); /* 特効薬画面に戻ったのでヒントアニメーションを再開 */
+    startBubbleHint();
   });
 }
 
-/* もう一どやるボタンを押したとき：リセットしてスタート画面へ戻る */
 function restart(){
-  stopBubbleHint(); /* ヒントアニメーションのタイマーを停止 */
+  stopBubbleHint();
   document.getElementById("bscene").querySelectorAll(".bubble").forEach(b=>b.remove());
   document.getElementById("rttl").textContent="";
   document.getElementById("rdesc").textContent="";
@@ -1561,7 +1341,7 @@ function restart(){
   const rnl=document.getElementById("resultNameLabel"); if(rnl) rnl.style.display="none";
   const anl=document.getElementById("actNameLabel"); if(anl) anl.style.display="none";
   chosenBubbles=[];
-  likedSet.clear(); /* もういちど押したらいいね状態をリセット */
+  likedSet.clear();
   const current =
     document.getElementById("detailScreen").classList.contains("active")
       ? document.getElementById("detailScreen")

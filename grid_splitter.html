@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>グリッド画像分割ツール</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+    background: #f5f4f0; color: #222; min-height: 100vh; padding: 2rem;
+  }
+  h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1.5rem; color: #111; }
+  .layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+  .panel {
+    background: #fff; border-radius: 12px; padding: 1.25rem; border: 1px solid #e0ddd5;
+    display: flex; flex-direction: column; gap: 1.2rem; max-height: 95vh; overflow-y: auto;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #999; margin-bottom: 6px;
+  }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .lbl { font-size: 12px; color: #777; white-space: nowrap; flex-shrink: 0; width: 30px; }
+  input[type=range] { flex: 1; accent-color: #444; cursor: pointer; min-width: 0; }
+  .val { font-size: 12px; font-weight: 600; min-width: 28px; text-align: right; color: #222; flex-shrink: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .file-drop {
+    border: 2px dashed #ccc; border-radius: 10px; padding: 1.2rem; text-align: center;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #fafaf8;
+  }
+  .file-drop:hover { border-color: #888; background: #f5f5f3; }
+  .file-drop p { font-size: 12px; color: #888; margin-top: 5px; }
+  #fileInput { display: none; }
+  .btn {
+    width: 100%; padding: 11px; background: #222; color: #fff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; letter-spacing: 0.05em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn:hover { background: #000; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { background: #aaa; cursor: default; }
+  .preview-area {
+    background: #fff; border-radius: 12px; border: 1px solid #e0ddd5;
+    padding: 1.25rem; min-height: 300px; display: flex; flex-direction: column; gap: 1rem;
+  }
+  .canvas-wrap { position: relative; display: inline-block; line-height: 0; }
+  /* チェッカーボード背景（透過確認用） */
+  .canvas-wrap.checker {
+    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+      linear-gradient(-45deg, #ccc 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #ccc 75%),
+      linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    background-color: #eee;
+  }
+  #previewCanvas { border-radius: 6px; max-width: 100%; height: auto; display: block; }
+  #gridOverlay { position: absolute; top: 0; left: 0; pointer-events: none; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-top: 0.5rem; }
+  .thumb-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .thumb-item img { width: 100%; border-radius: 5px; border: 1px solid #e0ddd5; }
+  .thumb-item .thumb-bg {
+    width: 100%; border-radius: 5px; overflow: hidden;
+    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+      linear-gradient(-45deg, #ccc 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #ccc 75%),
+      linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 10px 10px;
+    background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+    background-color: #ddd;
+  }
+  .thumb-item a {
+    font-size: 10px; color: #555; text-decoration: none;
+    background: #f0efe9; padding: 3px 8px; border-radius: 4px; border: 1px solid #ddd;
+  }
+  .thumb-item a:hover { background: #e5e4de; }
+  .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 14px; }
+  hr { border: none; border-top: 1px solid #eee; }
+  .line-card {
+    background: #fafaf8; border: 1px solid #eae8e1; border-radius: 8px;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .line-card-title { font-size: 11px; font-weight: 600; color: #555; margin-bottom: 2px; }
+  .no-lines-msg { font-size: 12px; color: #bbb; }
+
+  /* 透過設定 */
+  .toggle-row { display: flex; align-items: center; gap: 8px; }
+  .toggle-label { font-size: 13px; color: #444; flex: 1; }
+  .toggle {
+    position: relative; width: 36px; height: 20px; flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0; background: #ccc; border-radius: 20px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .toggle input:checked + .toggle-track { background: #3a3a3a; }
+  .toggle-track::after {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s;
+  }
+  .toggle input:checked + .toggle-track::after { left: 19px; }
+
+  .alpha-section { display: flex; flex-direction: column; gap: 8px; }
+  .alpha-section.disabled { opacity: 0.35; pointer-events: none; }
+
+  .color-row { display: flex; align-items: center; gap: 8px; }
+  .color-row label { font-size: 12px; color: #777; flex: 1; }
+  input[type=color] {
+    width: 36px; height: 28px; border: 1px solid #ddd; border-radius: 5px;
+    cursor: pointer; padding: 2px; background: #fff;
+  }
+  .color-hex {
+    font-size: 12px; color: #555; font-family: monospace; width: 54px;
+  }
+</style>
+</head>
+<body>
+
+<h1>グリッド画像分割ツール</h1>
+
+<div class="layout">
+  <div class="panel">
+
+    <!-- 画像 -->
+    <div>
+      <div class="section-label">画像</div>
+      <div class="file-drop" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5" style="margin:0 auto;display:block;">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 15l5-5 4 4 3-3 6 6"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+        </svg>
+        <p>クリックまたはドラッグ&amp;ドロップ</p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <hr>
+
+    <!-- グリッド分割 -->
+    <div>
+      <div class="section-label">グリッド分割</div>
+      <div class="grid2">
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">列数</div>
+          <div class="row">
+            <input type="range" id="cols" min="1" max="10" value="3">
+            <span class="val" id="colsVal">3</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">行数</div>
+          <div class="row">
+            <input type="range" id="rows" min="1" max="10" value="3">
+            <span class="val" id="rowsVal">3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 縦線ごとの空白 -->
+    <div>
+      <div class="section-label">縦線ごとの空白（列間）</div>
+      <div id="vLineGaps" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <hr>
+
+    <!-- 横線ごとの空白 -->
+    <div>
+      <div class="section-label">横線ごとの空白（行間）</div>
+      <div id="hLineGaps" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <hr>
+
+    <!-- 端の余白 -->
+    <div>
+      <div class="section-label">端の余白を切り落とす (px)</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="row"><span class="lbl">上</span><input type="range" id="padTop" min="0" max="500" value="0"><span class="val" id="padTopVal">0</span></div>
+        <div class="row"><span class="lbl">下</span><input type="range" id="padBottom" min="0" max="500" value="0"><span class="val" id="padBottomVal">0</span></div>
+        <div class="row"><span class="lbl">左</span><input type="range" id="padLeft" min="0" max="500" value="0"><span class="val" id="padLeftVal">0</span></div>
+        <div class="row"><span class="lbl">右</span><input type="range" id="padRight" min="0" max="500" value="0"><span class="val" id="padRightVal">0</span></div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 背景透過 -->
+    <div>
+      <div class="section-label">背景透過</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="toggle-row">
+          <span class="toggle-label">透過を有効にする</span>
+          <label class="toggle">
+            <input type="checkbox" id="alphaEnabled">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="alpha-section disabled" id="alphaSection">
+          <div class="color-row">
+            <label>透過する背景色</label>
+            <input type="color" id="bgColor" value="#ffffff">
+            <span class="color-hex" id="bgColorHex">#ffffff</span>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#888;margin-bottom:4px;">閾値（色の許容範囲）</div>
+            <div class="row">
+              <input type="range" id="alphaThreshold" min="0" max="255" value="30">
+              <span class="val" id="alphaThresholdVal">30</span>
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:3px;">値が大きいほど近似色も透過します</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <button class="btn" id="splitBtn" disabled onclick="splitAndDownload()">分割してダウンロード</button>
+
+  </div>
+
+  <!-- 右: プレビュー + 結果 -->
+  <div class="preview-area">
+    <div class="empty-state" id="emptyState">画像を選択するとプレビューが表示されます</div>
+
+    <div id="previewSection" style="display:none;">
+      <div class="section-label" style="margin-bottom:8px;">プレビュー</div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="previewCanvas"></canvas>
+        <canvas id="gridOverlay"></canvas>
+      </div>
+    </div>
+
+    <div id="resultSection" style="display:none;">
+      <hr style="margin-bottom:1rem;">
+      <div class="section-label" style="margin-bottom:8px;">分割結果 — 各セルをクリックで個別保存も可能</div>
+      <div class="result-grid" id="resultGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let img = null;
+let vGaps = [];
+let hGaps = [];
+
+const $ = id => document.getElementById(id);
+
+// --- グリッド数 ---
+$('cols').addEventListener('input', () => { $('colsVal').textContent = $('cols').value; rebuildLineGapUI(); if (img) drawPreview(); });
+$('rows').addEventListener('input', () => { $('rowsVal').textContent = $('rows').value; rebuildLineGapUI(); if (img) drawPreview(); });
+['padTop','padBottom','padLeft','padRight'].forEach(id => {
+  $(id).addEventListener('input', () => { $(id+'Val').textContent = $(id).value; if (img) drawPreview(); });
+});
+
+// --- 背景透過 ---
+$('alphaEnabled').addEventListener('change', () => {
+  $('alphaSection').classList.toggle('disabled', !$('alphaEnabled').checked);
+  $('canvasWrap').classList.toggle('checker', $('alphaEnabled').checked);
+  if (img) drawPreview();
+});
+$('bgColor').addEventListener('input', () => {
+  $('bgColorHex').textContent = $('bgColor').value;
+  if (img) drawPreview();
+});
+$('alphaThreshold').addEventListener('input', () => {
+  $('alphaThresholdVal').textContent = $('alphaThreshold').value;
+  if (img) drawPreview();
+});
+
+// hex → {r,g,b}
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return {r, g, b};
+}
+
+// ImageData に対して背景色を透過する
+function applyAlpha(imageData, bgHex, threshold) {
+  const { r: br, g: bg, b: bb } = hexToRgb(bgHex);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const dr = Math.abs(data[i]   - br);
+    const dg = Math.abs(data[i+1] - bg);
+    const db = Math.abs(data[i+2] - bb);
+    if (dr <= threshold && dg <= threshold && db <= threshold) {
+      data[i+3] = 0; // 透明
+    }
+  }
+  return imageData;
+}
+
+// --- 線間空白UI ---
+function rebuildLineGapUI() {
+  const cols = parseInt($('cols').value);
+  const rows = parseInt($('rows').value);
+  const vCount = cols - 1;
+  const hCount = rows - 1;
+  while (vGaps.length < vCount) vGaps.push({ left: 0, right: 0 });
+  vGaps.length = vCount;
+  while (hGaps.length < hCount) hGaps.push({ top: 0, bottom: 0 });
+  hGaps.length = hCount;
+
+  buildContainer($('vLineGaps'), vCount, i =>
+    makeLineCard(`縦線 ${i+1}本目（左から）`,
+      [{label:'左側',key:'left'},{label:'右側',key:'right'}],
+      vGaps[i], () => { if (img) drawPreview(); })
+  );
+  buildContainer($('hLineGaps'), hCount, i =>
+    makeLineCard(`横線 ${i+1}本目（上から）`,
+      [{label:'上側',key:'top'},{label:'下側',key:'bottom'}],
+      hGaps[i], () => { if (img) drawPreview(); })
+  );
+}
+
+function buildContainer(container, count, makeCard) {
+  container.innerHTML = '';
+  if (count === 0) {
+    const p = document.createElement('p');
+    p.className = 'no-lines-msg';
+    p.textContent = '分割数が1のため線なし';
+    container.appendChild(p);
+  } else {
+    for (let i = 0; i < count; i++) container.appendChild(makeCard(i));
+  }
+}
+
+function makeLineCard(title, sides, gapObj, onChange) {
+  const card = document.createElement('div');
+  card.className = 'line-card';
+  const t = document.createElement('div');
+  t.className = 'line-card-title'; t.textContent = title;
+  card.appendChild(t);
+  sides.forEach(({ label, key }) => {
+    const row = document.createElement('div'); row.className = 'row';
+    const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = label;
+    const slider = document.createElement('input');
+    slider.type = 'range'; slider.min = 0; slider.max = 100; slider.value = gapObj[key];
+    const valSpan = document.createElement('span'); valSpan.className = 'val'; valSpan.textContent = gapObj[key];
+    slider.addEventListener('input', () => {
+      gapObj[key] = parseInt(slider.value); valSpan.textContent = gapObj[key]; onChange();
+    });
+    row.appendChild(lbl); row.appendChild(slider); row.appendChild(valSpan);
+    card.appendChild(row);
+  });
+  return card;
+}
+
+// --- ファイル読み込み ---
+const dropZone = $('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#444'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = '#ccc'; });
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.style.borderColor = '#ccc';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadFile(file);
+});
+$('fileInput').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    img = new Image();
+    img.onload = () => {
+      const maxP = Math.floor(Math.min(img.width, img.height) / 2) - 1;
+      ['padTop','padBottom','padLeft','padRight'].forEach(id => {
+        $(id).max = maxP; $(id).value = 0; $(id+'Val').textContent = '0';
+      });
+      $('emptyState').style.display = 'none';
+      $('previewSection').style.display = '';
+      $('resultSection').style.display = 'none';
+      $('resultGrid').innerHTML = '';
+      $('splitBtn').disabled = false;
+      drawPreview();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// --- パラメータ取得 ---
+function getBase() {
+  return {
+    cols: parseInt($('cols').value), rows: parseInt($('rows').value),
+    pT: parseInt($('padTop').value), pB: parseInt($('padBottom').value),
+    pL: parseInt($('padLeft').value), pR: parseInt($('padRight').value),
+  };
+}
+function getAlpha() {
+  return {
+    enabled: $('alphaEnabled').checked,
+    color: $('bgColor').value,
+    threshold: parseInt($('alphaThreshold').value),
+  };
+}
+
+// --- 線情報 ---
+function getVLines(srcW, cols) {
+  const cellW = srcW / cols;
+  return Array.from({length: cols-1}, (_,i) => ({
+    x: (i+1)*cellW,
+    leftPx: vGaps[i]?vGaps[i].left:0,
+    rightPx: vGaps[i]?vGaps[i].right:0,
+  }));
+}
+function getHLines(srcH, rows) {
+  const cellH = srcH / rows;
+  return Array.from({length: rows-1}, (_,i) => ({
+    y: (i+1)*cellH,
+    topPx: hGaps[i]?hGaps[i].top:0,
+    bottomPx: hGaps[i]?hGaps[i].bottom:0,
+  }));
+}
+function getColBounds(srcW, cols) {
+  const vl = getVLines(srcW, cols);
+  return Array.from({length: cols}, (_,c) => ({
+    left:  c===0       ? 0    : vl[c-1].x + vl[c-1].rightPx,
+    right: c===cols-1  ? srcW : vl[c].x   - vl[c].leftPx,
+  }));
+}
+function getRowBounds(srcH, rows) {
+  const hl = getHLines(srcH, rows);
+  return Array.from({length: rows}, (_,r) => ({
+    top:    r===0      ? 0    : hl[r-1].y + hl[r-1].bottomPx,
+    bottom: r===rows-1 ? srcH : hl[r].y   - hl[r].topPx,
+  }));
+}
+
+// セルのImageDataを生成（透過含む）
+function renderCell(sx, sy, sw, sh, alpha) {
+  const canvas = document.createElement('canvas');
+  canvas.width = sw; canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  if (alpha.enabled && sw > 0 && sh > 0) {
+    const id = ctx.getImageData(0, 0, sw, sh);
+    applyAlpha(id, alpha.color, alpha.threshold);
+    ctx.putImageData(id, 0, 0);
+  }
+  return canvas;
+}
+
+// --- プレビュー描画 ---
+function drawPreview() {
+  if (!img) return;
+  const { cols, rows, pT, pB, pL, pR } = getBase();
+  const alpha = getAlpha();
+  const srcW = img.width - pL - pR;
+  const srcH = img.height - pT - pB;
+  if (srcW <= 0 || srcH <= 0) return;
+
+  const maxW = 700;
+  const scale = Math.min(1, maxW / srcW);
+  const dW = Math.round(srcW * scale);
+  const dH = Math.round(srcH * scale);
+
+  const pc = $('previewCanvas');
+  pc.width = dW; pc.height = dH;
+  pc.style.width = dW + 'px'; pc.style.height = dH + 'px';
+  const ctx = pc.getContext('2d');
+
+  if (alpha.enabled) {
+    // 透過プレビュー: 縮小描画してから全体に透過処理
+    ctx.clearRect(0, 0, dW, dH);
+    // 元サイズで描画してリサイズ（精度のため）
+    const tmp = document.createElement('canvas');
+    tmp.width = srcW; tmp.height = srcH;
+    const tc = tmp.getContext('2d');
+    tc.drawImage(img, pL, pT, srcW, srcH, 0, 0, srcW, srcH);
+    const id = tc.getImageData(0, 0, srcW, srcH);
+    applyAlpha(id, alpha.color, alpha.threshold);
+    tc.putImageData(id, 0, 0);
+    ctx.drawImage(tmp, 0, 0, srcW, srcH, 0, 0, dW, dH);
+  } else {
+    ctx.drawImage(img, pL, pT, srcW, srcH, 0, 0, dW, dH);
+  }
+
+  // オーバーレイ
+  const ov = $('gridOverlay');
+  ov.width = dW; ov.height = dH;
+  ov.style.width = dW + 'px'; ov.style.height = dH + 'px';
+  const octx = ov.getContext('2d');
+  octx.clearRect(0, 0, dW, dH);
+
+  octx.fillStyle = 'rgba(20,20,20,0.32)';
+  getVLines(srcW, cols).forEach(({ x, leftPx, rightPx }) => {
+    const x1 = Math.round((x - leftPx) * scale);
+    const x2 = Math.round((x + rightPx) * scale);
+    if (x2 > x1) octx.fillRect(x1, 0, x2 - x1, dH);
+    else octx.fillRect(Math.round(x * scale), 0, 1, dH);
+  });
+  getHLines(srcH, rows).forEach(({ y, topPx, bottomPx }) => {
+    const y1 = Math.round((y - topPx) * scale);
+    const y2 = Math.round((y + bottomPx) * scale);
+    if (y2 > y1) octx.fillRect(0, y1, dW, y2 - y1);
+    else octx.fillRect(0, Math.round(y * scale), dW, 1);
+  });
+  octx.strokeStyle = 'rgba(60,140,255,0.9)';
+  octx.lineWidth = 1;
+  getVLines(srcW, cols).forEach(({ x }) => {
+    const dx = Math.round(x * scale);
+    octx.beginPath(); octx.moveTo(dx, 0); octx.lineTo(dx, dH); octx.stroke();
+  });
+  getHLines(srcH, rows).forEach(({ y }) => {
+    const dy = Math.round(y * scale);
+    octx.beginPath(); octx.moveTo(0, dy); octx.lineTo(dW, dy); octx.stroke();
+  });
+  octx.strokeStyle = 'rgba(60,140,255,1)';
+  octx.lineWidth = 2;
+  octx.strokeRect(1, 1, dW - 2, dH - 2);
+}
+
+// --- 分割＆ダウンロード ---
+function splitAndDownload() {
+  if (!img) return;
+  const { cols, rows, pT, pB, pL, pR } = getBase();
+  const alpha = getAlpha();
+  const srcW = img.width - pL - pR;
+  const srcH = img.height - pT - pB;
+  if (srcW <= 0 || srcH <= 0) return;
+
+  const colBounds = getColBounds(srcW, cols);
+  const rowBounds = getRowBounds(srcH, rows);
+
+  $('resultSection').style.display = '';
+  const grid = $('resultGrid');
+  grid.innerHTML = '';
+  const links = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const sx = Math.round(pL + colBounds[c].left);
+      const sy = Math.round(pT + rowBounds[r].top);
+      const sw = Math.round(colBounds[c].right - colBounds[c].left);
+      const sh = Math.round(rowBounds[r].bottom - rowBounds[r].top);
+      if (sw <= 0 || sh <= 0) continue;
+
+      const canvas = renderCell(sx, sy, sw, sh, alpha);
+      const url = canvas.toDataURL('image/png');
+      const fname = `cell_r${r+1}_c${c+1}.png`;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'thumb-item';
+
+      if (alpha.enabled) {
+        // チェッカーボード背景でサムネイル表示
+        const bg = document.createElement('div');
+        bg.className = 'thumb-bg';
+        const thumb = document.createElement('img');
+        thumb.src = url; thumb.style.display = 'block'; thumb.style.width = '100%';
+        bg.appendChild(thumb);
+        wrapper.appendChild(bg);
+      } else {
+        const thumb = document.createElement('img');
+        thumb.src = url;
+        wrapper.appendChild(thumb);
+      }
+
+      const a = document.createElement('a');
+      a.href = url; a.download = fname; a.textContent = '保存';
+      wrapper.appendChild(a);
+      grid.appendChild(wrapper);
+      links.push({ url, fname });
+    }
+  }
+
+  links.forEach(({ url, fname }, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = url; a.download = fname; a.style.display = 'none';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }, i * 200);
+  });
+}
+
+// 初期化
+rebuildLineGapUI();
+</script>
+</body>
+</html>

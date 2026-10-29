@@ -499,11 +499,99 @@ html, body {
 }
 .name-del-all-btn:active { transform:scale(0.95); }
 
+/* ── 名前マーク（文字サイズに合わせて自動でスケール） ── */
+.name-icon {
+  display:inline-block;
+  width:1.2em; height:1.2em;
+  object-fit:contain;
+  vertical-align:-0.22em;
+  margin-right:0.2em;
+}
+
+/* ── スタート画面の名前プルダウン（マークを表示するための自前プルダウン） ── */
+.name-dd { position:relative; font-size:20px; }
+.name-dd-btn {
+  display:flex; align-items:center; gap:8px; text-align:left;
+}
+.name-dd-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.name-dd-caret { font-size:0.8em; color:#b09070; flex-shrink:0; }
+.name-dd-menu {
+  display:none;
+  position:absolute; left:0; top:calc(100% + 6px);
+  min-width:100%; max-height:min(40vh, 320px);
+  overflow-y:auto;
+  background:#fff;
+  border:1.5px solid #FFCC80; border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.15);
+  padding:6px; z-index:300;
+  flex-direction:column;
+}
+.name-dd-menu.open { display:flex; }
+.name-dd-opt {
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+  font-size:inherit; color:#53433a;
+  background:none; border:none; border-radius:10px;
+  padding:10px 16px; text-align:left; white-space:nowrap;
+  cursor:pointer; width:100%;
+}
+.name-dd-opt:active { background:#FFF3E0; }
+
+/* ── 名前登録画面：マーク選択ボタン ── */
+.icon-pick-btn {
+  width:56px; flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#FFF9F0; border:1.5px dashed #FFCC80; border-radius:12px;
+  color:#c0a888; cursor:pointer; padding:2px;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+}
+.icon-pick-btn.has-icon { border-style:solid; }
+.icon-pick-btn:active { transform:scale(0.95); }
+.icon-pick-plus { font-size:18px; line-height:1; }
+.icon-pick-cap  { font-size:9px; line-height:1.2; }
+.icon-pick-btn img { width:38px; height:38px; object-fit:contain; }
+
+/* ── マーク選択画面（オーバーレイ） ── */
+#iconPicker {
+  display:none;
+  position:absolute; inset:0; z-index:500;
+  background:rgba(83,67,58,0.45);
+  align-items:center; justify-content:center;
+  padding:16px;
+}
+#iconPicker.open { display:flex; }
+.icon-picker-card {
+  background:#fffaf1; border:2px solid #FFCC80; border-radius:18px;
+  width:100%; max-width:560px; max-height:100%;
+  display:flex; flex-direction:column; gap:10px;
+  padding:14px;
+}
+.icon-picker-head { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.icon-picker-title { flex:1; font-size:18px; color:#53433a; }
+.icon-picker-none, .icon-picker-close {
+  background:transparent; border:1px solid #FFCC80; border-radius:99px;
+  padding:5px 12px; font-size:13px; color:#b09070; cursor:pointer;
+  font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700;
+}
+.icon-picker-grid {
+  flex:1; min-height:0; overflow-y:auto;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:6px;
+  background:#fff; border:1px solid #f0dcc0; border-radius:12px; padding:8px;
+}
+.icon-picker-item {
+  background:none; border:1.5px solid transparent; border-radius:10px;
+  padding:4px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.icon-picker-item:active { background:#FFF3E0; border-color:#FFCC80; }
+.icon-picker-item img { width:100%; max-width:52px; aspect-ratio:1/1; object-fit:contain; }
+.icon-picker-empty { grid-column:1/-1; text-align:center; color:#c0a888; font-size:13px; padding:20px 8px; line-height:1.6; }
+
 /* ── 名前選択UI スマホ設定（PC用CSSの後に書くことで正しく上書き） ── */
 @media (max-width: 480px) {
   .name-pick-row { gap: 6px; margin-bottom: 14px; }
   .name-select   { font-size: 15px; padding: 9px 18px; max-width: 70vw; }
   .name-add-btn  { width: 42px; height: 42px; font-size: 26px; }
+  .name-dd       { font-size: 15px; }
+  .icon-pick-btn { width: 48px; }
 }
 
 </style>
@@ -516,9 +604,17 @@ html, body {
 
   <!-- 名前選択（はじめるボタンの真上） -->
   <div class="name-pick-row">
-    <select class="name-select" id="nameSelect" onchange="onNameSelect()">
+    <!-- 状態保持用（非表示）。表示は下の自前プルダウン（マークを出すため） -->
+    <select class="name-select" id="nameSelect" onchange="onNameSelect()" style="display:none">
       <option value="">なまえを えらぶ</option>
     </select>
+    <div class="name-dd">
+      <button type="button" class="name-select name-dd-btn" id="nameDdBtn" onclick="toggleNameDd(event)">
+        <span class="name-dd-label" id="nameDdLabel">なまえを えらぶ</span>
+        <span class="name-dd-caret">▼</span>
+      </button>
+      <div class="name-dd-menu" id="nameDdMenu"></div>
+    </div>
     <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
   </div>
 
@@ -540,6 +636,7 @@ html, body {
     <button class="name-del-all-btn" onclick="confirmDeleteAllNames()">すべて削除</button>
   </div>
   <div class="name-input-row">
+    <button type="button" class="icon-pick-btn" id="iconPickBtn" onclick="openIconPicker()" title="マークをえらぶ（なくてもOK）"></button>
     <input class="name-input" id="nameInput" type="text" placeholder="なまえをいれてね" maxlength="10"
       oninput="checkNameLength()"
       onkeydown="if(event.key==='Enter')addName()">
@@ -609,9 +706,21 @@ html, body {
   </div>
   <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
 </div>
+<!-- マーク選択（名前登録画面から開く） -->
+<div id="iconPicker" onclick="closeIconPicker()">
+  <div class="icon-picker-card" onclick="event.stopPropagation()">
+    <div class="icon-picker-head">
+      <span class="icon-picker-title">マークをえらんでね</span>
+      <button type="button" class="icon-picker-none" onclick="pickIcon('')">なし</button>
+      <button type="button" class="icon-picker-close" onclick="closeIconPicker()">✕ とじる</button>
+    </div>
+    <div class="icon-picker-grid" id="iconPickerGrid"></div>
+  </div>
+</div>
 </div>
 
 <script src="data.js"></script>
+<script src="openmoji-list.js"></script>
 
 <script>
 const BASE_EXP  = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/expressions/";
@@ -796,6 +905,106 @@ function genId(){
   return Math.random().toString(36).slice(2,10);
 }
 
+/* ── 名前マーク（任意設定。名前データの icon に画像パスを保存） ── */
+const ICON_LIST = (typeof OPENMOJI_ICONS !== "undefined" && Array.isArray(OPENMOJI_ICONS)) ? OPENMOJI_ICONS : [];
+let pendingIcon = ""; /* 名前登録画面で選択中のマーク */
+
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+/* マーク画像タグ（マーク未設定なら空文字。画像が読めない場合は非表示） */
+function iconHtml(icon){
+  return icon ? `<img class="name-icon" src="${escHtml(icon)}" alt="" onerror="this.style.display='none'">` : "";
+}
+/* 「マーク＋名前」のHTML */
+function nameHtml(user){
+  return iconHtml(user.icon) + escHtml(user.name);
+}
+
+/* スタート画面の名前プルダウン（自前）の開閉・描画 */
+function toggleNameDd(e){
+  if(e) e.stopPropagation();
+  document.getElementById("nameDdMenu").classList.toggle("open");
+}
+function closeNameDd(){
+  const m = document.getElementById("nameDdMenu");
+  if(m) m.classList.remove("open");
+}
+document.addEventListener("click", closeNameDd);
+function renderNameDd(){
+  const menu = document.getElementById("nameDdMenu");
+  if(!menu) return;
+  menu.innerHTML = "";
+  const mk = (id, html) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "name-dd-opt";
+    b.innerHTML = html;
+    b.onclick = () => pickNameDd(id);
+    menu.appendChild(b);
+  };
+  mk("", "なまえを えらぶ");
+  loadNames().forEach(n => mk(n.id, nameHtml(n)));
+}
+function pickNameDd(id){
+  const sel = document.getElementById("nameSelect");
+  sel.value = id;
+  closeNameDd();
+  onNameSelect();
+}
+function updateNameDdLabel(){
+  const lab = document.getElementById("nameDdLabel");
+  if(!lab) return;
+  const u = getSelectedUser();
+  lab.innerHTML = u ? nameHtml(u) : "なまえを えらぶ";
+}
+
+/* 名前登録画面：マーク選択ボタンの表示更新 */
+function updateIconPickBtn(){
+  const b = document.getElementById("iconPickBtn");
+  if(!b) return;
+  if(pendingIcon){
+    b.classList.add("has-icon");
+    b.innerHTML = `<img src="${escHtml(pendingIcon)}" alt="">`;
+  } else {
+    b.classList.remove("has-icon");
+    b.innerHTML = '<span class="icon-pick-plus">＋</span><span class="icon-pick-cap">マーク</span>';
+  }
+}
+/* マーク選択画面 */
+let iconPickerBuilt = false;
+function openIconPicker(){
+  const grid = document.getElementById("iconPickerGrid");
+  if(!iconPickerBuilt){
+    iconPickerBuilt = true;
+    if(!ICON_LIST.length){
+      grid.innerHTML = '<div class="icon-picker-empty">マーク画像が見つかりません。<br>openmoji-list.js を作成して、index.html と同じ場所に置いてください。</div>';
+    } else {
+      const frag = document.createDocumentFragment();
+      ICON_LIST.forEach(path => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "icon-picker-item";
+        const im = document.createElement("img");
+        im.src = path; im.alt = ""; im.loading = "lazy"; im.decoding = "async";
+        b.appendChild(im);
+        b.onclick = () => pickIcon(path);
+        frag.appendChild(b);
+      });
+      grid.appendChild(frag);
+    }
+  }
+  document.getElementById("iconPicker").classList.add("open");
+}
+function closeIconPicker(){
+  document.getElementById("iconPicker").classList.remove("open");
+}
+function pickIcon(path){
+  pendingIcon = path;
+  updateIconPickBtn();
+  closeIconPicker();
+}
+
 /* スタート画面のプルダウンを更新 */
 function refreshNameSelect(){
   const list = loadNames();
@@ -810,6 +1019,7 @@ function refreshNameSelect(){
     if(n.id === savedId) opt.selected = true;
     sel.appendChild(opt);
   });
+  renderNameDd();
   updateStartBtn();
 }
 
@@ -827,13 +1037,15 @@ function updateStartBtn(){
   const btn = document.getElementById("startBtn");
   if(!sel || !btn) return;
   const selOpt = sel.options[sel.selectedIndex];
-  if(sel.value && selOpt){
-    btn.textContent = selOpt.textContent + "さんとして はじめる";
+  const selUser = getSelectedUser();
+  if(sel.value && selOpt && selUser){
+    btn.innerHTML = nameHtml(selUser) + "さんとして はじめる";
     btn.disabled = false;
   } else {
     btn.textContent = "はじめる";
     btn.disabled = true;
   }
+  updateNameDdLabel();
 }
 
 /* 現在選択中のユーザー情報を返す（未選択ならnull） */
@@ -849,6 +1061,8 @@ function goNameScreen(){
   renderNameList();
   fadeOut(document.getElementById("startScreen"),()=>{
     document.getElementById("nameInput").value = "";
+    pendingIcon = "";
+    updateIconPickBtn();
     fadeIn(document.getElementById("nameScreen"));
   });
 }
@@ -874,8 +1088,12 @@ function addName(){
   const name = input.value.trim();
   if(!name) return;
   const list = loadNames();
-  list.push({id: genId(), name});
+  const entry = {id: genId(), name};
+  if(pendingIcon) entry.icon = pendingIcon; /* マークは任意 */
+  list.push(entry);
   saveNames(list);
+  pendingIcon = "";
+  updateIconPickBtn();
   input.value = "";
   input.focus();
   document.getElementById("nameLimitWarn").style.display = "none";
@@ -937,7 +1155,7 @@ function renderNameList(){
   }
   ul.innerHTML = list.map(n =>
     `<li class="name-list-item">
-      <span>${n.name}</span>
+      <span>${nameHtml(n)}</span>
       <button class="name-del-btn" onclick="confirmDeleteName('${n.id}','${n.name}')">削除</button>
     </li>`
   ).join("");
@@ -963,6 +1181,7 @@ window.addEventListener("load",()=>{
   const si=document.getElementById("startImg");
   if(IMG.rainbow){si.src=IMG.rainbow;si.style.display="block";}else{si.style.display="none";}
   refreshNameSelect();
+  updateIconPickBtn();
   fadeIn(document.getElementById("startScreen"));
 });
 
@@ -976,7 +1195,7 @@ function startQ(){
     const user = getSelectedUser();
     const badge = document.getElementById("quizNameBadge");
     if(user){
-      badge.textContent = user.name + "さん";
+      badge.innerHTML = nameHtml(user) + "さん";
       badge.style.display = "block";
     } else {
       badge.style.display = "none";
@@ -1155,7 +1374,7 @@ function showResult(){
   const resUser = getSelectedUser();
   const resLabel = document.getElementById("resultNameLabel");
   if(resUser){
-    resLabel.textContent = "いまの " + resUser.name + " さんは";
+    resLabel.innerHTML = "いまの " + nameHtml(resUser) + " さんは";
     resLabel.style.display = "block";
   } else {
     resLabel.style.display = "none";
@@ -1180,7 +1399,7 @@ function showActScreen(){
   const actUser = getSelectedUser();
   const actNameLabel = document.getElementById("actNameLabel");
   if(actUser){
-    actNameLabel.textContent = "いまの " + actUser.name + " さんのきもちは";
+    actNameLabel.innerHTML = "いまの " + nameHtml(actUser) + " さんのきもちは";
     actNameLabel.style.display = "block";
   } else {
     actNameLabel.style.display = "none";
