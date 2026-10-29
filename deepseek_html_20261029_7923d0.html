@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>きもちチェック - プロトタイプ（どこにいたい？）</title>
+</head>
+<body>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
+
+:root {
+  --fade-ms:             500;
+  --fw-q-text:           700;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html, body {
+  width:100%;
+  height:100dvh;
+  overflow:hidden;
+  background-color: rgb(255, 250, 241);
+}
+
+#app {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700;
+  width:100%;
+  height:100dvh;
+  display:flex; flex-direction:column;
+  color:#53433a;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ── 画面共通：フェード ── */
+.screen {
+  display:none; width:100%; height:100%;
+  flex-direction:column; align-items:center; justify-content:flex-start;
+  padding:20px;
+  opacity:0;
+  transition:opacity calc(var(--fade-ms) * 1ms) ease;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.screen.active  { display:flex; }
+.screen.visible { opacity:1; }
+
+/* ── 質問画面レイアウト ── */
+#locationScreen {
+  padding-top: clamp(16px, 6vh, 60px);
+  padding-bottom: 20px;
+}
+
+.pbar-wrap { width:100%; height:7px; background:#e0e0e0; border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
+.pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
+
+/* 質問文と「このなかにはない」ボタンのヘッダー */
+.q-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(8px, 2vh, 16px);
+  flex-wrap: wrap; /* スマホで折り返し */
+}
+
+.q-text { font-size:clamp(18px, 5.5vh, 40px); font-weight:var(--fw-q-text); text-align:center; line-height:1.4; }
+
+/* 「このなかにはない」ボタン */
+.not-here-btn {
+  background: #fff;
+  color: #888; /* 薄すぎたので濃く */
+  border: 2px solid #ffce65;
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.not-here-btn:active { transform:scale(0.96); background: #FFF3E0; }
+.not-here-btn.selected { background: #FFE0B2; color: #72243E; border-color: #FFA726; }
+
+/* ── メインのマップエリア（ドラッグ可能） ── */
+.map-viewport {
+  width: 100%;
+  max-width: 100%;
+  height: 60vh; /* 表示領域の高さ */
+  overflow: hidden; /* スクロールバーを消す */
+  border-radius: 12px;
+  background-color: transparent; /* 背景色を透過して画像の外側を見えなくする */
+  margin: 0 auto;
+  flex-shrink: 0;
+  position: relative;
+  cursor: grab;
+  touch-action: none; /* タッチスクロールを無効化 */
+}
+.map-viewport:active { cursor: grabbing; }
+
+/* マップの内部コンテナ（背景画像と人物を配置） */
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* 背景画像を1.5倍に拡大（960pxの1.5倍 = 1440px） */
+  width: 1440px; 
+  height: 690px; /* 960:460の比率に合わせて高さも1.5倍 */
+  background-color: transparent;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* 背景画像 */
+.map-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* ドラッグ可能な人物アイコン */
+.draggable-person {
+  position: absolute;
+  width: 150px; /* 2.5倍サイズ */
+  height: auto;
+  cursor: grab;
+  z-index: 100;
+  touch-action: none;
+  
+  /* 初期位置：マップの中央付近 */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.draggable-person:active {
+  cursor: grabbing;
+}
+
+/* 人物の画像 */
+.draggable-person img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+/* 「きみ」ラベル */
+.name-label {
+  position: absolute;
+  top: -10px; /* 少し下げる */
+  background-color: #fff; /* 白地 */
+  color: #000;            /* 黒文字 */
+  font-size: 16px;
+  font-weight: bold;
+  padding: 2px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+}
+
+/* 操作説明 */
+.instruction {
+  font-size: 14px;
+  color: #888;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ── ボタン類 ── */
+.back-btn { align-self:center; margin-top:12px; background:transparent; border:none; font-size:18px; color:#bbbbbb; cursor:pointer; padding:4px 8px; flex-shrink:0; }
+.back-btn:active { transform:scale(0.95); }
+.next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
+.next-screen-btn:active { transform:scale(0.96); }
+.next-screen-btn:disabled { background:#d8d0c8; cursor:not-allowed; }
+
+@media (max-width: 768px) {
+  .map-viewport { height: 50vh; }
+  .q-text { font-size: 24px; }
+  .draggable-person { width: 100px; }
+  .next-screen-btn { font-size: 18px; padding: 12px 28px; }
+  .name-label { font-size: 12px; top: -8px; padding: 1px 8px; }
+}
+</style>
+
+<div id="app">
+  <div id="locationScreen" class="screen active visible">
+    <div class="pbar-wrap"><div class="pbar" id="pbar" style="width: 80%"></div></div>
+
+    <!-- 質問文と「このなかにはない」ボタンを横並びに -->
+    <div class="q-header">
+      <div class="q-text">いまどこにいたい？</div>
+      <button class="not-here-btn" id="notHereBtn">このなかにはない</button>
+    </div>
+
+    <!-- ドラッグで移動できるマップビューポート -->
+    <div class="map-viewport" id="mapViewport">
+      <div class="map-container" id="mapContainer">
+        <!-- 背景画像（園舎） -->
+        <img class="map-bg" id="mapBgImg" src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png" alt="保育園の俯瞰図">
+        
+        <!-- ドラッグ可能な人物（ラベル付き） -->
+        <div class="draggable-person" id="personIcon">
+          <div class="name-label">きみ</div>
+          <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/You.png" alt="自分" onerror="this.src='https://via.placeholder.com/150x300/cccccc/ffffff?text=You';">
+        </div>
+      </div>
+    </div>
+
+    <div class="instruction">人物を動かして、いたい場所に置いてね（ドラッグで背景を移動できます）</div>
+
+    <button class="next-screen-btn" id="nextBtn" disabled>これでOK</button>
+    <button class="back-btn" onclick="alert('前の画面に戻る処理（デモ）')">← もどる</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const personIcon = document.getElementById('personIcon');
+  const mapViewport = document.getElementById('mapViewport');
+  const mapContainer = document.getElementById('mapContainer');
+  const nextBtn = document.getElementById('nextBtn');
+  const notHereBtn = document.getElementById('notHereBtn');
+
+  let hasMoved = false;
+  let isOutside = false;
+
+  let mapX = 0;
+  let mapY = 0;
+  let zoom = 1;
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 2.5;
+
+  const pointers = new Map();
+  let panStart = null;
+  let pinchStart = null;
+  let personDrag = null;
+
+  const viewportPoint = (e) => {
+    const rect = mapViewport.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const updateMapTransform = () => {
+    mapContainer.style.transform = `translate(${mapX}px, ${mapY}px) scale(${zoom})`;
+  };
+
+  // 初期表示はマップ中央をビューポート中央に合わせる。
+  const centerMap = () => {
+    const vw = mapViewport.clientWidth;
+    const vh = mapViewport.clientHeight;
+    mapX = (vw - mapContainer.offsetWidth * zoom) / 2;
+    mapY = (vh - mapContainer.offsetHeight * zoom) / 2;
+    updateMapTransform();
+  };
+
+  // 指定した画面座標を中心にズームし、ズーム前後で見ている場所を維持する。
+  const zoomAt = (nextZoom, anchorX, anchorY) => {
+    nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, nextZoom));
+    if (nextZoom === zoom) return;
+    const contentX = (anchorX - mapX) / zoom;
+    const contentY = (anchorY - mapY) / zoom;
+    zoom = nextZoom;
+    mapX = anchorX - contentX * zoom;
+    mapY = anchorY - contentY * zoom;
+    updateMapTransform();
+  };
+
+  centerMap();
+  window.addEventListener('resize', centerMap);
+
+  // 背景ドラッグ・ピンチ操作
+  mapViewport.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.draggable-person')) return;
+    e.preventDefault();
+    mapViewport.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, viewportPoint(e));
+
+    if (pointers.size === 1) {
+      const p = pointers.get(e.pointerId);
+      panStart = { x: p.x, y: p.y, mapX, mapY };
+      pinchStart = null;
+    } else if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const dx = pts[1].x - pts[0].x;
+      const dy = pts[1].y - pts[0].y;
+      pinchStart = {
+        distance: Math.hypot(dx, dy),
+        zoom,
+        centerX: (pts[0].x + pts[1].x) / 2,
+        centerY: (pts[0].y + pts[1].y) / 2
+      };
+      panStart = null;
+    }
+  });
+
+  mapViewport.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, viewportPoint(e));
+
+    if (pointers.size >= 2 && pinchStart) {
+      const pts = [...pointers.values()];
+      const dx = pts[1].x - pts[0].x;
+      const dy = pts[1].y - pts[0].y;
+      const distance = Math.hypot(dx, dy);
+      const centerX = (pts[0].x + pts[1].x) / 2;
+      const centerY = (pts[0].y + pts[1].y) / 2;
+      // 指の中点の移動も反映しながら、ピンチ距離で拡大縮小する。
+      const nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM,
+        pinchStart.zoom * distance / Math.max(1, pinchStart.distance)));
+      const contentX = (pinchStart.centerX - mapX) / zoom;
+      const contentY = (pinchStart.centerY - mapY) / zoom;
+      zoom = nextZoom;
+      mapX = centerX - contentX * zoom;
+      mapY = centerY - contentY * zoom;
+      updateMapTransform();
+    } else if (pointers.size === 1 && panStart) {
+      const p = pointers.get(e.pointerId);
+      mapX = panStart.mapX + (p.x - panStart.x);
+      mapY = panStart.mapY + (p.y - panStart.y);
+      updateMapTransform();
+    }
+  });
+
+  const finishViewportPointer = (e) => {
+    pointers.delete(e.pointerId);
+    if (pointers.size === 1) {
+      const [id, p] = [...pointers.entries()][0];
+      panStart = { x: p.x, y: p.y, mapX, mapY };
+      pinchStart = null;
+    } else if (pointers.size === 0) {
+      panStart = null;
+      pinchStart = null;
+    }
+  };
+  mapViewport.addEventListener('pointerup', finishViewportPointer);
+  mapViewport.addEventListener('pointercancel', finishViewportPointer);
+  mapViewport.addEventListener('lostpointercapture', finishViewportPointer);
+
+  // マウスホイールで、カーソル位置を中心にズームする。
+  mapViewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const p = viewportPoint(e);
+    zoomAt(zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1), p.x, p.y);
+  }, { passive: false });
+
+  // 人物アイコンはマップ内の座標でドラッグする（ズーム倍率を考慮）。
+  personIcon.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    personIcon.setPointerCapture(e.pointerId);
+    const p = viewportPoint(e);
+    const mapLocalX = (p.x - mapX) / zoom;
+    const mapLocalY = (p.y - mapY) / zoom;
+    const left = personIcon.offsetLeft;
+    const top = personIcon.offsetTop;
+    personDrag = { pointerId: e.pointerId, offsetX: mapLocalX - left, offsetY: mapLocalY - top };
+    personIcon.style.transform = 'none';
+    personIcon.style.left = left + 'px';
+    personIcon.style.top = top + 'px';
+    personIcon.style.cursor = 'grabbing';
+  });
+
+  personIcon.addEventListener('pointermove', (e) => {
+    if (!personDrag || personDrag.pointerId !== e.pointerId) return;
+    e.preventDefault();
+    const p = viewportPoint(e);
+    const left = (p.x - mapX) / zoom - personDrag.offsetX;
+    const top = (p.y - mapY) / zoom - personDrag.offsetY;
+    personIcon.style.left = left + 'px';
+    personIcon.style.top = top + 'px';
+
+    if (!hasMoved) {
+      hasMoved = true;
+      nextBtn.disabled = false;
+    }
+    if (isOutside) {
+      isOutside = false;
+      notHereBtn.classList.remove('selected');
+    }
+  });
+
+  const finishPersonDrag = (e) => {
+    if (personDrag && personDrag.pointerId === e.pointerId) {
+      personDrag = null;
+      personIcon.style.cursor = 'grab';
+    }
+  };
+  personIcon.addEventListener('pointerup', finishPersonDrag);
+  personIcon.addEventListener('pointercancel', finishPersonDrag);
+
+  // 「このなかにはない」
+  notHereBtn.addEventListener('click', () => {
+    isOutside = true;
+    hasMoved = true;
+    nextBtn.disabled = false;
+    notHereBtn.classList.add('selected');
+    personIcon.style.transform = 'none';
+    personIcon.style.left = (mapContainer.clientWidth + 20) + 'px';
+    personIcon.style.top = (mapContainer.clientHeight / 2 - personIcon.offsetHeight / 2) + 'px';
+  });
+
+  // 回答確認
+  nextBtn.addEventListener('click', () => {
+    if (!hasMoved && !isOutside) return;
+    if (isOutside) {
+      alert('「このなかにはない」が選ばれました！');
+    } else {
+      const left = parseFloat(personIcon.style.left) || 0;
+      const top = parseFloat(personIcon.style.top) || 0;
+      alert(`場所を選んだね！\n(座標: x=${Math.round(left)}, y=${Math.round(top)})`);
+    }
+  });
+})();
+</script>
+</body>
+</html>
