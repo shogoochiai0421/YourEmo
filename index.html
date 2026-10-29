@@ -20,7 +20,7 @@
   --fade-wait-ms:        200;
   --bubble-feed-ms:     300;
   --res-ttl-size:        40px;
-  --center-img-size:     clamp(160px, 30vh, 240px); /* 画面の高さに応じて可変 */
+  --center-img-size:     clamp(160px, 30vh, 240px);
   --center-txt-size:     30px;
   --act-ttl-size:        28px;
   --act-desc-size:       16px;
@@ -40,7 +40,7 @@
 html, body {
   width:100%;
   height:100dvh;
-  overflow:hidden; /* 全体スクロールを禁止 */
+  overflow:hidden;
   background-color: rgb(255, 250, 241);
 }
 
@@ -81,10 +81,10 @@ html, body {
   transition:opacity calc(var(--fade-ms) * 1ms) ease;
   overflow:hidden;
   z-index: 1;
-  pointer-events: none; /* 非表示の時にクリックを透過させる */
+  pointer-events: none;
 }
 .screen.active  { display:flex; }
-.screen.visible { opacity:1; pointer-events: auto; } /* 表示中のみクリックを受け付ける */
+.screen.visible { opacity:1; pointer-events: auto; }
 
 /* ── スタート画面 ── */
 #startScreen {
@@ -100,7 +100,7 @@ html, body {
 #quizScreen {
   justify-content: flex-start;
   padding-top: clamp(16px, 6vh, 60px);
-  overflow-y: auto; /* 極端に小さい画面ではスクロール許可 */
+  overflow-y: auto;
 }
 .pbar-wrap { width:100%; height:7px; background:var(--color-background-secondary); border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
 .pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
@@ -169,7 +169,7 @@ html, body {
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   z-index: 10;
-  display: none; /* 初期状態は非表示 */
+  display: none;
 }
 
 .ct-tags-row { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; margin-top:8px; }
@@ -452,8 +452,8 @@ html, body {
 /* ── 元気度メーター画面 ── */
 #gaugeScreen {
   justify-content: flex-start;
-  padding-top: clamp(16px, 6vh, 60px);
-  padding-bottom: 40px;
+  padding-top: clamp(16px, 4vh, 40px);
+  padding-bottom: 20px;
   overflow-y: auto;
 }
 .gauge-container {
@@ -627,10 +627,23 @@ html, body {
   pointer-events: none;
 }
 
+/* スマホ用のメーターサイズ調整 */
+@media (max-width: 600px) {
+  .gauge-track-wrap { width: 80px; height: clamp(150px, 40vh, 250px); }
+  .gauge-thumb { right: -120px; width: 120px; height: 80px; }
+  .gauge-thumb-bg { width: 80px; height: 80px; border-width: 2px; }
+  .gauge-thumb img.face-img { width: 70px; height: 70px; }
+  .gauge-arrow { border-top-width: 12px; border-bottom-width: 12px; border-right-width: 16px; margin-right: 4px; }
+  .gauge-drag-area { right: -140px; left: -30px; }
+  .gauge-fixed-face { width: 40px; height: 40px; }
+  .gauge-label-top, .gauge-label-bottom { font-size: 12px; }
+}
+
 /* ── 「いまどこにいたい？」画面用CSS（高さ最大化） ── */
 #locationScreen {
   justify-content: flex-start;
   padding: 10px;
+  padding-bottom: 20px;
   height: 100%;
 }
 .q-header {
@@ -1442,6 +1455,7 @@ let locPinchStart = null;
 let locPersonDrag = null;
 let locIsPanning = false;
 let locPanMovedDistance = 0;
+let isPinching = false; // ピンチ操作中かどうかのフラグ
 
 // 画面のリサイズや表示を監視してマップをフィットさせる
 const mapViewport = document.getElementById('mapViewport');
@@ -1487,6 +1501,7 @@ function initLocationScreen() {
   busy = false;
   locHasMoved = false;
   locIsOutside = false;
+  isPinching = false;
   
   document.getElementById("locationPbar").style.width = (2/Qs.length*100) + "%";
   
@@ -1566,6 +1581,7 @@ function initLocationScreen() {
         locPinchStart = null;
         locIsPanning = true;
         locPanMovedDistance = 0;
+        isPinching = false;
       } else if (locPointers.size === 2) {
         const pts = [...locPointers.values()];
         const dx = pts[1].x - pts[0].x;
@@ -1578,6 +1594,7 @@ function initLocationScreen() {
         };
         locPanStart = null;
         locIsPanning = false;
+        isPinching = true;
       }
     });
 
@@ -1585,7 +1602,7 @@ function initLocationScreen() {
       if (!locPointers.has(e.pointerId)) return;
       locPointers.set(e.pointerId, viewportPoint(e));
 
-      if (locPointers.size >= 2 && locPinchStart) {
+      if (isPinching && locPinchStart && locPointers.size >= 2) {
         const pts = [...locPointers.values()];
         const dx = pts[1].x - pts[0].x;
         const dy = pts[1].y - pts[0].y;
@@ -1606,7 +1623,7 @@ function initLocationScreen() {
         locMapX = clamped.x;
         locMapY = clamped.y;
         updateMapTransform();
-      } else if (locPointers.size === 1 && locPanStart) {
+      } else if (!isPinching && locPointers.size === 1 && locPanStart) {
         const p = locPointers.get(e.pointerId);
         const dx = p.x - locPanStart.x;
         const dy = p.y - locPanStart.y;
@@ -1633,9 +1650,13 @@ function initLocationScreen() {
         const [id, p] = [...locPointers.entries()][0];
         locPanStart = { x: p.x, y: p.y, mapX: locMapX, mapY: locMapY };
         locPinchStart = null;
+        locIsPanning = true;
+        isPinching = false;
       } else if (locPointers.size === 0) {
         locPanStart = null;
         locPinchStart = null;
+        locIsPanning = false;
+        isPinching = false;
         
         if (wasSinglePointer && locIsPanning && locPanMovedDistance < 10) {
           const rect = mapViewport.getBoundingClientRect();
