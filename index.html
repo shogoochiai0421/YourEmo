@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/favicon.ico">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>きもちチェック</title>
@@ -15,41 +15,29 @@
    ★ デザイン設定まとめ ★
    ===================================================== */
 
-/* ── PC・タブレット向け設定 ── */
 :root {
-  /* ── フェード・アニメーション ── */
   --fade-ms:             500;
   --fade-wait-ms:        200;
   --bubble-feed-ms:     300;
-
-  /* ── 今の気持ち画面 ── */
   --res-ttl-size:        40px;
   --res-desc-size:       25px;
   --center-img-size:    220px;
   --center-txt-size:     30px;
-
-  /* ── 特効薬画面 ── */
   --act-ttl-size:        28px;
   --act-desc-size:       16px;
   --bubble-w:           255px;
   --bubble-txt:          16px;
   --bubble-img-size:    150px;
   --bubble-gap:          20px;
-
-  /* ── 特効薬詳細画面 ── */
   --detail-img-size:    280px;
   --detail-ttl-size:     30px;
   --detail-desc-size:    22px;
-
-  /* ── 太字の設定 ── */
   --fw-q-text:           700;
   --fw-opt-label:        700;
   --fw-res-ttl:          700;
   --fw-res-desc:         700;
   --fw-bubble:           700;
 }
-
-/* ===================================================== */
 
 *{box-sizing:border-box;margin:0;padding:0}
 
@@ -428,23 +416,45 @@ html, body {
 #gaugeScreen {
   justify-content: flex-start;
   padding-top: clamp(16px, 6vh, 60px);
+  padding-bottom: 40px; /* ボタンが画面外に行かないように余白を追加 */
 }
 .gauge-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: 10px;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
+  max-width: 420px;
 }
+
+.gauge-drag-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  touch-action: none;
+}
+
+.gauge-label-top {
+  font-size: 14px;
+  color: #53433a;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
 .gauge-track-wrap {
   position: relative;
-  width: 60px;
-  height: clamp(220px, 45vh, 380px);
+  width: 120px;
+  height: clamp(200px, 42vh, 340px);
   display: flex;
   justify-content: center;
+  margin: 4px 0;
 }
+
 /* メーターの背景（白い枠と目盛り） */
 .gauge-track {
   width: 100%;
@@ -454,64 +464,139 @@ html, body {
   position: relative;
   background: #fff;
   overflow: hidden;
-  /* 目盛り線を追加 */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 0,
-    transparent calc(100% / 15 - 2px),
-    #ccc calc(100% / 15 - 2px),
-    #ccc calc(100% / 15)
-  );
+  z-index: 1;
 }
-/* 緑色のゲージ */
+
+/* 目盛りの配置（5%おき、25/50/75は長めに） */
+.gauge-track::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10; /* ゲージより上に表示 */
+  background-image: 
+    linear-gradient(to right, #53433a 0, #53433a 24px, transparent 24px),
+    linear-gradient(to right, #53433a 0, #53433a 24px, transparent 24px),
+    linear-gradient(to right, #53433a 0, #53433a 24px, transparent 24px),
+    repeating-linear-gradient(to bottom, transparent 0%, transparent calc(5% - 1px), #999 calc(5% - 1px), #999 5%);
+  background-size: 100% 3px, 100% 3px, 100% 3px, 14px 100%;
+  background-position: 0 25%, 0 50%, 0 75%, left 4px center;
+  background-repeat: no-repeat;
+}
+
+/* 液体ゲージ（背景色はJSで制御） */
 .gauge-fill {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 0%;
-  background: #8BC34A;
-  transition: height 0.1s ease-out;
+  pointer-events: none;
+  z-index: 2; /* 目盛りより下に表示 */
+}
+
+/* 波打ち部分（正弦波） */
+.gauge-fill::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 200%;
+  height: 10px;
+  background-color: inherit;
+  clip-path: polygon(
+    0% 100%, 5% 60%, 10% 30%, 15% 10%, 20% 0%, 
+    25% 10%, 30% 30%, 35% 60%, 40% 100%, 
+    45% 60%, 50% 30%, 55% 10%, 60% 0%, 
+    65% 10%, 70% 30%, 75% 60%, 80% 100%, 
+    85% 60%, 90% 30%, 95% 10%, 100% 0%,
+    100% 100%
+  );
+  animation: wave 5s linear infinite;
   pointer-events: none;
 }
-/* スライダーのつまみ（顔画像） */
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* スライダーのつまみ（顔画像と矢印） */
 .gauge-thumb {
   position: absolute;
-  right: -75px;
-  width: 70px;
-  height: 70px;
+  right: -240px;
+  width: 240px; 
+  height: 170px;
   transform: translateY(50%);
-  cursor: grab;
   z-index: 10;
   user-select: none;
   -webkit-user-drag: none;
-  transition: bottom 0.05s linear;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
 }
-.gauge-thumb:active { cursor: grabbing; }
-.gauge-thumb img {
-  width: 100%;
-  height: 100%;
+
+/* 顔画像の背景ボタン風装飾 */
+.gauge-thumb-bg {
+  width: 170px;
+  height: 170px;
+  background: #FFF3E0;
+  border: 3px solid #FFCC80;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gauge-thumb img.face-img {
+  width: 150px;
+  height: 150px;
   object-fit: contain;
   pointer-events: none;
 }
-/* 上下の基準顔画像 */
-.gauge-fixed-face {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
+/* 左向きの矢印 */
+.gauge-arrow {
+  width: 0;
+  height: 0;
+  border-top: 24px solid transparent;
+  border-bottom: 24px solid transparent;
+  border-right: 30px solid #53433a;
+  margin-right: 8px;
+  flex-shrink: 0;
+  pointer-events: none;
 }
-/* スライダー操作エリア（透明なバー） */
+
+.gauge-label-bottom {
+  font-size: 14px;
+  color: #53433a;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+/* 広いドラッグ操作エリア */
 .gauge-drag-area {
   position: absolute;
-  top: -35px;
-  bottom: -35px;
-  right: -100px;
-  width: 100px;
-  cursor: grab;
+  top: 0;
+  bottom: 0;
+  left: -50px;
+  right: -280px;
   z-index: 5;
+  cursor: grab;
 }
 .gauge-drag-area:active { cursor: grabbing; }
+
+/* 上下の基準顔画像 */
+.gauge-fixed-face {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  pointer-events: none;
+}
 </style>
 
 <div id="app">
@@ -520,9 +605,7 @@ html, body {
   <div class="ttl">きもちチェック</div>
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
 
-  <!-- 名前選択（はじめるボタンの真上） -->
   <div class="name-pick-row">
-    <!-- 状態保持用（非表示）。表示は下の自前プルダウン（マークを出すため） -->
     <select class="name-select" id="nameSelect" onchange="onNameSelect()" style="display:none">
       <option value="">なまえを えらぶ</option>
     </select>
@@ -557,31 +640,41 @@ html, body {
 <!-- 元気度メーター画面 -->
 <div id="gaugeScreen" class="screen">
   <div class="pbar-wrap"><div class="pbar" id="gaugePbar" style="width:0%"></div></div>
-  <div class="q-text" style="margin-bottom:10px;">いまのげんきさをおしえてね</div>
+  <div class="q-text" style="margin-bottom:16px;">いまのげんきさをおしえてね</div>
   
   <div class="gauge-container">
-    <!-- 上の顔（元気） -->
-    <img class="gauge-fixed-face" id="gaugeFaceTop" src="" alt="">
-    
-    <!-- メーターとスライダー -->
-    <div class="gauge-track-wrap" id="gaugeTrackWrap">
-      <div class="gauge-track">
-        <div class="gauge-fill" id="gaugeFill"></div>
+    <div class="gauge-drag-wrapper" id="gaugeDragWrapper">
+      <!-- 上の顔とラベル -->
+      <img class="gauge-fixed-face" id="gaugeFaceTop" src="" alt="">
+      <div class="gauge-label-top">げんきいっぱい</div>
+      
+      <!-- メーターとスライダー -->
+      <div class="gauge-track-wrap" id="gaugeTrackWrap">
+        <div class="gauge-track">
+          <div class="gauge-fill" id="gaugeFill"></div>
+        </div>
+        
+        <!-- スライダー（矢印＋顔ボタン） -->
+        <div class="gauge-thumb" id="gaugeThumb">
+          <div class="gauge-arrow"></div>
+          <div class="gauge-thumb-bg">
+            <img id="gaugeThumbImg" class="face-img" src="" alt="">
+          </div>
+        </div>
+        
+        <!-- 広いドラッグ判定用エリア -->
+        <div class="gauge-drag-area" id="gaugeDragArea"></div>
       </div>
-      <!-- ドラッグ可能な顔（スライダー） -->
-      <div class="gauge-thumb" id="gaugeThumb">
-        <img id="gaugeThumbImg" src="" alt="">
-      </div>
-      <!-- ドラッグ判定用の透明なエリア -->
-      <div class="gauge-drag-area" id="gaugeDragArea"></div>
+      
+      <!-- 下のラベルと顔 -->
+      <div class="gauge-label-bottom">つかれた・げんきがない</div>
+      <img class="gauge-fixed-face" id="gaugeFaceBottom" src="" alt="">
     </div>
-    
-    <!-- 下の顔（疲れ） -->
-    <img class="gauge-fixed-face" id="gaugeFaceBottom" src="" alt="">
   </div>
   
-  <button class="back-btn hidden" id="gaugeBackBtn" onclick="goBack()">← もどる</button>
+  <!-- これでOKボタンとその下のもどるボタン -->
   <button class="next-screen-btn" id="gaugeNextBtn" onclick="submitGauge()" style="margin-top:10px;">これでOK</button>
+  <button class="back-btn" id="gaugeBackBtn" onclick="goBack()">← もどる</button>
 </div>
 
 <!-- 今の気持ち画面 -->
@@ -697,7 +790,6 @@ const Qs=[
     {ikey:"notfeelingwell", l:"ぐったり…",            v:"verylow"},
     {ikey:"expressionless", l:"ふつうかな",           v:"mid"}
   ]},
-  // ★ ダミー質問：専用のメーター画面を表示
   {id:"gauge",text:"いまのげんきさをおしえてね",opts:[]},
   {id:"social",text:"だれかといたいきもちはある？",opts:[
     {ikey:"playwith",       l:"いっしょにいたい",     v:"social"},
@@ -924,11 +1016,9 @@ function renderQ(){
   const qId=q.id;
 
   if(qId === "gauge"){
-    fadeOut(document.getElementById("quizScreen"), () => {
-      initGaugeScreen();
-      fadeIn(document.getElementById("gaugeScreen"));
-    });
-    return;
+    // ゲージ画面の表示準備
+    initGaugeScreen();
+    return; 
   }
 
   document.getElementById("pbar").style.width=(cur/Qs.length*100)+"%";
@@ -957,9 +1047,10 @@ function goBack(){
   if(Qs[cur].id === "gauge"){
     delete ans["gauge"];
     cur--;
+    // ★ フェードアウト完了後に確実に前の画面を表示する
     fadeOut(document.getElementById("gaugeScreen"), () => {
-      fadeIn(document.getElementById("quizScreen"));
-      renderQ();
+      renderQ(); // 前の質問画面のDOMを構築
+      fadeIn(document.getElementById("quizScreen")); // フェードイン
     });
     return;
   }
@@ -986,22 +1077,30 @@ function selectOpt(qId,val,btn,optsContainer){
   const wait=cssVar('--fade-wait-ms')||320;
   setTimeout(()=>{
     cur++;
+    
     if(cur>=Qs.length){
       fadeOut(document.getElementById("quizScreen"),()=>showResult());
-    }else{
+    } else if (Qs[cur].id === "gauge") {
+      // ★ ゲージ画面へ遷移する場合：フェードアウト完了後に確実に表示
+      fadeOut(document.getElementById("quizScreen"), () => {
+        initGaugeScreen();
+        fadeIn(document.getElementById("gaugeScreen"));
+      });
+    } else {
       fadeContent(()=>renderQ());
     }
   },wait);
 }
 
 function initGaugeScreen(){
+  // ゲージ画面に入るとき、操作ロックを解除する
+  busy = false;
+
   document.getElementById("gaugePbar").style.width = (2/Qs.length*100) + "%";
   
-  // 固定画像の設定：1.pngが一番元気、16.pngが一番不調
-  document.getElementById("gaugeFaceTop").src = GAUGE_IMAGES[0];  // 1.png (元気)
-  document.getElementById("gaugeFaceBottom").src = GAUGE_IMAGES[15]; // 16.png (最悪)
+  document.getElementById("gaugeFaceTop").src = GAUGE_IMAGES[0];
+  document.getElementById("gaugeFaceBottom").src = GAUGE_IMAGES[15];
   
-  // 初期値（中央付近）
   gaugeValue = 7; 
   updateGaugeUI();
   
@@ -1013,7 +1112,7 @@ function initGaugeScreen(){
     const startDrag = (e) => {
       e.preventDefault();
       isDraggingGauge = true;
-      // ドラッグ中はスライダーのアニメーションを無効化して滑らかに
+      document.getElementById("gaugeFill").style.transition = "none";
       document.getElementById("gaugeThumb").style.transition = "none";
       handleGaugeMove(e);
     };
@@ -1027,19 +1126,16 @@ function initGaugeScreen(){
     const endDrag = () => {
       if(!isDraggingGauge) return;
       isDraggingGauge = false;
-      // ドラッグ終了後はアニメーションを元に戻す
-      document.getElementById("gaugeThumb").style.transition = "bottom 0.05s linear";
+      document.getElementById("gaugeFill").style.transition = "";
+      document.getElementById("gaugeThumb").style.transition = "";
     };
 
-    // マウス・タッチ両対応
     dragArea.addEventListener("mousedown", startDrag);
     dragArea.addEventListener("touchstart", startDrag, {passive: false});
     window.addEventListener("mousemove", moveDrag);
     window.addEventListener("touchmove", moveDrag, {passive: false});
     window.addEventListener("mouseup", endDrag);
     window.addEventListener("touchend", endDrag);
-    
-    // マウスがドラッグエリア外に出ても追従するように
     window.addEventListener("blur", endDrag);
   }
 }
@@ -1051,15 +1147,43 @@ function handleGaugeMove(e){
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
   let relativeY = clientY - rect.top;
   
-  // 範囲外を防ぐ
   relativeY = Math.max(0, Math.min(relativeY, rect.height));
   
-  // 0(元気) 〜 15(最悪) の値に変換
-  // relativeYが0(上端)のときgaugeValue=0, rect.height(下端)のときgaugeValue=15
-  let val = Math.round((relativeY / rect.height) * 15);
+  let val = (relativeY / rect.height) * 15;
   gaugeValue = Math.max(0, Math.min(15, val));
   
   updateGaugeUI();
+}
+
+/* ★ 色の変化の設定 ★ */
+const COLOR_STOPS = [
+  { pos: 0.0,  color: [244, 67, 54] },   // 赤
+  { pos: 0.25, color: [255, 152, 0] },   // オレンジ
+  { pos: 0.50, color: [117, 240, 57] },  // 黄緑 (50%の時)
+  { pos: 0.75, color: [76, 175, 80] },   // 緑
+  { pos: 1.0,  color: [42, 151, 60] }     // 濃い緑
+];
+
+function getGaugeColor(percent) {
+  let lower = COLOR_STOPS[0];
+  let upper = COLOR_STOPS[COLOR_STOPS.length - 1];
+
+  for (let i = 0; i < COLOR_STOPS.length - 1; i++) {
+    if (percent >= COLOR_STOPS[i].pos && percent <= COLOR_STOPS[i+1].pos) {
+      lower = COLOR_STOPS[i];
+      upper = COLOR_STOPS[i+1];
+      break;
+    }
+  }
+
+  const range = upper.pos - lower.pos;
+  const t = range === 0 ? 0 : (percent - lower.pos) / range;
+
+  const r = Math.round(lower.color[0] + (upper.color[0] - lower.color[0]) * t);
+  const g = Math.round(lower.color[1] + (upper.color[1] - lower.color[1]) * t);
+  const b = Math.round(lower.color[2] + (upper.color[2] - lower.color[2]) * t);
+
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function updateGaugeUI(){
@@ -1067,24 +1191,27 @@ function updateGaugeUI(){
   const thumb = document.getElementById("gaugeThumb");
   const thumbImg = document.getElementById("gaugeThumbImg");
   
-  // ゲージの高さ：下から上へ伸びる（0%〜100%）
-  // gaugeValue=0(元気)のとき100%、gaugeValue=15(最悪)のとき0%
   const percent = (1 - (gaugeValue / 15)) * 100;
   fill.style.height = percent + "%";
   
-  // つまみの位置（bottomプロパティで制御）
+  const color = getGaugeColor(percent / 100);
+  fill.style.backgroundColor = color;
+  
   thumb.style.bottom = percent + "%";
   
-  // 顔画像の更新（gaugeValue 0=1.png, 15=16.png）
-  thumbImg.src = GAUGE_IMAGES[gaugeValue];
+  let imgIndex = Math.round(gaugeValue);
+  imgIndex = Math.max(0, Math.min(15, imgIndex));
+  
+  thumbImg.src = GAUGE_IMAGES[imgIndex];
 }
 
 function submitGauge(){
   if(busy) return;
   busy = true;
   
-  ans["gauge"] = gaugeValue;
+  ans["gauge"] = Math.round(gaugeValue);
   
+  // ★ フェードアウト完了後に次の画面を表示する
   fadeOut(document.getElementById("gaugeScreen"), () => {
     cur++;
     if(cur >= Qs.length){
@@ -1113,10 +1240,6 @@ function derivePhysicalLevel(energy, body, gaugeVal){
   const weight = BODY_WEIGHT[body] ?? 0;
   idx += weight;
   
-  // ゲージの値（0=元気, 15=最悪）による補正
-  // 12〜15: とても疲れている (+2)
-  // 7〜11: やや疲れている (+1)
-  // 0〜6: 元気 (0)
   if(gaugeVal !== undefined){
     if(gaugeVal >= 12) idx += 2;
     else if(gaugeVal >= 7) idx += 1;
