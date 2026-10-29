@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>きもちチェック - プロトタイプ（どこにいたい？）</title>
+</head>
+<body>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
+
+:root {
+  --fade-ms:             500;
+  --fw-q-text:           700;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html, body {
+  width:100%;
+  height:100dvh;
+  overflow:hidden;
+  background-color: rgb(255, 250, 241);
+}
+
+#app {
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-weight:700;
+  width:100%;
+  height:100dvh;
+  display:flex; flex-direction:column;
+  color:#53433a;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ── 画面共通：フェード ── */
+.screen {
+  display:none; width:100%; height:100%;
+  flex-direction:column; align-items:center; justify-content:flex-start;
+  padding:20px;
+  opacity:0;
+  transition:opacity calc(var(--fade-ms) * 1ms) ease;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.screen.active  { display:flex; }
+.screen.visible { opacity:1; }
+
+/* ── 質問画面レイアウト ── */
+#locationScreen {
+  padding-top: clamp(16px, 6vh, 60px);
+  padding-bottom: 20px;
+}
+
+.pbar-wrap { width:100%; height:7px; background:#e0e0e0; border-radius:99px; margin-bottom:16px; overflow:hidden; flex-shrink:0; }
+.pbar { height:100%; border-radius:99px; background:#FFA726; transition:width .35s; }
+.q-text { font-size:clamp(18px, 5.5vh, 40px); font-weight:var(--fw-q-text); text-align:center; line-height:1.4; margin-bottom:clamp(8px, 2vh, 16px); flex-shrink:0; }
+
+/* ── メインのマップエリア（スクロール可能） ── */
+.map-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto; /* スワイプ/スクロール可能 */
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin: 0 auto;
+  flex-shrink: 0;
+  /* マップの高さを固定してスクロールしやすくする */
+  height: 60vh;
+  position: relative;
+}
+
+/* マップの内部コンテナ（背景画像と人物を配置） */
+.map-container {
+  position: relative;
+  /* 背景画像を1.5倍に拡大（960pxの1.5倍 = 1440px） */
+  width: 1440px; 
+  height: 690px; /* 960:460の比率に合わせて高さも1.5倍 */
+  background-color: #fff;
+  /* スクロールエリアの中央に配置するためのマージン */
+  margin: 0 auto;
+}
+
+/* 背景画像 */
+.map-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  background-color: #e0f2f1;
+}
+
+/* ドラッグ可能な人物アイコン */
+.draggable-person {
+  position: absolute;
+  width: 150px; /* 2.5倍サイズ */
+  height: auto;
+  cursor: grab;
+  z-index: 100;
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.4));
+  touch-action: none;
+  
+  /* 初期位置：マップの中央付近 */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.draggable-person:active {
+  cursor: grabbing;
+}
+
+/* 人物の画像 */
+.draggable-person img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+/* 「きみ」ラベル */
+.name-label {
+  position: absolute;
+  top: -24px;
+  background-color: #ffce65;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 2px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 操作説明 */
+.instruction {
+  font-size: 14px;
+  color: #888;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ── ボタン類 ── */
+.back-btn { align-self:center; margin-top:12px; background:transparent; border:none; font-size:18px; color:#bbbbbb; cursor:pointer; padding:4px 8px; flex-shrink:0; }
+.back-btn:active { transform:scale(0.95); }
+.next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
+.next-screen-btn:active { transform:scale(0.96); }
+.next-screen-btn:disabled { background:#d8d0c8; cursor:not-allowed; }
+
+/* 「このなかにはない」ボタン */
+.not-here-btn {
+  flex-shrink:0;
+  margin: 12px 0 0;
+  background: #fff;
+  color: #ffce65;
+  border: 2px solid #ffce65;
+  border-radius: 99px;
+  padding: 10px 24px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.not-here-btn:active { transform:scale(0.96); background: #FFF3E0; }
+.not-here-btn.selected { background: #FFE0B2; color: #72243E; border-color: #FFA726; }
+
+@media (max-width: 768px) {
+  .map-scroll-wrapper { height: 50vh; }
+  .q-text { font-size: 24px; }
+  .draggable-person { width: 100px; }
+  .next-screen-btn { font-size: 18px; padding: 12px 28px; }
+  .name-label { font-size: 12px; top: -18px; padding: 1px 8px; }
+}
+</style>
+
+<div id="app">
+  <div id="locationScreen" class="screen active visible">
+    <div class="pbar-wrap"><div class="pbar" id="pbar" style="width: 80%"></div></div>
+    <div class="q-text">いまどこにいたい？</div>
+
+    <!-- スクロール可能なマップエリア -->
+    <div class="map-scroll-wrapper" id="mapScrollWrapper">
+      <div class="map-container" id="mapContainer">
+        <!-- 背景画像（園舎） -->
+        <img class="map-bg" id="mapBgImg" src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png" alt="保育園の俯瞰図" onerror="this.style.display='none'; document.getElementById('mapContainer').style.backgroundColor='#f0f8ff';">
+        
+        <!-- ドラッグ可能な人物（ラベル付き） -->
+        <div class="draggable-person" id="personIcon">
+          <div class="name-label">きみ</div>
+          <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/You.png" alt="自分" onerror="this.src='https://via.placeholder.com/150x300/cccccc/ffffff?text=You';">
+        </div>
+      </div>
+    </div>
+
+    <div class="instruction">人物を動かして、いたい場所に置いてね（スワイプで背景を移動できます）</div>
+
+    <!-- 「このなかにはない」選択肢 -->
+    <button class="not-here-btn" id="notHereBtn">このなかにはない</button>
+
+    <button class="next-screen-btn" id="nextBtn" disabled>これでOK</button>
+    <button class="back-btn" onclick="alert('前の画面に戻る処理（デモ）')">← もどる</button>
+  </div>
+</div>
+
+<script>
+  let isDragging = false;
+  let hasMoved = false;
+  let isOutside = false; // 「このなかにはない」が選ばれたか
+
+  const personIcon = document.getElementById('personIcon');
+  const mapContainer = document.getElementById('mapContainer');
+  const nextBtn = document.getElementById('nextBtn');
+  const notHereBtn = document.getElementById('notHereBtn');
+
+  // ドラッグ開始
+  const startDrag = (e) => {
+    e.preventDefault();
+    isDragging = true;
+    
+    // タッチ or マウス
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    // アイコンの現在位置を取得
+    const rect = personIcon.getBoundingClientRect();
+    
+    // アイコンの中心とマウス位置の差
+    const offsetX = clientX - rect.left;
+    const offsetY = clientY - rect.top;
+
+    window._dragOffsetX = offsetX;
+    window._dragOffsetY = offsetY;
+
+    personIcon.style.cursor = 'grabbing';
+    // 初期位置のスタイル（transform）を解除し、left/topで制御できるようにする
+    personIcon.style.transform = 'none';
+    // 現在のleft/topを明示的に設定
+    personIcon.style.left = rect.left - mapContainer.getBoundingClientRect().left + 'px';
+    personIcon.style.top = rect.top - mapContainer.getBoundingClientRect().top + 'px';
+    
+    moveDrag(e);
+  };
+
+  // ドラッグ中
+  const moveDrag = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const mapRect = mapContainer.getBoundingClientRect();
+    
+    // マップ内の座標（範囲制限なし：背景外にも移動可能）
+    let left = clientX - mapRect.left - window._dragOffsetX;
+    let top = clientY - mapRect.top - window._dragOffsetY;
+    
+    personIcon.style.left = left + 'px';
+    personIcon.style.top = top + 'px';
+    
+    if (!hasMoved) {
+      hasMoved = true;
+      nextBtn.disabled = false;
+    }
+    
+    // ドラッグしたら「このなかにはない」の選択を解除
+    if (isOutside) {
+      isOutside = false;
+      notHereBtn.classList.remove('selected');
+    }
+  };
+
+  // ドラッグ終了
+  const endDrag = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    personIcon.style.cursor = 'grab';
+  };
+
+  // イベントリスナー
+  personIcon.addEventListener('mousedown', startDrag);
+  personIcon.addEventListener('touchstart', startDrag, {passive: false});
+  
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('touchmove', moveDrag, {passive: false});
+  
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+
+  // 「このなかにはない」ボタン
+  notHereBtn.addEventListener('click', () => {
+    isOutside = true;
+    hasMoved = true;
+    nextBtn.disabled = false;
+    notHereBtn.classList.add('selected');
+
+    // 人物をマップの外（右側の余白）に移動させる
+    // マップの右端外に配置
+    const mapRect = mapContainer.getBoundingClientRect();
+    const rightEdge = mapRect.width + 20;
+    personIcon.style.left = rightEdge + 'px';
+    personIcon.style.top = '50%';
+    personIcon.style.transform = 'translateY(-50%)'; // 縦方向中央
+  });
+
+  // 次へ進むボタン
+  nextBtn.addEventListener('click', () => {
+    if (!hasMoved && !isOutside) return;
+    
+    if (isOutside) {
+      alert('「このなかにはない」が選ばれました！');
+      // 実際は回答データとして「outside」を保存
+    } else {
+      // ここで回答データを取得（座標）
+      const left = parseFloat(personIcon.style.left) || 0;
+      const top = parseFloat(personIcon.style.top) || 0;
+      
+      alert(`場所を選んだね！\n(座標: x=${Math.round(left)}, y=${Math.round(top)})`);
+    }
+    // 実際はここでフェードアウトして次の画面へ
+  });
+</script>
+</body>
+</html>
