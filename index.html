@@ -231,6 +231,12 @@ html, body {
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
 .next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
 .next-screen-btn:active { transform:scale(0.96); }
+.act-btns { flex-shrink:0; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.act-btns .retry-btn { margin:8px 0 12px; }
+.shuffle-btn { flex-shrink:0; margin:8px 0 12px; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:8px 22px; font-size:18px; font-weight:700; font-family:inherit; cursor:pointer; }
+.shuffle-btn:active { transform:scale(0.96); }
+.shuffle-btn:disabled { opacity:0.5; }
+@media (max-width: 768px) { .shuffle-btn { font-size:13px; padding:7px 16px; margin-bottom:16px; } }
 
 /* ── 特効薬詳細画面 ── */
 #detailScreen {
@@ -896,7 +902,10 @@ html, body {
     <div class="act-desc" id="actDesc"></div>
   </div>
   <div class="bubble-grid" id="bscene"></div>
-  <button class="retry-btn" onclick="restart()">さいしょから</button>
+  <div class="act-btns">
+    <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleBubbles()">↻ ほかのカードをみる</button>
+    <button class="retry-btn" onclick="restart()">さいしょから</button>
+  </div>
 </div>
 
 <!-- 特効薬詳細画面 -->
@@ -993,46 +1002,321 @@ const Qs=[
   ]}
 ];
 
-function matchTag(tag, val){
-  if(!tag || tag === "any") return false;
-  if(Array.isArray(tag)) return tag.includes(val);
-  return tag === val;
+/* ══════════════════════════════════════════════
+   採点ロジック
+   ・回答 → プロフィール(buildProfile) → カードごとの採点(scoreBubble)
+   ・設定値は data.js の SCORE_CFG / ZONES / PLACE_TAGS
+   ══════════════════════════════════════════════ */
+const ALL_MOODS  = ["happy","sad","angry","anxious"];
+const ALL_BODIES = ["fine","heart","breath","bad"];
+const toArr = v => v == null ? [] : (Array.isArray(v) ? v : [v]);
+
+/* メーターの「げんき%」(0〜100・なめらか) → 20%刻みの5段階の添字
+   0=とてもげんき(80〜100%) 1=げんき 2=ふつう 3=げんきがない 4=とてもげんきがない(0〜20%) */
+function energyIdxFromPct(pct){
+  const band = Math.min(4, Math.floor(Math.max(0, Math.min(100, pct)) / 20));
+  return 4 - band;
 }
-function scoreBubble(bubble, ans){
-  let score = 0;
-  const tags = bubble.tags;
-  if(matchTag(tags.mood,   ans.mood))   score++;
-  if(matchTag(tags.body,   ans.body))   score++;
-  if(matchTag(tags.wish,   ans.wish))   score++;
-  return score;
+/* gaugeValue: 0=げんき 〜 15=ぐったり (画面の見た目と同じ向き) → げんき% */
+function genkiPctFromGauge(g){ return (1 - g / 15) * 100; }
+
+/* ── 地図・当たり判定 ── */
+function mapImgRect(){               // 地図領域(960x460)の中で背景画像が占める矩形
+  const h = MAP_META.h, w = h * MAP_META.imgAspect;
+  return { x:(MAP_META.w - w) / 2, y:0, w, h };
 }
-
-function selectBubbles(ans, n){
-  const scored = BUBBLES.map(b => {
-    const s = scoreBubble(b, ans);
-    return {b, s, w: Math.pow(2, s)};
-  });
-
-  let candidates = scored.filter(x => x.s >= 1);
-
-  if(candidates.length < n){
-    const zeros = scored.filter(x => x.s === 0);
-    candidates = candidates.concat(zeros.slice(0, n - candidates.length));
+function pointInPoly(x, y, poly){    // レイキャスティング法
+  let inside = false;
+  for(let i = 0, j = poly.length - 1; i < poly.length; j = i++){
+    const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+    if(((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
   }
+  return inside;
+}
+/* ゾーンの当たり判定: rect=[左,上,右,下](正規化座標)。旧形式の poly も読める */
+function zoneContains(z, x, y){
+  if(z.rect) return x >= z.rect[0] && x <= z.rect[2] && y >= z.rect[1] && y <= z.rect[3];
+  return z.poly ? pointInPoly(x, y, z.poly) : false;
+}
+/* ゾーンの表示名は持たない。代わりに割り当てタグの短い名前を並べて表示する */
+const TAG_SHORT = {};
+PLACE_TAGS.groups.forEach(g => g.tags.forEach(t => { TAG_SHORT[t.id] = t.s || String(t.label).split('(')[0]; }));
+const tagsLabel = tags => toArr(tags).map(t => TAG_SHORT[t] || t).join('・') || '(タグなし)';
+function footOf(loc){ return { x: loc.x + loc.w / 2, y: loc.y + loc.h }; }  // 人物の足元(下辺中央)
 
-  const result = [];
-  const used = new Set();
-  for(let i = 0; i < n && used.size < candidates.length; i++){
-    const total = candidates.reduce((s, x, idx) => used.has(idx) ? s : s + x.w, 0);
+/* 足元の位置 → 重なったゾーンすべてのタグを加算 */
+function placeProfileAt(foot){
+  const r = mapImgRect();
+  const nx = (foot.x - r.x) / r.w, ny = (foot.y - r.y) / r.h;
+  const hits = (typeof ZONES !== "undefined" ? ZONES : []).filter(z => zoneContains(z, nx, ny));
+  const tags = {};
+  hits.forEach(z => {
+    const w = z.weight == null ? 1 : z.weight;
+    toArr(z.tags).forEach(t => { tags[t] = (tags[t] || 0) + w; });
+  });
+  return { foot, norm:{x:nx, y:ny}, tags,
+           hits: hits.map(z => ({id:z.id, weight:z.weight == null ? 1 : z.weight, tags:toArr(z.tags)})) };
+}
+
+/* ── プロフィール ──
+   ・「ふつう」(mood/body) → 同じ質問の全選択肢を選んだ扱い
+   ・place が null (「このなかにはない」/ゾーン外/未選択) → 場所は一切採点に使わない */
+function buildProfile(a){
+  const moodAny = !a.mood || a.mood === "normal";
+  const bodyAny = !a.body || a.body === "normal";
+  const pct = a.genkiPct != null ? a.genkiPct : (a.gauge != null ? genkiPctFromGauge(a.gauge) : 50);
+  const energyIdx = energyIdxFromPct(pct);
+  return {
+    moodSet: moodAny ? ALL_MOODS : [a.mood],
+    bodySet: bodyAny ? ALL_BODIES : [a.body],
+    wishSet: a.wish ? [a.wish] : [],
+    moodAny, bodyAny, pct, energyIdx, energy: ENERGY_LEVELS[energyIdx],
+    place: a.place || null
+  };
+}
+
+function scoreBubble(b, P){
+  const C = SCORE_CFG, t = b.tags;
+  const has = (v, set) => toArr(v).some(x => x !== "any" && set.includes(x));
+  const parts = { mood:0, energy:0, body:0, wish:0, place:0 };
+  if(has(t.mood, P.moodSet)) parts.mood = C.mood;
+  if(has(t.body, P.bodySet)) parts.body = C.body;
+  if(has(t.wish, P.wishSet)) parts.wish = C.wish;
+  const es = toArr(t.energy).map(x => ENERGY_LEVELS.indexOf(x)).filter(i => i >= 0);
+  if(es.length){
+    const d = Math.min(...es.map(i => Math.abs(i - P.energyIdx)));
+    parts.energy = C.energyByDist[d] != null ? C.energyByDist[d] : 0;
+  }
+  if(P.place){
+    let raw = 0;
+    toArr(t.place).forEach(tag => { raw += (P.place.tags[tag] || 0); });
+    parts.place = Math.min(C.placeCap, raw * C.placePerPoint);
+  }
+  parts.total = parts.mood + parts.energy + parts.body + parts.wish + parts.place;
+  return parts;
+}
+
+/* 全カードをスコア降順に並べる(同点はランダム順) */
+function rankBubbles(P){
+  const scored = shuffle(BUBBLES).map(b => { const parts = scoreBubble(b, P); return {b, s:parts.total, parts}; });
+  return scored.sort((x, y) => y.s - x.s);
+}
+
+/* 初回表示: 重み付き抽選(重み = weightBase ^ スコア)。高スコアほど出やすい */
+function pickInitial(ranked, n){
+  let cand = ranked.filter(x => x.s >= SCORE_CFG.minScore);
+  if(cand.length < n) cand = ranked.slice(0, n);        // 足りなければ上位から補充
+  const top = cand[0].s;
+  const w = cand.map(x => Math.pow(SCORE_CFG.weightBase, x.s - top));
+  const out = [], used = new Set();
+  while(out.length < n && used.size < cand.length){
+    let total = 0; w.forEach((v, i) => { if(!used.has(i)) total += v; });
     let r = Math.random() * total;
-    for(let j = 0; j < candidates.length; j++){
-      if(used.has(j)) continue;
-      r -= candidates[j].w;
-      if(r <= 0){ used.add(j); result.push(candidates[j].b); break; }
+    for(let i = 0; i < cand.length; i++){
+      if(used.has(i)) continue;
+      r -= w[i];
+      if(r <= 0){ used.add(i); out.push(cand[i]); break; }
     }
   }
-  return result;
+  return out;
 }
+
+/* シャッフル: スコア上位 shufflePool 枚の中から n 枚を一様ランダムに(前に出たカードの再登場OK) */
+function pickShuffle(ranked, n){
+  const pool = ranked.slice(0, Math.max(n, SCORE_CFG.shufflePool));
+  return shuffle(pool).slice(0, n);
+}
+
+let lastProfile = null, lastRanked = [], curBubbleCount = 9, shuffleLock = false;
+function selectBubbles(a, n){
+  lastProfile = buildProfile(a);
+  lastRanked  = rankBubbles(lastProfile);
+  curBubbleCount = n;
+  return pickInitial(lastRanked, n).map(x => x.b);
+}
+
+function shuffleBubbles(){
+  if(shuffleLock || !lastRanked.length) return;
+  shuffleLock = true;
+  chosenBubbles = pickShuffle(lastRanked, curBubbleCount).map(x => x.b);
+  placeBubbles(chosenBubbles);
+  DBG.update();
+  setTimeout(() => { shuffleLock = false; }, (cssVar('--bubble-feed-ms') || 1200) + 400);
+}
+
+/* ══════════════════════════════════════════════
+   デバッグ表示 (URL に ?debug=1 を付けたときだけ有効)
+   ・場所タブ   : 足元の座標 / 重なったゾーン / タグごとの加点 / 加点されるカード
+   ・プロフィール: 回答が内部でどう解釈されたか
+   ・カードタブ : 全カードのスコア内訳(上位)
+   ・地図の上にゾーンの輪郭と足元マーカーを重ねる
+   ══════════════════════════════════════════════ */
+const DBG = (() => {
+  const on = new URLSearchParams(location.search).get('debug') === '1';
+  if(!on) return { on:false, update(){}, onLocation(){} };
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const tagLabel = {}, ALL_TAGS = [];
+  PLACE_TAGS.groups.forEach(g => g.tags.forEach(t => { tagLabel[t.id] = t.label; ALL_TAGS.push(t.id); }));
+  const isActive = id => document.getElementById(id).classList.contains('active');
+  let tab = 'place', showZones = true, minimized = false;
+  let panel = null, bodyEl = null, svg = null, lastHtml = '', liveKey = '', liveRanked = [];
+
+  const st = document.createElement('style');
+  st.textContent = `
+  #dbgPanel{position:fixed;left:6px;bottom:6px;width:min(390px,94vw);max-height:50vh;display:flex;flex-direction:column;z-index:99999;
+    background:rgba(18,18,28,.92);color:#eee;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+  #dbgPanel .bar{display:flex;gap:4px;padding:4px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #444}
+  #dbgPanel button{font:inherit;background:#333;color:#eee;border:1px solid #555;border-radius:4px;padding:2px 8px;cursor:pointer}
+  #dbgPanel button.on{background:#ffce65;color:#222}
+  #dbgPanel .body{overflow:auto;padding:6px}
+  #dbgPanel table{border-collapse:collapse;width:100%;margin:2px 0 6px}
+  #dbgPanel td,#dbgPanel th{padding:1px 4px;border-bottom:1px solid #333;text-align:left;vertical-align:top}
+  #dbgPanel .bv{display:inline-block;height:8px;background:#ffce65;vertical-align:middle;margin-right:4px}
+  #dbgPanel .dim{color:#9a9aa8}#dbgPanel .ok{color:#8f8}#dbgPanel .ng{color:#f99}
+  #dbgPanel tr.sel td{background:rgba(255,206,101,.2)}#dbgPanel tr.cut td{border-bottom:2px dashed #ffce65}`;
+  document.head.appendChild(st);
+
+  function ensurePanel(){
+    if(panel) return;
+    panel = document.createElement('div');
+    panel.id = 'dbgPanel';
+    panel.innerHTML = `<div class="bar"><b>DEBUG</b>
+      <button data-tab="place">場所</button><button data-tab="profile">プロフィール</button><button data-tab="cards">カード</button>
+      <button data-tab="min" style="margin-left:auto">▁</button></div><div class="body"></div>`;
+    document.body.appendChild(panel);
+    bodyEl = panel.querySelector('.body');
+    if(window.innerWidth < 600){ minimized = true; bodyEl.style.display = 'none'; }   // 狭い画面では最小化で開始(▁ を押すと開く)
+    panel.querySelector('.bar').addEventListener('click', e => {
+      const t = e.target.dataset && e.target.dataset.tab; if(!t) return;
+      if(t === 'min'){ minimized = !minimized; bodyEl.style.display = minimized ? 'none' : ''; return; }
+      tab = t; lastHtml = ''; update();
+    });
+  }
+
+  /* 現在の人物位置から場所プロフィールを作る(submitLocation と同じ判定) */
+  function curPlace(){
+    if(locIsOutside) return { status:'「このなかにはない」→ 場所は採点に一切使わない', p:null, unused:true };
+    const el = document.getElementById('personIcon');
+    const loc = { x:parseFloat(el.style.left) || 0, y:parseFloat(el.style.top) || 0, w:el.offsetWidth || 80, h:el.offsetHeight || 160 };
+    const p = placeProfileAt(footOf(loc));
+    if(!locHasMoved) return { status:'まだ人物を動かしていない → 場所は採点に使わない', p, unused:true };
+    if(!p.hits.length) return { status:'どのゾーンにも入っていない → 「このなかにはない」と同じ扱い', p, unused:true };
+    return { status:'ゾーン内 → 採点に使う', p, unused:false };
+  }
+  function liveAns(){
+    const a = Object.assign({}, ans);
+    if(isActive('locationScreen')){ const cp = curPlace(); a.place = cp.unused ? null : cp.p; }
+    return a;
+  }
+
+  function drawOverlay(cp){
+    const mc = document.getElementById('mapContainer');
+    if(!svg){
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 960 460');
+      svg.style.cssText = 'position:absolute;left:0;top:0;width:960px;height:460px;pointer-events:none;z-index:50;';
+      mc.appendChild(svg);
+    }
+    svg.style.display = showZones ? '' : 'none';
+    if(!showZones) return;
+    const r = mapImgRect(), hitIds = new Set(cp.p ? cp.p.hits.map(h => h.id) : []);
+    let s = '';
+    ZONES.forEach((z, i) => {
+      const hue = Math.round(i * 360 / ZONES.length), hit = hitIds.has(z.id);
+      const bb = z.rect || (() => { const xs = z.poly.map(p => p[0]), ys = z.poly.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; })();
+      const x0 = r.x + bb[0] * r.w, y0 = r.y + bb[1] * r.h, x1 = r.x + bb[2] * r.w, y1 = r.y + bb[3] * r.h;
+      s += `<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${(x1 - x0).toFixed(1)}" height="${(y1 - y0).toFixed(1)}" fill="hsla(${hue},80%,50%,${hit ? .4 : .12})" stroke="hsl(${hue},80%,32%)" stroke-width="${hit ? 2 : 1}"/>`;
+      s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2).toFixed(1)}" font-size="9" text-anchor="middle" fill="#000" stroke="#fff" stroke-width="2" paint-order="stroke">${esc(tagsLabel(z.tags))}</text>`;
+    });
+    if(cp.p) s += `<circle cx="${cp.p.foot.x}" cy="${cp.p.foot.y}" r="4" fill="red" stroke="#fff" stroke-width="1.5"/>`;
+    svg.innerHTML = s;
+  }
+
+  function viewPlace(cp){
+    let h = `<label><input type="checkbox" id="dbgZ" ${showZones ? 'checked' : ''}> ゾーンを地図に重ねる</label>`;
+    h += `<div class="${cp.unused ? 'ng' : 'ok'}">${esc(cp.status)}</div>`;
+    if(!cp.p) return h;
+    const f = cp.p.foot, n = cp.p.norm;
+    h += `<div class="dim">足元 地図(${f.x.toFixed(0)}, ${f.y.toFixed(0)}) / 画像比(${n.x.toFixed(3)}, ${n.y.toFixed(3)})</div>`;
+    h += `<b>重なったゾーン (${cp.p.hits.length})</b><table>` +
+      (cp.p.hits.map(z => `<tr><td>${esc(tagsLabel(z.tags))}<br><span class="dim">${esc(z.tags.join(' '))}</span></td><td>×${z.weight}</td><td class="dim">${esc(z.id)}</td></tr>`).join('') ||
+       '<tr><td class="dim">なし</td></tr>') + `</table>`;
+    const tg = ALL_TAGS.map(t => [t, cp.p.tags[t] || 0]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    h += `<b>タグごとの加点(重なりの合計)</b><table>` + (tg.map(([t, v]) =>
+      `<tr><td>${t}</td><td class="dim">${esc(tagLabel[t])}</td><td><span class="bv" style="width:${Math.min(80, v * 20)}px"></span>${+v.toFixed(2)}</td></tr>`).join('') ||
+      '<tr><td class="dim">なし</td></tr>') + `</table>`;
+    if(!cp.unused){
+      const rows = BUBBLES.map(b => {
+        let raw = 0; toArr(b.tags.place).forEach(t => { raw += cp.p.tags[t] || 0; });
+        return { b, raw, bonus:Math.min(SCORE_CFG.placeCap, raw * SCORE_CFG.placePerPoint) };
+      }).filter(x => x.bonus > 0).sort((a, b) => b.bonus - a.bonus);
+      h += `<b>場所で加点されるカード ${rows.length}/${BUBBLES.length}枚</b> <span class="dim">(上限${SCORE_CFG.placeCap})</span><table>` +
+        rows.slice(0, 8).map(x => `<tr><td>+${+x.bonus.toFixed(2)}</td><td>${esc(x.b.t)}</td><td class="dim">${toArr(x.b.tags.place).join(' ')}</td></tr>`).join('') + `</table>`;
+    }
+    return h;
+  }
+
+  function viewProfile(){
+    const a = liveAns(), P = buildProfile(a);
+    const lvJa = { veryhigh:'とてもげんき', high:'げんき', mid:'ふつう', low:'げんきがない', verylow:'とてもげんきがない' };
+    const phys = derivePhysicalLevel(P.energyIdx, a.body);
+    const pl = P.place ? Object.entries(P.place.tags).map(([t, v]) => t + '×' + +v.toFixed(2)).join(' ') : '(なし: 採点に使わない)';
+    const row = (k, v) => `<tr><td class="dim">${k}</td><td>${v}</td></tr>`;
+    return `<table>` +
+      row('mood 回答', esc(a.mood || '(未回答)')) +
+      row('mood 採点対象', P.moodSet.join(' ') + (P.moodAny ? ' <span class="dim">(ふつう=全部)</span>' : '')) +
+      row('げんき%', a.genkiPct != null ? a.genkiPct + '%' : '(未回答)') +
+      row('げんき段階', `${P.energy} (${lvJa[P.energy]}) idx=${P.energyIdx}`) +
+      row('body 回答', esc(a.body || '(未回答)')) +
+      row('body 採点対象', P.bodySet.join(' ') + (P.bodyAny ? ' <span class="dim">(ふつう=全部)</span>' : '')) +
+      row('wish', P.wishSet.join(' ') || '(未回答)') +
+      row('場所タグ', esc(pl)) +
+      row('見出しキー', esc((a.mood || 'happy') + '_' + phys) + ` <span class="dim">(からだ補正後)</span>`) +
+      `</table><div class="dim">カードの採点: mood+${SCORE_CFG.mood} body+${SCORE_CFG.body} wish+${SCORE_CFG.wish} energy[${SCORE_CFG.energyByDist}] place≤${SCORE_CFG.placeCap}</div>`;
+  }
+
+  function viewCards(){
+    const shown = isActive('resultScreen') || isActive('actScreen') || isActive('detailScreen');
+    let ranked, P, live = false;
+    if(shown && lastRanked.length){ ranked = lastRanked; P = lastProfile; }
+    else {
+      const a = liveAns(); P = buildProfile(a); live = true;
+      const key = JSON.stringify([a.mood, a.body, a.wish, P.energyIdx, P.place && P.place.tags]);
+      if(key !== liveKey){ liveKey = key; liveRanked = rankBubbles(P); }
+      ranked = liveRanked;
+    }
+    const chosen = new Set(chosenBubbles.map(b => b.t));
+    const cand = ranked.filter(x => x.s >= SCORE_CFG.minScore), top = cand.length ? cand[0].s : 0;
+    const wsum = cand.reduce((s, x) => s + Math.pow(SCORE_CFG.weightBase, x.s - top), 0) || 1;
+    let h = `<div class="dim">${live ? '暫定(いまの回答でのランキング)' : '結果画面のランキング'} / ●=表示中 / 点線=シャッフル対象の境界(上位${SCORE_CFG.shufflePool})</div>
+      <table><tr><th></th><th>計</th><th>m e b w p</th><th>カード</th><th>1枚目%</th></tr>`;
+    ranked.slice(0, 45).forEach((x, i) => {
+      const p = x.parts, pr = x.s >= SCORE_CFG.minScore ? (100 * Math.pow(SCORE_CFG.weightBase, x.s - top) / wsum).toFixed(1) : '-';
+      h += `<tr class="${chosen.has(x.b.t) ? 'sel' : ''} ${i === SCORE_CFG.shufflePool - 1 ? 'cut' : ''}"><td>${chosen.has(x.b.t) ? '●' : ''}</td><td>${+x.s.toFixed(2)}</td>
+        <td class="dim">${p.mood} ${p.energy} ${p.body} ${p.wish} ${+p.place.toFixed(1)}</td><td>${esc(x.b.t)}<br><span class="dim">${toArr(x.b.tags.place).join(' ')}</span></td><td>${pr}</td></tr>`;
+    });
+    return h + '</table>';
+  }
+
+  function update(){
+    ensurePanel();
+    const cp = curPlace();
+    drawOverlay(cp);
+    panel.querySelectorAll('.bar button[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    if(minimized) return;
+    const html = tab === 'place' ? viewPlace(cp) : tab === 'profile' ? viewProfile() : viewCards();
+    if(html === lastHtml) return;
+    lastHtml = html;
+    const sc = bodyEl.scrollTop;
+    bodyEl.innerHTML = html;
+    bodyEl.scrollTop = sc;
+    const z = bodyEl.querySelector('#dbgZ');
+    if(z) z.onchange = () => { showZones = z.checked; lastHtml = ''; update(); };
+  }
+  setInterval(update, 500);
+  return { on:true, update, onLocation:update };
+})();
 
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -1238,14 +1522,14 @@ function goBack(){
   const prevQ = Qs[cur-1].id;
 
   if (currentQ === "gauge") {
-    delete ans["gauge"];
+    delete ans["gauge"]; delete ans["genkiPct"];
     cur--;
     fadeOut(document.getElementById("gaugeScreen"), () => {
       renderQ();
       fadeIn(document.getElementById("quizScreen"));
     });
   } else if (currentQ === "location") {
-    delete ans["location"];
+    delete ans["location"]; delete ans["place"];
     cur--;
     if (prevQ === "gauge") {
       fadeOut(document.getElementById("locationScreen"), () => {
@@ -1430,7 +1714,8 @@ function submitGauge(){
   if(busy) return;
   busy = true;
   
-  ans["gauge"] = Math.round(gaugeValue);
+  ans["gauge"] = Math.round(gaugeValue);                                  // 旧形式(履歴互換)
+  ans["genkiPct"] = Math.round(genkiPctFromGauge(gaugeValue) * 10) / 10;  // なめらかな値(0〜100%)。採点は20%刻みの5段階に丸めて使う
   
   fadeOut(document.getElementById("gaugeScreen"), () => {
     cur++;
@@ -1460,6 +1745,7 @@ let locPersonDrag = null;
 let locIsPanning = false;
 let locPanMovedDistance = 0;
 let isPinching = false; // ピンチ操作中かどうかのフラグ
+let locHadMulti = false; // このタッチ操作中に2本指になったか(なったらタップ扱いにしない)
 
 // 画面のリサイズや表示を監視してマップをフィットさせる
 const mapViewport = document.getElementById('mapViewport');
@@ -1591,7 +1877,9 @@ function initLocationScreen() {
         locIsPanning = true;
         locPanMovedDistance = 0;
         isPinching = false;
+        locHadMulti = false;
       } else if (locPointers.size === 2) {
+        locHadMulti = true;
         const pts = [...locPointers.values()];
         const dx = pts[1].x - pts[0].x;
         const dy = pts[1].y - pts[0].y;
@@ -1657,6 +1945,7 @@ function initLocationScreen() {
 
     const finishViewportPointer = (e) => {
       const wasSinglePointer = locPointers.size === 1;
+      const wasPanning = locIsPanning;
       locPointers.delete(e.pointerId);
       
       if (locPointers.size === 1) {
@@ -1671,29 +1960,26 @@ function initLocationScreen() {
         locIsPanning = false;
         isPinching = false;
         
-        if (wasSinglePointer && locIsPanning && locPanMovedDistance < 10) {
+        // ほとんど動かさず指を離した = タップ → その場所に人物の「足元」を置く
+        if (e.type === 'pointerup' && wasSinglePointer && wasPanning && !locHadMulti && locPanMovedDistance < 10) {
           const rect = mapViewport.getBoundingClientRect();
-          const viewX = e.clientX - rect.left;
-          const viewY = e.clientY - rect.top;
-          
-          const mapLocalX = (viewX - locMapX) / locZoom;
-          const mapLocalY = (viewY - locMapY) / locZoom;
-          
-          const offsetX = personIcon.offsetWidth / 2;
-          const offsetY = personIcon.offsetHeight / 2;
+          const mapLocalX = (e.clientX - rect.left - locMapX) / locZoom;
+          const mapLocalY = (e.clientY - rect.top  - locMapY) / locZoom;
+          const w = personIcon.offsetWidth, h = personIcon.offsetHeight;
+          const left = Math.max(0, Math.min(mapLocalX - w / 2, 960 - w));
+          const top  = Math.max(0, Math.min(mapLocalY - h,     460 - h));
           
           personIcon.classList.remove('dragging');
-          personIcon.style.left = (mapLocalX - offsetX) + 'px';
-          personIcon.style.top = (mapLocalY - offsetY) + 'px';
+          personIcon.style.left = left + 'px';
+          personIcon.style.top  = top + 'px';
           
           locHasMoved = true;
-          
           if (locIsOutside) {
             locIsOutside = false;
             notHereBtn.classList.remove('selected');
           }
+          DBG.onLocation();
         }
-        locIsPanning = false;
         locPanMovedDistance = 0;
       }
     };
@@ -1743,6 +2029,7 @@ function initLocationScreen() {
       
       personIcon.style.left = left + 'px';
       personIcon.style.top = top + 'px';
+      DBG.onLocation();
 
       if (!locHasMoved) {
         locHasMoved = true;
@@ -1768,6 +2055,7 @@ function initLocationScreen() {
       locIsOutside = true;
       locHasMoved = true;
       notHereBtn.classList.add('selected');
+      DBG.onLocation();
       submitLocation();
     });
 
@@ -1779,6 +2067,7 @@ function initLocationScreen() {
     locIsOutside = false;
     fitMap();
   }
+  DBG.onLocation();
 }
 
 function submitLocation() {
@@ -1795,6 +2084,14 @@ function submitLocation() {
     const w = personIcon.offsetWidth || 80;
     const h = personIcon.offsetHeight || 160;
     ans.location = { x: left, y: top, w: w, h: h };
+  }
+  
+  // 場所プロフィール: 足元がゾーンに入っていれば、重なった全ゾーンのタグを加算。
+  // 「このなかにはない」/ ゾーン外 / 人物を動かしていない → null (採点に一切寄与しない)
+  ans.place = null;
+  if (!locIsOutside && locHasMoved) {
+    const pp = placeProfileAt(footOf(ans.location));
+    if (pp.hits.length) ans.place = pp;
   }
   
   fadeOut(document.getElementById("locationScreen"), () => {
@@ -1814,36 +2111,17 @@ const ANS_LABEL = {
   wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"はなしたいことがある", nothing:"なにもしたくない" },
 };
 
-const ENERGY_ORDER = ["high","mid","low","verylow"];
-function derivePhysicalLevel(energy, body, gaugeVal){
-  const baseIdx = ENERGY_ORDER.indexOf(energy);
-  let idx = baseIdx === -1 ? 1 : baseIdx;
-  
+/* 見出し用の段階: げんき度(5段階)を、からだの不調ぶんだけ重い側へずらす。
+   (旧実装はメーターの値を二重に加算していたため、初期位置でも「つかれてる」になっていた) */
+function derivePhysicalLevel(energyIdx, body){
   const BODY_WEIGHT = { fine:0, normal:0, heart:1, breath:1, bad:2 };
-  const weight = BODY_WEIGHT[body] ?? 0;
-  idx += weight;
-  
-  if(gaugeVal !== undefined){
-    if(gaugeVal >= 12) idx += 2;
-    else if(gaugeVal >= 7) idx += 1;
-  }
-  
-  idx = Math.min(ENERGY_ORDER.length - 1, idx);
-  return ENERGY_ORDER[idx];
+  const idx = Math.min(ENERGY_LEVELS.length - 1, energyIdx + (BODY_WEIGHT[body] || 0));
+  return ENERGY_LEVELS[idx];
 }
 
 function showResult(){
   const mt = ans.mood || "happy";
-  
-  let derivedEnergy = "mid";
-  if (ans.gauge !== undefined) {
-    if (ans.gauge <= 3) derivedEnergy = "high";
-    else if (ans.gauge <= 8) derivedEnergy = "mid";
-    else if (ans.gauge <= 12) derivedEnergy = "low";
-    else derivedEnergy = "verylow";
-  }
-  
-  const physicalLevel = derivePhysicalLevel(derivedEnergy, ans.body || "fine", ans.gauge);
+  const physicalLevel = derivePhysicalLevel(buildProfile(ans).energyIdx, ans.body);
   const key = mt + "_" + physicalLevel;
   let d = MD[key];
   if(!d){
@@ -1918,7 +2196,8 @@ function showResult(){
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
-      ans:    { mood:ans.mood, body:ans.body, wish:ans.wish, gauge:ans.gauge, location:ans.location }
+      ans:    { mood:ans.mood, body:ans.body, wish:ans.wish, gauge:ans.gauge, genkiPct:ans.genkiPct, energy:lastProfile && lastProfile.energy,
+                location:ans.location, zones:ans.place ? ans.place.hits.map(h => h.id) : [], placeTags:ans.place ? ans.place.tags : null }
     });
     localStorage.setItem(HIST_KEY, JSON.stringify(hist));
   }
@@ -2088,7 +2367,7 @@ function restart(){
   const rnl=document.getElementById("resultNameLabel"); if(rnl) rnl.style.display="none";
   const anl=document.getElementById("actNameLabel"); if(anl) anl.style.display="none";
   const locTitle = document.querySelector('.location-title'); if(locTitle) locTitle.style.display = 'none';
-  chosenBubbles=[];
+  chosenBubbles=[]; lastRanked=[]; lastProfile=null; shuffleLock=false;
   likedSet.clear();
   const current =
     document.getElementById("detailScreen").classList.contains("active")

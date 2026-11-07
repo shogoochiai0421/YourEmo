@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ゾーンエディタ（きもちチェック）</title>
+<style>
+:root{--bg:#f6f4ef;--panel:#fff;--line:#d9d3c7;--ink:#3b3226;--sub:#8a7f6e;--accent:#ffb52e;--accent2:#e8890c;--danger:#d64545}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+#app{display:grid;height:100vh;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-columns:250px minmax(0,1fr) 320px}
+header{grid-column:1/4;grid-row:1;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:14px;margin:0 6px 0 0}
+.grp{display:flex;gap:4px;align-items:center;padding-right:10px;border-right:1px solid var(--line)}
+.grp:last-child{border-right:none}
+button,.btn{font:inherit;color:inherit;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer}
+button:hover,.btn:hover{background:#faf6ec}
+button.on{background:var(--accent);border-color:var(--accent2);color:#fff;font-weight:700}
+button.danger{color:var(--danger)}
+button:disabled{opacity:.4;cursor:default}
+label.chk{display:inline-flex;gap:4px;align-items:center;cursor:pointer;white-space:nowrap}
+input[type=text],input[type=number]{font:inherit;border:1px solid var(--line);border-radius:6px;padding:3px 6px;width:100%}
+input[type=range]{width:90px}
+aside{background:var(--panel);overflow:auto;padding:8px}
+#left{grid-row:3;grid-column:1;border-right:1px solid var(--line)}
+#right{grid-row:3;grid-column:3;border-left:1px solid var(--line)}
+#stage{grid-row:3;grid-column:2;position:relative;overflow:hidden;background:#cfcabd;touch-action:none;cursor:default;user-select:none}
+#stage.hand{cursor:grab}#stage.panning{cursor:grabbing}#stage.draw{cursor:crosshair}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#bg{display:block;position:absolute;left:0;top:0;pointer-events:none;-webkit-user-drag:none}
+#svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+footer{grid-column:1/4;grid-row:4;padding:3px 10px;background:var(--panel);border-top:1px solid var(--line);color:var(--sub);font-size:12px;display:flex;gap:16px;flex-wrap:wrap}
+h2{font-size:12px;margin:10px 0 4px;color:var(--sub);letter-spacing:.04em}
+.zrow{display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid transparent;border-radius:6px;cursor:pointer}
+.zrow:hover{background:#faf6ec}.zrow.sel{background:#fff1cf;border-color:var(--accent)}
+.zrow .dot{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.25)}
+.zrow .nm{flex:1;min-width:0}
+.zrow button{padding:0 4px;border:none;background:none;font-size:13px;opacity:.7}
+.zrow.hidden .nm{opacity:.35}
+.taggrp{margin:4px 0}.taggrp b{display:block;font-size:11px;color:var(--sub)}
+.taggrp label{display:inline-flex;gap:3px;align-items:center;margin:2px 8px 2px 0;cursor:pointer}
+table{border-collapse:collapse;width:100%}td,th{padding:2px 4px;border-bottom:1px solid #eee;text-align:left;vertical-align:top;font-size:12px}
+.bar{display:inline-block;height:8px;background:var(--accent);vertical-align:middle;margin-right:4px;border-radius:2px}
+.chip{display:inline-block;padding:0 7px;border-radius:99px;font-size:11px;line-height:17px;margin:1px 3px 1px 0;border:1px solid;white-space:nowrap}
+.g-setting{background:#e3f0ff;border-color:#9cc3f0;color:#1d4f8f}.g-tempo{background:#e2f6e6;border-color:#8ccb98;color:#1f6b33}
+.g-people{background:#fff0d9;border-color:#f0c27c;color:#8a5a00}.g-theme{background:#f0e6ff;border-color:#c3a8ee;color:#5a2f99}
+.notag{color:var(--danger);font-size:11px;font-style:italic}
+.note{color:var(--sub);font-size:12px}.ok{color:#2b8a3e}.warn{color:var(--danger)}
+.row2{display:grid;grid-template-columns:70px 1fr;gap:4px 8px;align-items:center;margin:4px 0}
+kbd{background:#eee;border:1px solid #ccc;border-bottom-width:2px;border-radius:4px;padding:0 4px;font-size:11px}
+#banner{display:none;grid-column:1/4;grid-row:2;padding:6px 12px;background:#fff3cd;border-bottom:1px solid #e6cf84}
+#help{display:none;position:absolute;right:10px;top:10px;z-index:5;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:10px 14px;max-width:360px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+#help p{margin:2px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>ゾーンエディタ</h1>
+    <div class="grp">
+      <button data-tool="select" title="選択・編集 (V)">選択/編集</button>
+      <button data-tool="rect" title="四角形を描く (R)">四角形を描く</button>
+      <button data-tool="hand" title="移動 (H / スペース押しながら)">手のひら</button>
+      <button data-tool="probe" title="足元テスト (T)">足元テスト</button>
+    </div>
+    <div class="grp">
+      <button id="undo" title="Ctrl+Z">↶</button><button id="redo" title="Ctrl+Shift+Z / Ctrl+Y">↷</button>
+      <button id="fit" title="全体表示 (F)">全体表示</button>
+    </div>
+    <div class="grp">
+      <label class="chk">塗り<input type="range" id="fillA" min="0" max="80" value="28"></label>
+      <label class="chk"><input type="checkbox" id="modeCount"> 重なり濃度で見る</label>
+      <label class="chk"><input type="checkbox" id="solo"> 選択中だけ表示</label>
+      <label class="chk"><input type="checkbox" id="names" checked> タグ表示</label>
+      <label class="chk"><input type="checkbox" id="snap" checked> 辺スナップ</label>
+    </div>
+    <div class="grp">
+      <label class="btn">data.js を開く<input type="file" id="openJs" accept=".js,text/javascript" hidden></label>
+      <button id="saveJs" title="開いた data.js の ZONES 部分だけを差し替えて保存">data.js として保存</button>
+      <button id="copyJs">ZONES をコピー</button>
+      <button id="saveJson">zones.json 保存</button>
+      <label class="btn">zones.json 読込<input type="file" id="openJson" accept=".json,application/json" hidden></label>
+      <button id="restoreDraft" style="display:none">下書きを復元</button>
+    </div>
+    <div class="grp"><button id="helpBtn">操作ヘルプ</button><span id="dirty" class="note"></span></div>
+  </header>
+  <div id="banner"></div>
+
+  <aside id="left">
+    <div style="display:flex;gap:6px;align-items:center"><b style="flex:1">ゾーン一覧</b><button id="newZone">＋ 新規</button></div>
+    <div class="note" style="margin:4px 0">ゾーンに名前はありません。割り当てたタグで見分けます。重なってもOK（上にあるものほど手前に描画）。</div>
+    <div id="list"></div>
+  </aside>
+
+  <main id="stage" class="">
+    <div id="world"><img id="bg" alt=""><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div id="help">
+      <p><b>描く</b>：<kbd>R</kbd> → 地図上をドラッグすると四角形ができます。描いたら右のパネルでタグを選びます。</p>
+      <p><b>選ぶ</b>：<kbd>V</kbd> 重なった場所を<b>続けてクリック</b>すると、下のゾーンへ順に切り替わります（小さいゾーンが先）。一覧からも選べます。</p>
+      <p><b>直す</b>：○の取っ手をドラッグで拡大縮小（角・辺）／中をドラッグで移動／矢印キーで1px（<kbd>Shift</kbd>で10px）／<kbd>Delete</kbd>で削除／<kbd>Ctrl+D</kbd>で複製。</p>
+      <p><b>表示</b>：ホイールで拡大縮小、背景ドラッグ or <kbd>スペース</kbd>押しながらで移動、<kbd>F</kbd>で全体表示。「重なり濃度で見る」で重なりの深さが分かります。</p>
+      <p><b>テスト</b>：<kbd>T</kbd> で地図をクリック/ドラッグ → 足元の位置で加算されるタグを確認（アプリと同じ判定）。<kbd>Alt</kbd>押しながらでスナップ一時解除。</p>
+      <p style="text-align:right"><button id="helpClose">閉じる</button></p>
+    </div>
+  </main>
+
+  <aside id="right">
+    <div id="props"></div>
+    <div id="probeBox"></div>
+  </aside>
+  <footer><span id="stPos">—</span><span id="stOver"></span><span id="stMsg"></span></footer>
+</div>
+
+<script>
+/* ============================================================
+   ゾーンエディタ（四角形のみ・名前なし）
+   ・ゾーン = { id(内部用), weight, tags[], rect:[左,上,右,下] }  ※座標は画像全体を 0〜1 に正規化
+   ・data.js を開く → 編集 → data.js として保存 で ZONES 部分だけが差し替わる
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const FALLBACK_TAGS = {groups:[
+ {id:"setting",label:"屋内外",tags:[{id:"indoor",s:"屋内",label:"屋内"},{id:"outdoor",s:"屋外",label:"屋外"}]},
+ {id:"tempo",label:"動静",tags:[{id:"active",s:"動",label:"動(にぎやか・からだを動かす)"},{id:"calm",s:"静",label:"静(しずか・おちつく)"}]},
+ {id:"people",label:"人",tags:[{id:"alone",s:"ひとり",label:"ひとり"},{id:"friends",s:"友だち",label:"友だち"},{id:"teacher",s:"先生",label:"先生"}]},
+ {id:"theme",label:"テーマ",tags:[{id:"build",s:"組み立て",label:"組み立て(積み木・レゴ)"},{id:"desk",s:"机上",label:"机上の遊び(工作・絵)"},{id:"book",s:"絵本",label:"絵本"},{id:"rest",s:"休む",label:"休む場所"},{id:"nature",s:"自然",label:"自然"},{id:"family",s:"家族",label:"家族"},{id:"move",s:"運動",label:"運動"},{id:"music",s:"音楽",label:"音楽"}]}]};
+let PT = FALLBACK_TAGS;
+let MM = {w:960,h:460,imgAspect:1679/937,imgUrl:"https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png"};
+let BUB = null, CFG = null, loadedText = null;
+let W = 1679, H = 937;
+let zones = [], sel = null, tool = 'select', spaceDown = false;
+let hist = [], redo = [], view = {x:0,y:0,z:1};
+let drag = null, probe = null, lastClick = null, dirty = false;
+const stage = $('#stage'), world = $('#world'), svg = $('#svg'), bg = $('#bg');
+
+/* ---------- ユーティリティ ---------- */
+const r4 = x => +(+x).toFixed(4);
+const hueOf = id => { let h = 0; for(const c of id) h = (h*31 + c.charCodeAt(0)) % 360; return h; };
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const contains = (z, x, y) => x >= z.rect[0] && x <= z.rect[2] && y >= z.rect[1] && y <= z.rect[3];
+const area = z => (z.rect[2]-z.rect[0]) * (z.rect[3]-z.rect[1]);
+const center = z => [(z.rect[0]+z.rect[2])/2, (z.rect[1]+z.rect[3])/2];
+const allTagIds = () => PT.groups.flatMap(g => g.tags.map(t => t.id));
+const tagInfo = id => { for(const g of PT.groups) for(const t of g.tags) if(t.id === id) return {g:g.id, s:t.s || String(t.label).split('(')[0], label:t.label}; return {g:'theme', s:id, label:id}; };
+const tagsLabel = tags => tags.map(t => tagInfo(t).s).join('・') || '(タグなし)';
+const chips = tags => tags.length ? tags.map(t => { const i = tagInfo(t); return `<span class="chip g-${i.g}" title="${esc(i.label)}">${esc(i.s)}</span>`; }).join('') : '<span class="notag">(タグ未設定)</span>';
+const getZone = id => zones.find(z => z.id === id);
+const msg = (t, cls='') => { const e = $('#stMsg'); e.textContent = t; e.className = cls; };
+const zonesAtN = (nx, ny) => zones.filter(z => z.visible !== false && contains(z, nx, ny));
+function nextId(){ let k = 1; while(getZone('z' + k)) k++; return 'z' + k; }
+
+/* ---------- 履歴・下書き ---------- */
+const snapJson = () => JSON.stringify(zones);
+function snap(){ hist.push(snapJson()); if(hist.length > 200) hist.shift(); redo = []; markDirty(); updUndo(); }
+function undo(){ if(!hist.length) return; redo.push(snapJson()); zones = JSON.parse(hist.pop()); afterHist(); }
+function doRedo(){ if(!redo.length) return; hist.push(snapJson()); zones = JSON.parse(redo.pop()); afterHist(); }
+function afterHist(){ if(sel && !getZone(sel)) sel = null; markDirty(); updUndo(); renderAll(); }
+function updUndo(){ $('#undo').disabled = !hist.length; $('#redo').disabled = !redo.length; }
+let saveT = null;
+function markDirty(){
+  dirty = true; $('#dirty').textContent = '● 未保存の変更あり';
+  clearTimeout(saveT);
+  saveT = setTimeout(() => { try{ localStorage.setItem('zoneEditorDraftRect', JSON.stringify({zones, t:Date.now()})); }catch(e){} }, 400);
+}
+function clearDirty(){ dirty = false; $('#dirty').textContent = ''; }
+window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- 画面変換 ---------- */
+function applyView(){ world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.z})`; render(); }
+function fitView(){
+  const r = stage.getBoundingClientRect(); if(!r.width) return;
+  const z = Math.min(r.width/W, r.height/H) * 0.97;
+  view = {z, x:(r.width - W*z)/2, y:(r.height - H*z)/2}; applyView();
+}
+const toStage = (nx, ny) => [nx*W*view.z + view.x, ny*H*view.z + view.y];
+function local(e){ const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+function evtNorm(e){ const [lx,ly] = local(e); return [(lx-view.x)/view.z/W, (ly-view.y)/view.z/H]; }
+const dist = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
+
+/* 取っ手: [hx,hy] = 動かす辺の向き(-1=左/上, 1=右/下, 0=その軸は動かさない) */
+const HANDLES = [[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
+function handlePos(z, h){ const r = z.rect; return [h[0] < 0 ? r[0] : h[0] > 0 ? r[2] : (r[0]+r[2])/2, h[1] < 0 ? r[1] : h[1] > 0 ? r[3] : (r[1]+r[3])/2]; }
+
+/* ---------- 描画 ---------- */
+function render(){
+  const fillA = +$('#fillA').value/100, countMode = $('#modeCount').checked, solo = $('#solo').checked, showTags = $('#names').checked;
+  const hitSet = new Set(probe ? zonesAtN(probe[0], probe[1]).map(z => z.id) : []);
+  const px = 1/view.z;
+  let s = '';
+  const draw = z => {
+    const hue = hueOf(z.id), isSel = z.id === sel, hit = hitSet.has(z.id);
+    const x = z.rect[0]*W, y = z.rect[1]*H, w = (z.rect[2]-z.rect[0])*W, h = (z.rect[3]-z.rect[1])*H;
+    const fill = countMode ? `rgba(30,30,30,${fillA})` : `hsla(${hue},75%,50%,${hit ? Math.min(.85, fillA+.3) : fillA})`;
+    if(isSel) s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#fff" stroke-width="${6*px}"/>`;
+    s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="hsl(${hue},75%,${isSel?28:38}%)" stroke-width="${(isSel?3:1.5)*px}"${hit?` stroke-dasharray="${8*px} ${4*px}"`:''}/>`;
+  };
+  const vis = zones.filter(z => z.visible !== false && (!solo || z.id === sel));
+  vis.filter(z => z.id !== sel).forEach(draw);
+  const sz = getZone(sel); if(sz && vis.includes(sz)) draw(sz);
+  if(showTags) vis.forEach(z => {
+    const [cx,cy] = center(z), none = !z.tags.length;
+    s += `<text x="${cx*W}" y="${cy*H}" font-size="${13*px}" text-anchor="middle" dominant-baseline="middle" fill="${none?'#c33':'#222'}" stroke="#fff" stroke-width="${3*px}" paint-order="stroke" style="font-weight:700">${esc(tagsLabel(z.tags))}</text>`;
+  });
+  if(sz && vis.includes(sz)){
+    const col = `hsl(${hueOf(sz.id)},75%,28%)`;
+    HANDLES.forEach(h => { const [hx,hy] = handlePos(sz, h), r = 5.5*px;
+      s += `<rect x="${hx*W-r}" y="${hy*H-r}" width="${2*r}" height="${2*r}" fill="#fff" stroke="${col}" stroke-width="${2*px}"/>`; });
+  }
+  if(drag && drag.type === 'new'){
+    const a = drag.start, b = drag.cur;
+    s += `<rect x="${Math.min(a[0],b[0])*W}" y="${Math.min(a[1],b[1])*H}" width="${Math.abs(a[0]-b[0])*W}" height="${Math.abs(a[1]-b[1])*H}" fill="rgba(255,181,46,.25)" stroke="#e8890c" stroke-width="${2*px}" stroke-dasharray="${6*px} ${3*px}"/>`;
+  }
+  if(probe){
+    const x = probe[0]*W, y = probe[1]*H;
+    s += `<line x1="${x-14*px}" y1="${y}" x2="${x+14*px}" y2="${y}" stroke="#d00" stroke-width="${2*px}"/><line x1="${x}" y1="${y-14*px}" x2="${x}" y2="${y+14*px}" stroke="#d00" stroke-width="${2*px}"/>
+      <circle cx="${x}" cy="${y}" r="${6*px}" fill="#e22" stroke="#fff" stroke-width="${2*px}"/>
+      <text x="${x+10*px}" y="${y-10*px}" font-size="${12*px}" fill="#c00" stroke="#fff" stroke-width="${3*px}" paint-order="stroke" style="font-weight:700">足元</text>`;
+  }
+  svg.innerHTML = s;
+}
+function renderAll(){ renderList(); renderProps(); renderProbe(); render(); }
+
+/* ---------- 一覧(名前の代わりにタグを表示) ---------- */
+function renderList(){
+  const el = $('#list'); el.innerHTML = '';
+  [...zones].reverse().forEach(z => {   // 手前に描画されるものを上に
+    const row = document.createElement('div');
+    row.className = 'zrow' + (z.id === sel ? ' sel' : '') + (z.visible === false ? ' hidden' : '');
+    row.innerHTML = `<span class="dot" style="background:hsl(${hueOf(z.id)},75%,55%)"></span><span class="nm">${chips(z.tags)}</span>
+      <button data-a="vis" title="表示/非表示">${z.visible === false ? '🚫' : '👁'}</button><button data-a="lock" title="ロック(クリックで選ばれなくなる)">${z.locked ? '🔒' : '🔓'}</button>`;
+    row.onclick = e => {
+      const a = e.target.dataset && e.target.dataset.a;
+      if(a === 'vis'){ snap(); z.visible = z.visible === false; renderAll(); return; }
+      if(a === 'lock'){ snap(); z.locked = !z.locked; renderAll(); return; }
+      select(z.id);
+    };
+    el.appendChild(row);
+  });
+  if(!zones.length) el.innerHTML = '<div class="note">ゾーンがありません。「data.js を開く」か、四角形ツール(R)で描いてください。</div>';
+}
+function select(id){ sel = id; renderAll(); }
+
+/* ---------- プロパティ ---------- */
+function overlapsOf(z){
+  const a = z.rect, A = area(z) || 1e-9;
+  return zones.filter(o => o !== z).map(o => {
+    const iw = Math.min(a[2], o.rect[2]) - Math.max(a[0], o.rect[0]), ih = Math.min(a[3], o.rect[3]) - Math.max(a[1], o.rect[1]);
+    return {z:o, pct: iw > 0 && ih > 0 ? Math.round(100 * iw * ih / A) : 0};
+  }).filter(x => x.pct > 0).sort((p, q) => q.pct - p.pct);
+}
+function renderProps(){
+  const z = getZone(sel), el = $('#props');
+  if(!z){ el.innerHTML = '<div class="note">ゾーンを選ぶと、タグと重みを編集できます。</div>'; return; }
+  let h = `<b>選択中のゾーン</b><div style="margin:4px 0 6px">${chips(z.tags)}</div>
+   <div class="row2"><span>重み</span><input type="number" id="pW" min="0" max="5" step="0.1" value="${z.weight == null ? 1 : z.weight}"></div>
+   <h2>場所タグ（重なったゾーンのタグは足し算されます）</h2>`;
+  PT.groups.forEach(g => {
+    h += `<div class="taggrp"><b>${esc(g.label)}</b>` + g.tags.map(t =>
+      `<label title="${esc(t.label)}"><input type="checkbox" data-tag="${t.id}" ${z.tags.includes(t.id) ? 'checked' : ''}>${esc(t.label)}</label>`).join('') + `</div>`;
+  });
+  h += `<h2>操作</h2><div style="display:flex;gap:4px;flex-wrap:wrap">
+    <button id="pDup">複製</button><button id="pUp" title="手前へ">▲手前</button><button id="pDown" title="奥へ">▼奥</button><button id="pDel" class="danger">削除</button></div>
+   <div class="note" style="margin-top:6px">幅 ${((z.rect[2]-z.rect[0])*100).toFixed(1)}% × 高さ ${((z.rect[3]-z.rect[1])*100).toFixed(1)}%（画像比）</div>`;
+  const ov = overlapsOf(z);
+  h += `<h2>このゾーンと重なっているゾーン</h2>` + (ov.length ? '<table>' + ov.map(o => `<tr><td><a href="#" data-sel="${esc(o.z.id)}" style="text-decoration:none">${chips(o.z.tags)}</a></td><td>${o.pct}%</td></tr>`).join('') + '</table>' : '<div class="note">なし</div>');
+  el.innerHTML = h;
+  $('#pW').onchange = e => { snap(); z.weight = Math.max(0, +e.target.value || 0); renderAll(); };
+  el.querySelectorAll('[data-tag]').forEach(c => c.onchange = () => {
+    snap(); const set = new Set(z.tags);
+    c.checked ? set.add(c.dataset.tag) : set.delete(c.dataset.tag); z.tags = allTagIds().filter(t => set.has(t)); renderAll();
+  });
+  el.querySelectorAll('[data-sel]').forEach(a => a.onclick = e => { e.preventDefault(); select(a.dataset.sel); });
+  $('#pDup').onclick = dupZone; $('#pDel').onclick = delZone;
+  $('#pUp').onclick = () => moveOrder(1); $('#pDown').onclick = () => moveOrder(-1);
+}
+
+/* ---------- ゾーン操作 ---------- */
+function newZone(rect){
+  snap();
+  const id = nextId();
+  zones.push({id, weight:1, tags:[], rect:rect.map(v => r4(clamp01(v))), visible:true, locked:false});
+  sel = id; setTool('select'); renderAll();
+  msg('ゾーンを追加しました。右のパネルでタグを選んでください。', 'ok');
+}
+function dupZone(){
+  const z = getZone(sel); if(!z) return; snap();
+  const c = JSON.parse(JSON.stringify(z)); c.id = nextId();
+  const d = 0.012, w = c.rect[2]-c.rect[0], h = c.rect[3]-c.rect[1];
+  const x0 = Math.min(1-w, c.rect[0]+d), y0 = Math.min(1-h, c.rect[1]+d*1.5);
+  c.rect = [r4(x0), r4(y0), r4(x0+w), r4(y0+h)]; zones.push(c); select(c.id);
+}
+function delZone(){
+  const z = getZone(sel); if(!z) return;
+  if(!confirm(`選択中のゾーン（${tagsLabel(z.tags)}）を削除しますか？（Ctrl+Z で戻せます）`)) return;
+  snap(); zones = zones.filter(o => o !== z); sel = null; renderAll();
+}
+function moveOrder(d){
+  const i = zones.findIndex(z => z.id === sel), j = i + d; if(i < 0 || j < 0 || j >= zones.length) return;
+  snap(); [zones[i], zones[j]] = [zones[j], zones[i]]; renderAll();
+}
+
+/* ---------- 足元テスト ---------- */
+function renderProbe(){
+  const el = $('#probeBox');
+  if(!probe){ el.innerHTML = '<h2>足元テスト</h2><div class="note">「足元テスト」(T)で地図をクリックすると、その位置で加算されるタグが分かります（アプリと同じ判定）。</div>'; return; }
+  const hits = zonesAtN(probe[0], probe[1]), tags = {};
+  hits.forEach(z => { const w = z.weight == null ? 1 : z.weight; z.tags.forEach(t => tags[t] = (tags[t] || 0) + w); });
+  let h = `<h2>足元テスト</h2><div class="note">画像比 (${probe[0].toFixed(3)}, ${probe[1].toFixed(3)})</div>
+   <b>重なったゾーン (${hits.length})</b>` + (hits.length ? '<table>' + hits.map(z => `<tr><td>${chips(z.tags)}</td><td>×${z.weight == null ? 1 : z.weight}</td></tr>`).join('') + '</table>'
+     : '<div class="warn">どのゾーンにも入っていません（アプリでは「このなかにはない」と同じ扱い）</div>');
+  const ids = allTagIds().filter(t => tags[t] > 0).sort((a, b) => tags[b] - tags[a]);
+  if(ids.length) h += `<b>タグごとの加点（合計）</b><table>` + ids.map(t => `<tr><td>${chips([t])}</td><td><span class="bar" style="width:${Math.min(70, tags[t]*18)}px"></span>${+tags[t].toFixed(2)}</td></tr>`).join('') + '</table>';
+  if(BUB && CFG && ids.length){
+    const rows = BUB.map(b => { let raw = 0; (b.tags.place || []).forEach(t => raw += tags[t] || 0); return {b, bonus:Math.min(CFG.placeCap, raw * CFG.placePerPoint)}; })
+      .filter(x => x.bonus > 0).sort((a, b) => b.bonus - a.bonus);
+    h += `<b>場所で加点されるカード ${rows.length}/${BUB.length}枚</b><table>` + rows.slice(0, 6).map(x => `<tr><td>+${+x.bonus.toFixed(2)}</td><td>${esc(x.b.t)}</td></tr>`).join('') + '</table>';
+  }
+  el.innerHTML = h;
+}
+
+/* ---------- スナップ(他ゾーンの辺にそろえる) ---------- */
+function snapAxis(val, axis, e, except){
+  if(!$('#snap').checked || e.altKey) return val;
+  const sc = (axis === 0 ? W : H) * view.z; let best = val, bd = 8 / sc;
+  zones.forEach(o => { if(o === except || o.visible === false) return;
+    [o.rect[axis], o.rect[axis+2]].forEach(v => { const d = Math.abs(v - val); if(d < bd){ bd = d; best = v; } }); });
+  return best;
+}
+function snapMove(orig, dx, dy, e, z){
+  const one = (lo, hi, d, axis) => {
+    const l = snapAxis(lo+d, axis, e, z), h = snapAxis(hi+d, axis, e, z), dl = l - (lo+d), dh = h - (hi+d);
+    if(dl !== 0 && (dh === 0 || Math.abs(dl) <= Math.abs(dh))) return d + dl;
+    if(dh !== 0) return d + dh;
+    return d;
+  };
+  return [one(orig[0], orig[2], dx, 0), one(orig[1], orig[3], dy, 1)];
+}
+
+/* ---------- 入力(マウス/タッチ共通: Pointer Events) ---------- */
+const activeTool = e => (spaceDown || (e && e.button === 1)) ? 'hand' : tool;
+stage.addEventListener('contextmenu', e => e.preventDefault());
+
+stage.addEventListener('pointerdown', e => {
+  if(e.target.closest('#help') || e.button === 2) return;
+  stage.setPointerCapture(e.pointerId);
+  const t = activeTool(e), n = evtNorm(e), [lx,ly] = local(e);
+  if(t === 'hand'){ drag = {type:'pan', sx:lx, sy:ly, vx:view.x, vy:view.y}; stage.classList.add('panning'); return; }
+  if(t === 'probe'){ probe = n; drag = {type:'probe'}; renderProbe(); render(); return; }
+  if(t === 'rect'){ const p = [snapAxis(clamp01(n[0]),0,e), snapAxis(clamp01(n[1]),1,e)]; drag = {type:'new', start:p, cur:p}; return; }
+  /* select */
+  const z = getZone(sel);
+  if(z && z.visible !== false){
+    for(const h of HANDLES){
+      if(dist(toStage(...handlePos(z, h)), [lx,ly]) < 10){ drag = {type:'resize', h, orig:z.rect.slice(), moved:false}; return; }
+    }
+  }
+  const hits = zones.filter(o => o.visible !== false && !o.locked && (!$('#solo').checked || o.id === sel) && contains(o, n[0], n[1])).sort((a, b) => area(a) - area(b));
+  if(hits.length){
+    let pick = hits[0];
+    const near = lastClick && dist(lastClick, [lx,ly]) < 6, cur = hits.findIndex(o => o.id === sel);
+    if(near && cur >= 0) pick = hits[(cur+1) % hits.length];      // 同じ場所を続けてクリック → 下のゾーンへ
+    lastClick = [lx,ly];
+    if(pick.id !== sel){ sel = pick.id; renderAll(); }
+    drag = {type:'move', start:n, orig:getZone(sel).rect.slice(), moved:false, sx:lx, sy:ly};
+    msg(hits.length > 1 ? `この位置に ${hits.length} ゾーン重なっています（続けてクリックで切替）：${hits.map(o => tagsLabel(o.tags)).join(' / ')}` : '');
+    return;
+  }
+  lastClick = null;
+  if(sel){ sel = null; renderAll(); }
+  drag = {type:'pan', sx:lx, sy:ly, vx:view.x, vy:view.y}; stage.classList.add('panning');
+});
+
+stage.addEventListener('pointermove', e => {
+  const n = evtNorm(e), [lx,ly] = local(e);
+  $('#stPos').textContent = `画像比 (${n[0].toFixed(3)}, ${n[1].toFixed(3)}) / 画像px (${Math.round(n[0]*W)}, ${Math.round(n[1]*H)})`;
+  const here = zonesAtN(n[0], n[1]);
+  $('#stOver').textContent = here.length ? `重なり ${here.length}: ${here.map(z => tagsLabel(z.tags)).join(' / ')}` : '';
+  if(!drag) return;
+  if(drag.type === 'pan'){ view.x = drag.vx + lx - drag.sx; view.y = drag.vy + ly - drag.sy; applyView(); return; }
+  if(drag.type === 'probe'){ probe = n; renderProbe(); render(); return; }
+  if(drag.type === 'new'){ drag.cur = [snapAxis(clamp01(n[0]),0,e), snapAxis(clamp01(n[1]),1,e)]; render(); return; }
+  const z = getZone(sel); if(!z) return;
+  if(drag.type === 'resize'){
+    if(!drag.moved){ snap(); drag.moved = true; }
+    let [x0,y0,x1,y1] = drag.orig; const [hx,hy] = drag.h;
+    const px = snapAxis(clamp01(n[0]), 0, e, z), py = snapAxis(clamp01(n[1]), 1, e, z);
+    if(hx < 0) x0 = px; else if(hx > 0) x1 = px;
+    if(hy < 0) y0 = py; else if(hy > 0) y1 = py;
+    z.rect = [r4(Math.min(x0,x1)), r4(Math.min(y0,y1)), r4(Math.max(x0,x1)), r4(Math.max(y0,y1))]; render(); return;
+  }
+  if(drag.type === 'move'){
+    if(!drag.moved){ if(Math.hypot(lx - drag.sx, ly - drag.sy) < 4) return; snap(); drag.moved = true; }
+    let dx = n[0] - drag.start[0], dy = n[1] - drag.start[1];
+    [dx, dy] = snapMove(drag.orig, dx, dy, e, z);
+    const o = drag.orig;
+    dx = Math.max(-o[0], Math.min(1 - o[2], dx)); dy = Math.max(-o[1], Math.min(1 - o[3], dy));
+    z.rect = [r4(o[0]+dx), r4(o[1]+dy), r4(o[2]+dx), r4(o[3]+dy)]; render();
+  }
+});
+
+stage.addEventListener('pointerup', () => {
+  stage.classList.remove('panning');
+  if(!drag) return;
+  const d = drag; drag = null;
+  if(d.type === 'new'){
+    const a = d.start, b = d.cur;
+    if(Math.abs(a[0]-b[0]) * W * view.z > 6 && Math.abs(a[1]-b[1]) * H * view.z > 6)
+      newZone([Math.min(a[0],b[0]), Math.min(a[1],b[1]), Math.max(a[0],b[0]), Math.max(a[1],b[1])]);
+    else render();
+    return;
+  }
+  if((d.type === 'resize' || d.type === 'move') && d.moved){ renderProps(); }
+  render();
+});
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [lx,ly] = local(e), f = Math.exp(-e.deltaY * 0.0015), nz = Math.max(0.15, Math.min(12, view.z * f));
+  view.x = lx - (lx - view.x) * nz / view.z; view.y = ly - (ly - view.y) * nz / view.z; view.z = nz; applyView();
+}, {passive:false});
+
+function setTool(t){
+  tool = t;
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+  stage.className = t === 'hand' ? 'hand' : (t === 'rect' || t === 'probe') ? 'draw' : '';
+  render();
+}
+document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+
+/* ---------- キーボード ---------- */
+window.addEventListener('keydown', e => {
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
+  const k = e.key;
+  if(k === ' '){ spaceDown = true; stage.classList.add('hand'); e.preventDefault(); return; }
+  if((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? doRedo() : undo(); return; }
+  if((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'y'){ e.preventDefault(); doRedo(); return; }
+  if((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'd'){ e.preventDefault(); dupZone(); return; }
+  if(e.ctrlKey || e.metaKey) return;
+  const kk = k.toLowerCase();
+  if(kk === 'v') setTool('select'); else if(kk === 'r') setTool('rect');
+  else if(kk === 'h') setTool('hand'); else if(kk === 't') setTool('probe'); else if(kk === 'f') fitView();
+  else if(k === 'Escape'){ if(drag){ drag = null; render(); } else { sel = null; renderAll(); } }
+  else if(k === 'Delete' || k === 'Backspace'){ e.preventDefault(); delZone(); }
+  else if(k.startsWith('Arrow') && getZone(sel)){
+    e.preventDefault(); const z = getZone(sel), s = e.shiftKey ? 10 : 1;
+    let dx = (k === 'ArrowLeft' ? -s : k === 'ArrowRight' ? s : 0) / W, dy = (k === 'ArrowUp' ? -s : k === 'ArrowDown' ? s : 0) / H;
+    const o = z.rect; dx = Math.max(-o[0], Math.min(1 - o[2], dx)); dy = Math.max(-o[1], Math.min(1 - o[3], dy));
+    snap(); z.rect = [r4(o[0]+dx), r4(o[1]+dy), r4(o[2]+dx), r4(o[3]+dy)]; render();
+  }
+});
+window.addEventListener('keyup', e => { if(e.key === ' '){ spaceDown = false; if(tool !== 'hand') stage.classList.remove('hand'); } });
+
+/* ---------- 入出力 ---------- */
+function zonesToJs(){
+  return 'const ZONES = [\n' + zones.map(z =>
+    `  {id:${JSON.stringify(z.id)}, weight:${z.weight == null ? 1 : z.weight}, tags:${JSON.stringify(z.tags)}, rect:[${z.rect.map(r4).join(',')}]}`).join(',\n') + '\n];';
+}
+function download(name, text, type = 'text/javascript'){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: type + ';charset=utf-8'})); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+/* 読み込み: rect 形式はそのまま。旧形式(多角形 poly)は外接四角形に変換。name は読み捨て */
+function normalizeZones(arr){
+  let migrated = 0;
+  const out = (arr || []).map((z, i) => {
+    let rect = z.rect;
+    if(!rect && z.poly && z.poly.length){
+      const xs = z.poly.map(p => +p[0]), ys = z.poly.map(p => +p[1]);
+      rect = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; migrated++;
+    }
+    if(!rect) return null;
+    return {id:String(z.id || ('z' + (i+1))), weight:z.weight == null ? 1 : +z.weight, tags:Array.isArray(z.tags) ? z.tags.slice() : [],
+            rect:[+rect[0], +rect[1], +rect[2], +rect[3]].map(r4), visible:true, locked:false};
+  }).filter(Boolean);
+  const seen = new Set(); out.forEach(z => { while(seen.has(z.id)) z.id += '_'; seen.add(z.id); });
+  normalizeZones.migrated = migrated;
+  return out;
+}
+function loadDataJs(text, name){
+  let r;
+  try{
+    r = new Function(text + '\n;return {PLACE_TAGS:typeof PLACE_TAGS!=="undefined"?PLACE_TAGS:null,MAP_META:typeof MAP_META!=="undefined"?MAP_META:null,ZONES:typeof ZONES!=="undefined"?ZONES:null,BUBBLES:typeof BUBBLES!=="undefined"?BUBBLES:null,SCORE_CFG:typeof SCORE_CFG!=="undefined"?SCORE_CFG:null};')();
+  }catch(err){ alert('data.js を読み込めませんでした: ' + err.message); return; }
+  if(!r.ZONES){ alert('この data.js には ZONES がありません（新しい data.js を使ってください）'); return; }
+  loadedText = text;
+  if(r.PLACE_TAGS) PT = r.PLACE_TAGS;
+  if(r.MAP_META){ MM = r.MAP_META; if(MM.imgUrl && bg.getAttribute('src') !== MM.imgUrl) bg.src = MM.imgUrl; }
+  BUB = r.BUBBLES; CFG = r.SCORE_CFG;
+  zones = normalizeZones(r.ZONES); hist = []; redo = []; sel = null; clearDirty(); updUndo();
+  $('#banner').style.display = 'none'; fitView();
+  const hasMarker = text.includes('/* ZONES:START */') && text.includes('/* ZONES:END */');
+  const mig = normalizeZones.migrated;
+  msg(`${name} を読み込みました（ゾーン ${zones.length} 個）` + (mig ? `／旧形式の多角形 ${mig} 個を外接四角形に変換しました。位置を確認してください` : '') +
+      (hasMarker ? '' : '／※ZONESマーカーが無いので、保存はコピーで行ってください'), (mig || !hasMarker) ? 'warn' : 'ok');
+  if(mig) markDirty();
+  renderAll();
+}
+$('#openJs').onchange = async e => { const f = e.target.files[0]; if(f) loadDataJs(await f.text(), f.name); e.target.value = ''; };
+$('#saveJs').onclick = () => {
+  if(!loadedText){ alert('先に「data.js を開く」で元の data.js を読み込んでください。'); return; }
+  const a = loadedText.indexOf('/* ZONES:START */'), b = loadedText.indexOf('/* ZONES:END */');
+  if(a < 0 || b < 0){ alert('ZONES:START / ZONES:END のマーカーが見つかりません。「ZONES をコピー」を使って手動で貼り替えてください。'); return; }
+  const out = loadedText.slice(0, a) + '/* ZONES:START */\n' + zonesToJs() + '\n' + loadedText.slice(b);
+  download('data.js', out); loadedText = out; clearDirty(); msg('data.js を保存しました。アプリのフォルダの data.js と置き換えてください。', 'ok');
+};
+$('#copyJs').onclick = async () => {
+  const t = zonesToJs();
+  try{ await navigator.clipboard.writeText(t); msg('ZONES をクリップボードにコピーしました（data.js の ZONES:START〜END の間に貼り付け）', 'ok'); }
+  catch(e){ prompt('コピーしてください', t); }
+};
+$('#saveJson').onclick = () => { download('zones.json', JSON.stringify(zones.map(({visible, locked, ...z}) => z), null, 1), 'application/json'); };
+$('#openJson').onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{ const arr = JSON.parse(await f.text()); snap(); zones = normalizeZones(Array.isArray(arr) ? arr : arr.zones); sel = null; renderAll(); msg('zones.json を読み込みました', 'ok'); }
+  catch(err){ alert('JSON を読み込めませんでした: ' + err.message); }
+  e.target.value = '';
+};
+$('#restoreDraft').onclick = () => {
+  try{ const d = JSON.parse(localStorage.getItem('zoneEditorDraftRect')); snap(); zones = d.zones; sel = null; renderAll(); msg('下書きを復元しました', 'ok'); }catch(e){ alert('復元できませんでした'); }
+};
+$('#newZone').onclick = () => setTool('rect');
+$('#undo').onclick = undo; $('#redo').onclick = doRedo; $('#fit').onclick = fitView;
+['fillA','modeCount','solo','names'].forEach(id => $('#' + id).addEventListener('input', render));
+$('#solo').addEventListener('change', render);
+$('#helpBtn').onclick = () => { const h = $('#help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; };
+$('#helpClose').onclick = () => { $('#help').style.display = 'none'; };
+
+/* ---------- 起動 ---------- */
+function sizeWorld(){ world.style.width = W + 'px'; world.style.height = H + 'px'; bg.style.width = W + 'px'; bg.style.height = H + 'px'; svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); }
+bg.onload = () => { W = bg.naturalWidth || W; H = bg.naturalHeight || H; sizeWorld(); fitView(); };
+bg.onerror = () => { msg('地図画像を読み込めませんでした（ネット接続を確認）。座標編集は画像なしでも可能です', 'warn'); sizeWorld(); fitView(); };
+window.addEventListener('resize', fitView);
+(function init(){
+  sizeWorld(); setTool('select'); updUndo();
+  bg.src = MM.imgUrl;
+  try{ if(localStorage.getItem('zoneEditorDraftRect')) $('#restoreDraft').style.display = ''; }catch(e){}
+  const b = $('#banner'); b.style.display = 'block';
+  b.innerHTML = '最初に <b>「data.js を開く」</b> でアプリの data.js を選んでください（既存のゾーンと場所タグ定義を読み込みます）。';
+  if(/^https?:/.test(location.protocol)) fetch('data.js').then(r => r.ok ? r.text() : Promise.reject()).then(t => loadDataJs(t, 'data.js')).catch(() => {});
+  renderAll();
+})();
+</script>
+</body>
+</html>
