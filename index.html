@@ -702,8 +702,8 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 960px;
-  height: 460px;
+  width: 1679px;
+  height: 937px;
   background-color: transparent;
   transform-origin: 0 0;
   will-change: transform;
@@ -719,7 +719,7 @@ html, body {
 
 .draggable-person {
   position: absolute;
-  width: 80px;
+  width: 140px;
   height: auto;
   cursor: grab;
   z-index: 100;
@@ -770,7 +770,7 @@ html, body {
 }
 
 @media (max-width: 768px) {
-  .draggable-person { width: 100px; }
+  .draggable-person { width: 175px; }
   .name-label { font-size: 12px; top: -8px; padding: 1px 8px; }
 }
 </style>
@@ -1816,8 +1816,8 @@ function fitMap() {
   const vh = mapViewport.clientHeight;
   
   // mapContainerの実サイズ（960x460）を使用
-  const mw = 960;
-  const mh = 460;
+const mw = MAP_META.w;
+const mh = MAP_META.h;
   
   if(vw === 0 || vh === 0) return;
 

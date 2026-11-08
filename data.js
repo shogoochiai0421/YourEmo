@@ -55,7 +55,7 @@ const PLACE_TAGS = {
    中央に収まる。ZONES の座標は「画像全体を 0〜1 に正規化した値」で持つので、
    地図領域のサイズを変えてもズレない。
      地図x = 画像左端x + 正規化x * 画像幅 (画像高さ = 地図の高さ、幅 = 高さ*imgAspect) */
-const MAP_META = {w:960, h:460, imgAspect:1679/937,
+const MAP_META = {w: 1679, h: 937, imgAspect:1679/937,
   imgUrl:"https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png"};
 
 /* ── げんき度 ──
@@ -768,24 +768,36 @@ const BUBBLES = [
    ============================================== */
 /* ZONES:START */
 const ZONES = [
-  {id:"yard", weight:1, tags:["outdoor", "active"], rect:[0.0275,0.2952,0.3571,0.8918]},
-  {id:"yard_play", weight:1, tags:["friends", "teacher", "move"], rect:[0.1168,0.3137,0.3709,0.5535]},
-  {id:"yard_garden", weight:1, tags:["nature", "calm"], rect:[0.0206,0.5166,0.1717,0.8672]},
-  {id:"yard_trike", weight:1, tags:["move", "active"], rect:[0.2473,0.738,0.3434,0.8758]},
-  {id:"room_nap", weight:1, tags:["indoor", "calm", "rest", "alone"], rect:[0.4245,0.2731,0.544,0.4084]},
-  {id:"toilet", weight:1, tags:["indoor", "alone"], rect:[0.546,0.2952,0.6216,0.3838]},
-  {id:"hall_piano", weight:1, tags:["indoor", "music"], rect:[0.6195,0.3014,0.8324,0.5018]},
-  {id:"office", weight:1, tags:["indoor", "teacher", "calm"], rect:[0.8393,0.3149,0.9684,0.4428]},
-  {id:"reception", weight:1, tags:["indoor", "teacher"], rect:[0.853,0.5412,0.9423,0.6642]},
-  {id:"entrance", weight:1, tags:["outdoor", "family"], rect:[0.8777,0.6888,0.9787,0.8881]},
-  {id:"block_area", weight:1, tags:["indoor", "build", "friends", "active"], rect:[0.3791,0.5314,0.5852,0.6913]},
-  {id:"soft_play", weight:1, tags:["indoor", "move", "active"], rect:[0.364,0.6704,0.5852,0.8635]},
-  {id:"block_box", weight:1, tags:["indoor", "build"], rect:[0.603,0.5929,0.6923,0.7159]},
-  {id:"craft_table", weight:1, tags:["indoor", "desk", "friends", "calm"], rect:[0.5989,0.7282,0.6937,0.8635]},
-  {id:"book_corner", weight:1, tags:["indoor", "book", "calm"], rect:[0.7294,0.6421,0.853,0.8512]}
+  {id:"z1",  weight:1, tags:["outdoor", "active"], rect:[0.0242, 0.2015, 0.3366, 0.8966]},
+  {id:"z2",  weight:1, tags:["outdoor", "active"], rect:[0.3366, 0.2015, 0.4045, 0.6546]},
+  {id:"z3",  weight:1, tags:["alone", "move"], rect:[0.1075, 0.3029, 0.2205, 0.5451]},
+  {id:"z4",  weight:1, tags:["teacher"], rect:[0.1892, 0.37, 0.2511, 0.5451]},
+  {id:"z5",  weight:1, tags:["friends", "teacher"], rect:[0.2205, 0.3426, 0.3939, 0.5671]},
+  {id:"z6",  weight:1, tags:["teacher"], rect:[0.2892, 0.2756, 0.3366, 0.4549]},
+  {id:"z7",  weight:1, tags:["alone", "friends", "move"], rect:[0.2961, 0.2154, 0.4183, 0.3426]},
+  {id:"z8",  weight:1, tags:["alone", "move"], rect:[0.2129, 0.2154, 0.3037, 0.4138]},
+  {id:"z9",  weight:1, tags:["nature"], rect:[0.0242, 0.5835, 0.2511, 0.8845]},
+  {id:"z10", weight:1, tags:["alone"], rect:[0.0487, 0.526, 0.3748, 0.8845]},
+  {id:"z11", weight:1, tags:["alone", "nature"], rect:[0.0846, 0.6177, 0.1617, 0.8298]},
+  {id:"z12", weight:1, tags:["indoor", "alone", "build", "desk"], rect:[0.3435, 0.667, 0.3939, 0.8966]},
+  {id:"z13", weight:1, tags:["alone", "build", "desk"], rect:[0.4045, 0.4398, 0.5672, 0.5451]},
+  {id:"z14", weight:1, tags:["alone", "friends", "build"], rect:[0.3877, 0.5082, 0.5863, 0.667]},
+  {id:"z15", weight:1, tags:["active", "alone", "friends", "build", "move"], rect:[0.3748, 0.6546, 0.5985, 0.8966]},
+  {id:"z16", weight:1, tags:["alone", "friends", "build"], rect:[0.5863, 0.5835, 0.7108, 0.7285]},
+  {id:"z17", weight:1, tags:["friends", "teacher", "desk", "rest"], rect:[0.5672, 0.7039, 0.7108, 0.8845]},
+  {id:"z18", weight:1, tags:["indoor", "calm"], rect:[0.3641, 0.5082, 0.865, 0.9078]},
+  {id:"z19", weight:1, tags:["calm", "alone", "desk", "book", "rest"], rect:[0.7108, 0.5671, 0.8757, 0.8845]},
+  {id:"z20", weight:1, tags:["indoor", "calm", "alone", "book", "rest"], rect:[0.4045, 0.1867, 0.5603, 0.4672]},
+  {id:"z21", weight:1, tags:["indoor", "active", "alone", "rest"], rect:[0.5451, 0.1867, 0.6405, 0.526]},
+  {id:"z22", weight:1, tags:["indoor", "active", "calm", "alone", "teacher", "rest", "move", "music"], rect:[0.6245, 0.1702, 0.836, 0.526]},
+  {id:"z23", weight:1, tags:["indoor", "active", "teacher", "rest"], rect:[0.8192, 0.1565, 0.9719, 0.5835]},
+  {id:"z24", weight:1, tags:["outdoor", "active", "alone", "teacher", "rest", "family"], rect:[0.8475, 0.526, 0.9956, 0.9201]},
+  {id:"z25", weight:1, tags:["active", "alone", "friends", "move"], rect:[0.2411, 0.7162, 0.3435, 0.8845]},
+  {id:"z26", weight:1, tags:["nature"], rect:[0.0242, 0.24, 0.1411, 0.8966]},
+  {id:"z27", weight:1, tags:["nature"], rect:[0.096, 0.2154, 0.2411, 0.3426]},
+  {id:"z28", weight:1, tags:["calm", "alone"], rect:[0.4183, 0.2154, 0.5451, 0.4398]}
 ];
 /* ZONES:END */
-
 
 
 /* ── きもちごとの見出し・説明・アイコン設定 ──
