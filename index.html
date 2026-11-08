@@ -231,7 +231,7 @@ html, body {
 .retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
 .next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
 .next-screen-btn:active { transform:scale(0.96); }
-.act-btns { flex-shrink:0; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.act-btns { flex-shrink:0; display:flex; gap:12px; align-items:center; justify-content:flex-start; flex-wrap:wrap; }
 .act-btns .retry-btn { margin:8px 0 12px; }
 .shuffle-btn { flex-shrink:0; margin:8px 0 12px; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:8px 22px; font-size:18px; font-weight:700; font-family:inherit; cursor:pointer; }
 .shuffle-btn:active { transform:scale(0.96); }
@@ -901,6 +901,7 @@ html, body {
   </div>
   <div class="bubble-grid" id="bscene"></div>
   <div class="act-btns">
+    <button class="retry-btn" onclick="goBackToResult()">←いっこ もどる</button>
     <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleBubbles()">↻ ほかのカードをみる</button>
     <button class="retry-btn" onclick="restart()">さいしょから</button>
   </div>
@@ -990,13 +991,13 @@ const Qs=[
     {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
     {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
     {ikey:"sickness",       l:"きもちわるい<br>あたまがいたい", v:"bad"},
-    {ikey:"normal",         l:"ふつうかな",           v:"normal"}
+    {ikey:"normal",         l:"ふつう",           v:"normal"}
   ]},
   {id:"wish",text:"いま したいことは？",opts:[
     {ikey:"playwith",       l:"あそびたい",           v:"play"},
     {ikey:"sleepy",         l:"ねむりたい",           v:"sleep"},
     {ikey:"talk",           l:"はなしたいことが<br>ある",  v:"talk"},
-    {ikey:"expressionless", l:"なにもしたくない",     v:"nothing"}
+    {ikey:"expressionless", l:"したいことはない",     v:"nothing"}
   ]}
 ];
 
@@ -1180,6 +1181,14 @@ function shuffleBubbles(){
   placeBubbles(chosenBubbles);
   DBG.update();
   setTimeout(() => { shuffleLock = false; }, (cssVar('--bubble-feed-ms') || 1200) + 400);
+}
+
+function goBackToResult(){
+  if(busy) return;
+  stopBubbleHint();
+  fadeOut(document.getElementById("actScreen"), () => {
+    fadeIn(document.getElementById("resultScreen"));
+  });
 }
 
 /* ══════════════════════════════════════════════
@@ -2167,6 +2176,7 @@ function derivePhysicalLevel(energyIdx, body){
 }
 
 function showResult(){
+  busy = false;
   const mt = ans.mood || "happy";
   const physicalLevel = derivePhysicalLevel(buildProfile(ans).energyIdx, ans.body);
   const key = mt + "_" + physicalLevel;
@@ -2259,6 +2269,14 @@ function showResult(){
   fadeIn(document.getElementById("resultScreen"));
 }
 
+function goBackToResult(){
+  if(busy) return;
+  stopBubbleHint();
+  fadeOut(document.getElementById("actScreen"), () => {
+    fadeIn(document.getElementById("resultScreen"));
+  });
+}
+
 function showActScreen(){
   document.getElementById("actTtl").textContent = document.getElementById("rttl").textContent;
 
@@ -2276,7 +2294,12 @@ function showActScreen(){
   }
   fadeOut(document.getElementById("resultScreen"),()=>{
     fadeIn(document.getElementById("actScreen"));
-    setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
+    // カードがまだ無ければ初回配置、既にあればヒントアニメだけ再開
+    if(document.querySelectorAll("#bscene .bubble").length === 0){
+      setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
+    } else {
+      startBubbleHint();
+    }
   });
 }
 
