@@ -68,12 +68,21 @@ const SCORE_CFG = {
   mood: 3,                          // きもちが合う
   body: 2,                          // からだが合う
   wish: 2,                          // したいことが合う
-  energyByDist: [2, 1, 0, -1, -2],  // げんき度のズレ(0〜4段階)ごとの加点。大きくズレたら減点
+  energyByDist: [2, 1, 0, -1, -2],  // 互換用（現在は連続関数を使用）
   placePerPoint: 1,                 // 場所タグ1点あたりの加点
   placeCap: 4,                      // 場所による加点の上限
   weightBase: 2,                    // 抽選の重み = weightBase ^ スコア
   minScore: 1,                      // 初回抽選の候補に入れる最低スコア
-  shufflePool: 30                   // シャッフル時に「スコア上位 何枚」から選ぶか
+  shufflePool: 30,                  // シャッフル時に「スコア上位 何枚」から選ぶか
+
+  /* ── 追加：スコアの細分化・正規化 ── */
+  moodBonus: 0.5,        // moodタグが複数ある場合の一致率ボーナス
+  bodyBonus: 0.5,        // bodyタグが複数ある場合の一致率ボーナス
+  wishBonus: 0.5,        // wishタグが複数ある場合の一致率ボーナス
+  wishNothingBonus: 0,   // 「なにもしたくない」選択時のwish加点（0で実質無効化）
+  energyWeight: 2.5,     // energyの最大加点
+  energyDecay: 1.2,      // energyの距離による減衰係数
+  placeNormalize: true,  // placeタグ数で加点を正規化する
 };
 
 /* ── 全特効薬バブルのデータ ──
@@ -706,6 +715,117 @@ const BUBBLES = [
    img:"act-paint.png",
    desc:"てのひらに ペンで ちいさなえを かいてみよう。",
    tags:{mood:["sad"], energy:["mid","low"], place:["calm","desk"], body:"fine", wish:"nothing"}},
+     /* ── ここから追加：子どものくらしに寄りそう遊びカード ── */
+  {t:"つみきをたかくつんでみる",
+   g:"気分転換",
+   img:"act-play-with-friends.png",
+   desc:"つみきを たかーく つみあげてみよう。どこまで たかく できるかな？",
+   tags:{mood:["happy","sad","anxious"], energy:["veryhigh","high","mid","low"], place:["indoor","build","calm"], body:"fine", wish:"play"}},
+  {t:"つみきでおうちやしろをつくってみる",
+   g:"落ち着き",
+   img:"act-play-with-friends.png",
+   desc:"つみきで おうちを つくってみよう。どんな おうちに すみたいかな？",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","build","calm"], body:"fine", wish:"play"}},
+  {t:"ブロックやレゴでなにかをつくってみる",
+   g:"気分転換",
+   img:"act-play-with-friends.png",
+   desc:"ブロックや レゴで、すきなものを つくってみよう。ロボットも くるまも おまかせ！",
+   tags:{mood:["happy","sad","anxious","angry"], energy:["veryhigh","high","mid"], place:["indoor","build"], body:"fine", wish:"play"}},
+  {t:"おままごとでごはんをつくってみる",
+   g:"人とつながる",
+   img:"act-play-with-dolls.png",
+   desc:"おままごとで、おいしそうな ごはんを つくってみよう。なにを つくろうかな？",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","friends","calm"], body:"fine", wish:["play","talk"]}},
+  {t:"ぬいぐるみとおままごとをする",
+   g:"気分転換",
+   img:"act-hug-stuffed-bear.png",
+   desc:"ぬいぐるみと いっしょに おままごと。ぬいぐるみは なにを たべたいかな？",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","alone","calm"], body:["fine","bad"], wish:"play"}},
+  {t:"おみせやさんごっこをする",
+   g:"人とつながる",
+   img:"act-play-with-friends.png",
+   desc:"「いらっしゃいませー！」おみせやさんごっこで、すきなものを うってみよう。",
+   tags:{mood:["happy","sad"], energy:["mid","low"], place:["indoor","friends"], body:"fine", wish:["play","talk"]}},
+  {t:"ヒーローごっこやプリンセスごっこをする",
+   g:"発散",
+   img:"act-witch.png",
+   desc:"すきな ヒーローや プリンセスに へんしん！ポーズを きめてみよう。",
+   tags:{mood:["happy","angry","anxious"], energy:["veryhigh","high","mid"], place:["active","friends"], body:"fine", wish:"play"}},
+  {t:"でんしゃごっこをする",
+   g:"気分転換",
+   img:"act-play-with-friends.png",
+   desc:"「がたんごとん がたんごとん」。でんしゃごっこで どこへ いこうかな？",
+   tags:{mood:["happy","anxious"], energy:["mid","high"], place:["active","friends","indoor"], body:"fine", wish:"play"}},
+  {t:"きょうりゅうごっこをする",
+   g:"発散",
+   img:"act-animals.png",
+   desc:"ガオー！きょうりゅうに へんしんして おおきな こえで あそんでみよう。",
+   tags:{mood:["happy","angry"], energy:["veryhigh","high"], place:["active","friends"], body:"fine", wish:"play"}},
+  {t:"かくれんぼをする",
+   g:"発散",
+   img:"act-play-with-friends.png",
+   desc:"「もういいかい？」「まーだだよ」。かくれんぼで かくれてみよう。",
+   tags:{mood:["happy","angry"], energy:["veryhigh","high"], place:["active","friends","move"], body:"fine", wish:"play"}},
+  {t:"おにごっこをする",
+   g:"発散",
+   img:"act-run-plain.png",
+   desc:"おにごっこで おもいきり はしろう！つかまらないように にげきれるかな？",
+   tags:{mood:["happy","angry"], energy:["veryhigh","high"], place:["outdoor","active","friends","move"], body:"fine", wish:"play"}},
+  {t:"すなばで どろだんごをつくる",
+   g:"気分転換",
+   img:"act-run-outside.png",
+   desc:"すなばで どろだんごを つくってみよう。つるつるに なるまで まるめるのが コツ！",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["outdoor","nature","active"], body:"fine", wish:"play"}},
+  {t:"しゃぼんだまをとばしてみる",
+   g:"気分転換",
+   img:"act-jump-happy.png",
+   desc:"しゃぼんだまを ふーって とばしてみよう。おおきな しゃぼんだま できるかな？",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["outdoor","nature","calm"], body:["fine","breath"], wish:"play"}},
+  {t:"ボールをついてみる",
+   g:"発散",
+   img:"act-play-with-friends.png",
+   desc:"ボールを ぽんぽん ついてみよう。なんかい つづけられるかな？",
+   tags:{mood:["happy","angry"], energy:["veryhigh","high","mid"], place:["active","friends"], body:"fine", wish:"play"}},
+  {t:"なわとびにちょうせんしてみる",
+   g:"発散",
+   img:"act-jump-happy.png",
+   desc:"なわとびで なんかい とべるかな？1、2、3...！",
+   tags:{mood:["happy","angry"], energy:["veryhigh","high"], place:["outdoor","active","move"], body:"fine", wish:"play"}},
+  {t:"すべりだいやブランコであそぶ",
+   g:"気分転換",
+   img:"act-jump-happy.png",
+   desc:"すべりだいは シューッ！ブランコは ゆらゆら。そとの あそびは たのしいね。",
+   tags:{mood:["happy","sad"], energy:["veryhigh","high","mid"], place:["outdoor","active","move"], body:"fine", wish:"play"}},
+  {t:"シールをぺたぺたはってみる",
+   g:"表現",
+   img:"act-play-with-dolls.png",
+   desc:"すきな シールを ぺたぺた。ノートに はって、シールの もようを つくってみよう。",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","desk","calm"], body:"fine", wish:"play"}},
+  {t:"ねんどでなにかをつくってみる",
+   g:"表現",
+   img:"act-paint.png",
+   desc:"ねんどを こねこね。なにを つくろうかな？ケーキ？どうぶつ？",
+   tags:{mood:["happy","sad","anxious","angry"], energy:["mid","low"], place:["indoor","desk"], body:"fine", wish:"play"}},
+  {t:"パズルをやってみる",
+   g:"落ち着き",
+   img:"act-thinking-chair.png",
+   desc:"パズルを ひとつずつ はめていこう。できあがったら うれしいね。",
+   tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","desk","calm"], body:"fine", wish:"nothing"}},
+  {t:"かみひこうきをとばしてみる",
+   g:"発散",
+   img:"act-rotate.png",
+   desc:"かみひこうきを つくって、そとで とばしてみよう。ふーっ！",
+   tags:{mood:["happy","angry","anxious"], energy:["high","mid"], place:["indoor","outdoor","desk"], body:["fine","breath"], wish:"play"}},
+  {t:"ふうせんをふくらませてとばしてみる",
+   g:"からだ",
+   img:"act-bukubuku.png",
+   desc:"ふうせんを ふーって ふくらませて、とばしてみよう。だれの ふうせんが いちばん とおくまで とぶかな？",
+   tags:{mood:["happy","angry","anxious"], energy:["high","mid"], place:["indoor","active"], body:["breath","fine"], wish:"play"}},
+  {t:"おうちのひとにぎゅーってしてもらう",
+   g:"人とつながる",
+   img:"act-stay-with-adult-2.png",
+   desc:"おうちのひとに「ぎゅーして！」って いってみよう。ぎゅーっと してもらうと あんしんするよ。",
+   tags:{mood:["sad","anxious","happy"], energy:["mid","low","verylow"], place:["family","calm"], body:["heart","bad","fine"], wish:["nothing","talk"]}},
 ];
 
 /* ==============================================

@@ -1065,7 +1065,12 @@ function buildProfile(a){
   const moodAny = !a.mood || a.mood === "normal";
   const bodyAny = !a.body || a.body === "normal";
   const pct = a.genkiPct != null ? a.genkiPct : (a.gauge != null ? genkiPctFromGauge(a.gauge) : 50);
-  const energyIdx = energyIdxFromPct(pct);
+  const rawEnergyIdx = energyIdxFromPct(pct);
+
+  // ★ 問題12：見出しと同じ「からだ補正後の段階」をカードのenergy評価にも使う
+  const physicalLevel = derivePhysicalLevel(rawEnergyIdx, a.body);
+  const energyIdx = ENERGY_LEVELS.indexOf(physicalLevel);
+
   return {
     moodSet: moodAny ? ALL_MOODS : [a.mood],
     bodySet: bodyAny ? ALL_BODIES : [a.body],
@@ -1079,19 +1084,54 @@ function scoreBubble(b, P){
   const C = SCORE_CFG, t = b.tags;
   const has = (v, set) => toArr(v).some(x => x !== "any" && set.includes(x));
   const parts = { mood:0, energy:0, body:0, wish:0, place:0 };
-  if(has(t.mood, P.moodSet)) parts.mood = C.mood;
-  if(has(t.body, P.bodySet)) parts.body = C.body;
-  if(has(t.wish, P.wishSet)) parts.wish = C.wish;
+
+  /* ── mood ── */
+  if(has(t.mood, P.moodSet)) {
+    const moodTags = toArr(t.mood);
+    const matched = moodTags.filter(x => P.moodSet.includes(x)).length;
+    parts.mood = C.mood + (moodTags.length > 1 ? C.moodBonus * (matched / moodTags.length) : 0);
+  }
+
+  /* ── body ── */
+  if(has(t.body, P.bodySet)) {
+    const bodyTags = toArr(t.body);
+    const matched = bodyTags.filter(x => P.bodySet.includes(x)).length;
+    parts.body = C.body + (bodyTags.length > 1 ? C.bodyBonus * (matched / bodyTags.length) : 0);
+  }
+
+  /* ── wish ── */
+  if(has(t.wish, P.wishSet)) {
+    const wishTags = toArr(t.wish);
+    const matched = wishTags.filter(x => P.wishSet.includes(x)).length;
+    // 「なにもしたくない」は加点を抑える（実質デフォルトタグ化を防ぐ）
+    const isNothing = P.wishSet.length === 1 && P.wishSet[0] === "nothing";
+    const base = isNothing ? C.wishNothingBonus : C.wish;
+    parts.wish = base + (wishTags.length > 1 ? C.wishBonus * (matched / wishTags.length) : 0);
+  }
+
+  /* ── energy（連続関数 + タグの広さに応じた減衰） ── */
   const es = toArr(t.energy).map(x => ENERGY_LEVELS.indexOf(x)).filter(i => i >= 0);
   if(es.length){
     const d = Math.min(...es.map(i => Math.abs(i - P.energyIdx)));
-    parts.energy = C.energyByDist[d] != null ? C.energyByDist[d] : 0;
+    // 距離0で最大、離れるほど減衰
+    let e = Math.max(0, C.energyWeight - d * C.energyDecay);
+    // タグが4段階以上にまたがる場合は「機械的に広く付けた」とみなして減衰
+    if(es.length >= 4) e *= 0.5;
+    else if(es.length === 3) e *= 0.8;
+    parts.energy = e;
   }
+
+  /* ── place（カードのplaceタグ数で正規化） ── */
   if(P.place){
+    const placeTags = toArr(t.place);
     let raw = 0;
-    toArr(t.place).forEach(tag => { raw += (P.place.tags[tag] || 0); });
+    placeTags.forEach(tag => { raw += (P.place.tags[tag] || 0); });
+    if(C.placeNormalize && placeTags.length > 0){
+      raw = raw / placeTags.length;   // ★ タグ数で割って平均化
+    }
     parts.place = Math.min(C.placeCap, raw * C.placePerPoint);
   }
+
   parts.total = parts.mood + parts.energy + parts.body + parts.wish + parts.place;
   return parts;
 }
@@ -1943,46 +1983,55 @@ function initLocationScreen() {
       }
     });
 
-    const finishViewportPointer = (e) => {
-      const wasSinglePointer = locPointers.size === 1;
-      const wasPanning = locIsPanning;
-      locPointers.delete(e.pointerId);
-      
-      if (locPointers.size === 1) {
-        const [id, p] = [...locPointers.entries()][0];
-        locPanStart = { x: p.x, y: p.y, mapX: locMapX, mapY: locMapY };
-        locPinchStart = null;
-        locIsPanning = true;
-        isPinching = false;
-      } else if (locPointers.size === 0) {
-        locPanStart = null;
-        locPinchStart = null;
-        locIsPanning = false;
-        isPinching = false;
-        
-        // ほとんど動かさず指を離した = タップ → その場所に人物の「足元」を置く
-        if (e.type === 'pointerup' && wasSinglePointer && wasPanning && !locHadMulti && locPanMovedDistance < 10) {
-          const rect = mapViewport.getBoundingClientRect();
-          const mapLocalX = (e.clientX - rect.left - locMapX) / locZoom;
-          const mapLocalY = (e.clientY - rect.top  - locMapY) / locZoom;
-          const w = personIcon.offsetWidth, h = personIcon.offsetHeight;
-          const left = Math.max(0, Math.min(mapLocalX - w / 2, 960 - w));
-          const top  = Math.max(0, Math.min(mapLocalY - h,     460 - h));
-          
-          personIcon.classList.remove('dragging');
-          personIcon.style.left = left + 'px';
-          personIcon.style.top  = top + 'px';
-          
-          locHasMoved = true;
-          if (locIsOutside) {
-            locIsOutside = false;
-            notHereBtn.classList.remove('selected');
-          }
-          DBG.onLocation();
+const finishViewportPointer = (e) => {
+  const wasSinglePointer = locPointers.size === 1;
+  const wasPanning = locIsPanning;
+  // pointerdown時の座標を保持（viewportPointで保存済み）
+  const startPoint = locPanStart ? { x: locPanStart.x, y: locPanStart.y } : null;
+  locPointers.delete(e.pointerId);
+
+  if (locPointers.size === 1) {
+    const [id, p] = [...locPointers.entries()][0];
+    locPanStart = { x: p.x, y: p.y, mapX: locMapX, mapY: locMapY };
+    locPinchStart = null;
+    locIsPanning = true;
+    isPinching = false;
+  } else if (locPointers.size === 0) {
+    locPanStart = null;
+    locPinchStart = null;
+    locIsPanning = false;
+    isPinching = false;
+
+    // ★ タップ判定：pointerdownとpointerupの距離が10px未満ならタップ扱い
+    if (e.type === 'pointerup' && wasSinglePointer && wasPanning && !locHadMulti) {
+      const endPoint = viewportPoint(e);
+      const dist = startPoint
+        ? Math.hypot(endPoint.x - startPoint.x, endPoint.y - startPoint.y)
+        : 0;
+
+      if (dist < 10) {
+        const rect = mapViewport.getBoundingClientRect();
+        const mapLocalX = (e.clientX - rect.left - locMapX) / locZoom;
+        const mapLocalY = (e.clientY - rect.top  - locMapY) / locZoom;
+        const w = personIcon.offsetWidth, h = personIcon.offsetHeight;
+        const left = Math.max(0, Math.min(mapLocalX - w / 2, 960 - w));
+        const top  = Math.max(0, Math.min(mapLocalY - h,     460 - h));
+
+        personIcon.classList.remove('dragging');
+        personIcon.style.left = left + 'px';
+        personIcon.style.top  = top + 'px';
+
+        locHasMoved = true;
+        if (locIsOutside) {
+          locIsOutside = false;
+          notHereBtn.classList.remove('selected');
         }
-        locPanMovedDistance = 0;
+        DBG.onLocation();
       }
-    };
+    }
+    locPanMovedDistance = 0;
+  }
+};
     
     mapViewport.addEventListener('pointerup', finishViewportPointer);
     mapViewport.addEventListener('pointercancel', finishViewportPointer);
