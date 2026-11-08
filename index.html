@@ -702,8 +702,8 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 1679px;
-  height: 937px;
+  width: 1679px;    /* 960px から変更 */
+  height: 937px;    /* 460px から変更 */
   background-color: transparent;
   transform-origin: 0 0;
   will-change: transform;
@@ -1815,9 +1815,9 @@ function fitMap() {
   const vw = mapViewport.clientWidth;
   const vh = mapViewport.clientHeight;
   
-  // mapContainerの実サイズ（960x460）を使用
-const mw = MAP_META.w;
-const mh = MAP_META.h;
+  // ★ ここを修正
+  const mw = MAP_META.w;
+  const mh = MAP_META.h;
   
   if(vw === 0 || vh === 0) return;
 
@@ -1883,8 +1883,8 @@ function initLocationScreen() {
     const clampMapPosition = (x, y) => {
       const vw = mapViewport.clientWidth;
       const vh = mapViewport.clientHeight;
-      const mw = 960 * locZoom;
-      const mh = 460 * locZoom;
+      const mw = MAP_META.w * locZoom;
+      const mh = MAP_META.h * locZoom;
       const padding = 50; 
       
       let minX, maxX, minY, maxY;
@@ -2021,8 +2021,9 @@ const finishViewportPointer = (e) => {
         const mapLocalX = (e.clientX - rect.left - locMapX) / locZoom;
         const mapLocalY = (e.clientY - rect.top  - locMapY) / locZoom;
         const w = personIcon.offsetWidth, h = personIcon.offsetHeight;
-        const left = Math.max(0, Math.min(mapLocalX - w / 2, 960 - w));
-        const top  = Math.max(0, Math.min(mapLocalY - h,     460 - h));
+        // ★ 960 - w / 460 - h → MAP_META.w - w / MAP_META.h - h に修正
+        const left = Math.max(0, Math.min(mapLocalX - w / 2, MAP_META.w - w));
+        const top  = Math.max(0, Math.min(mapLocalY - h,     MAP_META.h - h));
 
         personIcon.classList.remove('dragging');
         personIcon.style.left = left + 'px';
@@ -2080,8 +2081,9 @@ const finishViewportPointer = (e) => {
       let left = (p.x - locMapX) / locZoom - locPersonDrag.offsetX;
       let top = (p.y - locMapY) / locZoom - locPersonDrag.offsetY;
       
-      left = Math.max(0, Math.min(left, 960 - personIcon.offsetWidth));
-      top = Math.max(0, Math.min(top, 460 - personIcon.offsetHeight));
+      // ★ 960 - personIcon.offsetWidth / 460 - personIcon.offsetHeight を修正
+      left = Math.max(0, Math.min(left, MAP_META.w - personIcon.offsetWidth));
+      top = Math.max(0, Math.min(top, MAP_META.h - personIcon.offsetHeight));
       
       personIcon.style.left = left + 'px';
       personIcon.style.top = top + 'px';
@@ -2196,12 +2198,8 @@ function showResult(){
   
   if (ans.location && typeof ans.location === 'object') {
       const loc = ans.location;
-      // CSS変数からサイズを取得するのではなく、常に240px固定でスナップショットを生成する
-      // (拡大させたときに画質が落ちないよう、SIZEを大きくして縮小表示する)
       const SIZE = 240;
-      
       const ZOOM = 1.5; 
-      // 円の中心を人物の中心に合わせる
       const cx = loc.x + loc.w / 2;
       const cy = loc.y + loc.h / 2;
       
@@ -2214,7 +2212,7 @@ function showResult(){
       cce.innerHTML = `
         <div class="map-snapshot" style="width:${SIZE}px; height:${SIZE}px;">
           <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png" 
-               style="position:absolute; left:${bgX}px; top:${bgY}px; width:${960 * ZOOM}px; height:${460 * ZOOM}px; max-width:none; object-fit:contain;">
+               style="position:absolute; left:${bgX}px; top:${bgY}px; width:${MAP_META.w * ZOOM}px; height:${MAP_META.h * ZOOM}px; max-width:none; object-fit:contain;">
           <img src="https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/you.png" 
                style="position:absolute; left:${pX}px; top:${pY}px; width:${loc.w * ZOOM}px; height:auto; max-width:none;">
         </div>
