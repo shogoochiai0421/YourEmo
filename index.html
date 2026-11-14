@@ -39,6 +39,7 @@
 
 html, body {
   width:100%;
+  height:100vh;
   height:100dvh;
   overflow:hidden;
   background-color: rgb(255, 250, 241);
@@ -48,6 +49,7 @@ html, body {
   font-family:'M PLUS Rounded 1c',sans-serif;
   font-weight:700;
   width:100%;
+  height:100vh;
   height:100dvh;
   display:flex; flex-direction:column;
   color:#53433a;
@@ -772,6 +774,122 @@ html, body {
 @media (max-width: 768px) {
   .draggable-person { width: 175px; }
   .name-label { font-size: 12px; top: -8px; padding: 1px 8px; }
+}
+
+/* =====================================================
+   ★ レスポンシブ調整（2026-11-15 追加）★
+   ・ブラウザのタブバー/アドレスバーで変わる表示領域に追従
+     （100dvh + セーフエリア）
+   ・高さの低い画面（横向きスマホ・低 height のPC等）では
+     要素そのものは変えず、サイズだけを段階的に縮小する
+   ・詳細画面は縦スクロール可能にして上端の見切れを防ぐ
+   ===================================================== */
+
+/* セーフエリア（ノッチ・ホームバー・ブラウザUI）を避ける */
+#app .screen {
+  padding-left:  max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.header-text { bottom: max(20px, env(safe-area-inset-bottom)); }
+.footer-text { bottom: max(20px, env(safe-area-inset-bottom)); }
+
+/* 詳細画面：カードが画面より高い端末でも上から読めるように */
+#detailScreen { overflow-y: auto; }
+
+/* ── 中くらいの高さ（〜640px）：全体を一段コンパクトに ── */
+@media (max-height: 640px) {
+  :root {
+    --center-img-size: clamp(100px, 30vh, 170px);
+    --detail-img-size: 210px;
+  }
+  /* メーター */
+  .gauge-track-wrap { height: clamp(140px, 32vh, 220px); }
+  .gauge-fixed-face { width: 44px; height: 44px; }
+  .gauge-thumb { right: -170px; width: 170px; height: 116px; }
+  .gauge-thumb-bg { width: 116px; height: 116px; }
+  .gauge-thumb img.face-img { width: 100px; height: 100px; }
+  .gauge-arrow { border-top-width: 16px; border-bottom-width: 16px; border-right-width: 20px; }
+  .gauge-drag-area { right: -200px; }
+  #gaugeScreen .q-text { margin-bottom: 8px; }
+  /* カード一覧 */
+  .bubble-img { width: min(100%, 88px); }
+  /* 結果画面は上端が見切れないよう上寄せ */
+  #resultScreen { justify-content: flex-start; }
+  #quizScreen { padding-top: 14px; }
+}
+
+/* ── 低い画面（〜480px）：横向きスマホ等 ── */
+@media (max-height: 480px) {
+  :root {
+    --center-img-size: clamp(84px, 28vh, 130px);
+    --detail-img-size: 150px;
+    --detail-ttl-size: 22px;
+    --detail-desc-size: 16px;
+  }
+  /* スタート画面 */
+  #startScreen { padding-top: 8px; }
+  .big-img { width: clamp(64px, 20vh, 110px); height: clamp(64px, 20vh, 110px); margin-bottom: 4px; }
+  .ttl { font-size: 24px; margin-bottom: 6px; }
+  .sub { font-size: 14px; margin-bottom: 8px; }
+  .name-pick-row { margin-bottom: 10px; }
+  .name-select { font-size: 16px; padding: 8px 18px; }
+  .name-add-btn { width: 42px; height: 42px; font-size: 26px; }
+  .start-btn { font-size: 17px; padding: 10px 28px; }
+  /* 質問画面 */
+  #quizScreen { padding-top: 10px; }
+  .q-text { font-size: clamp(17px, 4.5vh, 22px); margin-bottom: 6px; }
+  .opt { padding: 6px 10px; font-size: 13px; }
+  .opt .oi { min-height: 0; }
+  .opt .oi img { width: clamp(34px, 11vh, 56px); height: clamp(34px, 11vh, 56px); }
+  .pbar-wrap { margin-bottom: 8px; }
+  .opts.opts-5 .opt .oi img { width: clamp(36px, 10vh, 52px); height: clamp(36px, 10vh, 52px); }
+  .back-btn { margin-top: 6px; font-size: 15px; }
+  /* メーター */
+  #gaugeScreen { padding-top: 8px; }
+  .gauge-track-wrap { width: 96px; height: clamp(96px, 26vh, 140px); }
+  .gauge-fixed-face { width: 30px; height: 30px; }
+  .gauge-label-top { margin-bottom: 2px; }
+  .gauge-label-bottom { margin-top: 2px; }
+  .gauge-thumb { right: -120px; width: 120px; height: 80px; }
+  .gauge-thumb-bg { width: 80px; height: 80px; border-width: 2px; }
+  .gauge-thumb img.face-img { width: 70px; height: 70px; }
+  .gauge-arrow { border-top-width: 12px; border-bottom-width: 12px; border-right-width: 16px; margin-right: 4px; }
+  .gauge-drag-area { right: -140px; left: -30px; }
+  .gauge-label-top, .gauge-label-bottom { font-size: 12px; }
+  .gauge-container { gap: 4px; margin-top: 4px; }
+  .next-screen-btn { font-size: 18px; padding: 8px 24px; margin-top: 4px; }
+  /* 結果画面 */
+  #resultScreen { gap: 8px; padding-top: 8px; }
+  .res-ttl { font-size: clamp(16px, 4vh, 24px); }
+  /* カード一覧 */
+  .act-top { padding: 4px 0 2px; }
+  .act-ttl { font-size: 17px; }
+  .act-desc { font-size: 11px; }
+  .bubble-grid { gap: 8px; padding: 4px; }
+  .bubble { padding: 8px 6px; font-size: 12.5px; gap: 5px; }
+  .bubble-img { width: min(100%, 60px); }
+  .act-btns .retry-btn, .shuffle-btn { margin: 4px 0 6px; }
+  /* 詳細画面 */
+  #detailScreen { justify-content: flex-start; padding-top: 10px; }
+  .detail-card-img-wrap { min-height: 0; padding-top: 8px; }
+  .detail-img { width: clamp(90px, 26vh, 150px); height: clamp(90px, 26vh, 150px); }
+  .detail-card-body { padding: 8px 18px 22px; }
+  /* 場所画面 */
+  .instruction { font-size: 12px; margin-top: 4px; }
+}
+
+/* ── 横向き・幅広で低い画面では質問の選択肢を横に広げる ── */
+@media (max-height: 480px) and (min-width: 700px) {
+  .opts { max-width: 720px; }
+}
+
+/* カードの上下余白を少し詰める（行高を安定させ、収まりを良くする） */
+.bubble { padding-top: clamp(8px, 1.6vh, 13px); padding-bottom: clamp(8px, 1.6vh, 13px); }
+
+/* ── 小さいスマホ幅ではカード画像を少し小さく（枚数計算と対応） ── */
+@media (max-width: 768px) {
+  .bubble-img { width: min(100%, 88px); }
 }
 </style>
 
@@ -2238,8 +2356,8 @@ function showResult(){
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
   
-  // カード枚数の調整: タブレット/PCなら12個、スマホなら9個
-  const bubbleCount = window.matchMedia("(max-width: 768px)").matches ? 9 : 12;
+  // カード枚数の調整: 画面サイズからグリッドに収まる枚数を計算する
+  const bubbleCount = computeBubbleCount();
   chosenBubbles = selectBubbles(ans, bubbleCount);
   sendResult();
 
@@ -2455,6 +2573,38 @@ function restart(){
   document.getElementById("detailScreen").style.background="";
   fadeOut(current,()=>{ cur=0;ans={}; fadeIn(document.getElementById("startScreen")); });
 }
+</script>
+
+<script>
+/* =====================================================
+   レスポンシブ調整用ユーティリティ（2026-11-15 追加）
+   ===================================================== */
+/* 結果カードの枚数：グリッド領域に収まる「列数 × 行数」を画面サイズから計算する。
+   列幅・行高はCSS側のカードサイズ（画像＋文字＋余白）と対応させている。 */
+function computeBubbleCount(){
+  const w = window.innerWidth, h = window.innerHeight;
+  const compact = w <= 768;          // スマホ・小タブレット幅
+  const short   = h <= 480;          // 横向きスマホ等の低い画面
+  const minCol  = compact ? 140 : 180;
+  const gap     = compact ? 10 : 16;
+  const gridW   = Math.min(w - 32, 960) - (compact ? 10 : 20);
+  const cols    = Math.max(1, Math.floor((gridW + gap) / (minCol + gap)));
+  const chromeH = short ? 130 : compact ? 210 : 150;       // 見出し＋ボタン類の高さ
+  const rowPitch = short ? (128 + gap) : compact ? (156 + gap) : (190 + gap);
+  const rows    = Math.max(1, Math.floor((h - chromeH + gap) / rowPitch));
+  return Math.max(4, Math.min(12, cols * rows));
+}
+
+/* 起動保険：画像やフォントの読み込みが遅い環境で window の load が
+   遅れても、スタート画面が真っ白なままにならないようにする */
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const s = document.getElementById('startScreen');
+    if (s && s.classList.contains('active') && !s.classList.contains('visible')) {
+      try { fadeIn(s); } catch (e) {}
+    }
+  }, 3000);
+});
 </script>
 </body>
 </html>
