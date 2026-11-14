@@ -986,7 +986,7 @@ const Qs=[
   ]},
   {id:"gauge",text:"いまのげんきさをおしえてね",opts:[]},
   {id:"location",text:"いまどこにいたい？",opts:[]}, // 以前の social の位置
-  {id:"body",text:"からだは どんなかんじ？",opts:[
+  {id:"body",text:"たいちょうは どんなかんじ？",opts:[
     {ikey:"happy",          l:"げんき",               v:"fine"},
     {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
     {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
@@ -1081,32 +1081,24 @@ function buildProfile(a){
 
 function scoreBubble(b, P){
   const C = SCORE_CFG, t = b.tags;
-  const has = (v, set) => toArr(v).some(x => x !== "any" && set.includes(x));
+  /* タグ一致の採点: 基本点 + ボーナス×(一致数/タグ数)
+     ・"any" は分母に数えない
+     ・タグが1つでも同じ式を使う(旧実装は複数タグのときだけボーナスが付き、複数タグのカードが有利だった)
+     ・「ふつう」(全選択肢扱い)のときは全カードが比率1になり、タグ数による有利不利は出ない */
   const parts = { mood:0, energy:0, body:0, wish:0, place:0 };
+  const tagScore = (tagVal, set, base, bonus) => {
+    const tags = toArr(tagVal).filter(x => x !== "any");
+    if(!tags.length) return 0;
+    const matched = tags.filter(x => set.includes(x)).length;
+    if(!matched) return 0;
+    return base + (bonus || 0) * (matched / tags.length);
+  };
 
-  /* ── mood ── */
-  if(has(t.mood, P.moodSet)) {
-    const moodTags = toArr(t.mood);
-    const matched = moodTags.filter(x => P.moodSet.includes(x)).length;
-    parts.mood = C.mood + (moodTags.length > 1 ? C.moodBonus * (matched / moodTags.length) : 0);
-  }
-
-  /* ── body ── */
-  if(has(t.body, P.bodySet)) {
-    const bodyTags = toArr(t.body);
-    const matched = bodyTags.filter(x => P.bodySet.includes(x)).length;
-    parts.body = C.body + (bodyTags.length > 1 ? C.bodyBonus * (matched / bodyTags.length) : 0);
-  }
-
-  /* ── wish ── */
-  if(has(t.wish, P.wishSet)) {
-    const wishTags = toArr(t.wish);
-    const matched = wishTags.filter(x => P.wishSet.includes(x)).length;
-    // 「なにもしたくない」は加点を抑える（実質デフォルトタグ化を防ぐ）
-    const isNothing = P.wishSet.length === 1 && P.wishSet[0] === "nothing";
-    const base = isNothing ? C.wishNothingBonus : C.wish;
-    parts.wish = base + (wishTags.length > 1 ? C.wishBonus * (matched / wishTags.length) : 0);
-  }
+  parts.mood = tagScore(t.mood, P.moodSet, C.mood, C.moodBonus);
+  parts.body = tagScore(t.body, P.bodySet, C.body, C.bodyBonus);
+  // 「なにもしたくない」は加点を抑える（実質デフォルトタグ化を防ぐ）
+  const isNothing = P.wishSet.length === 1 && P.wishSet[0] === "nothing";
+  parts.wish = tagScore(t.wish, P.wishSet, isNothing ? C.wishNothingBonus : C.wish, C.wishBonus);
 
   /* ── energy（連続関数 + タグの広さに応じた減衰） ── */
   const es = toArr(t.energy).map(x => ENERGY_LEVELS.indexOf(x)).filter(i => i >= 0);
@@ -1576,7 +1568,7 @@ function goBack(){
       fadeIn(document.getElementById("quizScreen"));
     });
   } else if (currentQ === "location") {
-    delete ans["location"]; delete ans["place"];
+    delete ans["location"]; delete ans["place"]; delete ans["locationStatus"];
     cur--;
     if (prevQ === "gauge") {
       fadeOut(document.getElementById("locationScreen"), () => {
@@ -2136,6 +2128,11 @@ function submitLocation() {
   
   if (locIsOutside) {
     ans.location = "outside";
+    ans.locationStatus = "outside_btn";
+  } else if (!locHasMoved) {
+    // 人物を動かしていない: 初期位置は本人の選択ではないので、場所として扱わない
+    ans.location = null;
+    ans.locationStatus = "unmoved";
   } else {
     const left = parseFloat(personIcon.style.left) || 0;
     const top = parseFloat(personIcon.style.top) || 0;
@@ -2150,6 +2147,9 @@ function submitLocation() {
   if (!locIsOutside && locHasMoved) {
     const pp = placeProfileAt(footOf(ans.location));
     if (pp.hits.length) ans.place = pp;
+  }
+  if (ans.location && typeof ans.location === "object") {
+    ans.locationStatus = ans.place ? "zone" : "outside_zone";
   }
   
   fadeOut(document.getElementById("locationScreen"), () => {
@@ -2180,7 +2180,8 @@ function derivePhysicalLevel(energyIdx, body){
 function showResult(){
   busy = false;
   const mt = ans.mood || "happy";
-  const physicalLevel = derivePhysicalLevel(buildProfile(ans).energyIdx, ans.body);
+  // buildProfile 内で からだ補正済み。ここで再度 derivePhysicalLevel を通さない(二重加算の防止)
+  const physicalLevel = buildProfile(ans).energy;
   const key = mt + "_" + physicalLevel;
   let d = MD[key];
   if(!d){
@@ -2245,16 +2246,21 @@ function showResult(){
   const histUser = getSelectedUser();
   if(histUser){
     const HIST_KEY = "kimochi_history";
+    const HIST_MAX = 500;   // 無制限に増えないよう古い順に切り捨てる
     let hist = [];
     try{ hist = JSON.parse(localStorage.getItem(HIST_KEY)||"[]"); }catch(e){}
+    if(!Array.isArray(hist)) hist = [];
     hist.push({
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
       ans:    { mood:ans.mood, body:ans.body, wish:ans.wish, gauge:ans.gauge, genkiPct:ans.genkiPct, energy:lastProfile && lastProfile.energy,
-                location:ans.location, zones:ans.place ? ans.place.hits.map(h => h.id) : [], placeTags:ans.place ? ans.place.tags : null }
+                location:ans.location, locationStatus:ans.locationStatus || null, zones:ans.place ? ans.place.hits.map(h => h.id) : [], placeTags:ans.place ? ans.place.tags : null }
     });
-    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+    if(hist.length > HIST_MAX) hist = hist.slice(-HIST_MAX);
+    // 保存に失敗(容量超過/プライベートモード等)しても結果画面は必ず表示する
+    try{ localStorage.setItem(HIST_KEY, JSON.stringify(hist)); }
+    catch(e){ console.warn("[きもちチェック] 履歴を保存できませんでした:", e); }
   }
   const resUser = getSelectedUser();
   const resLabel = document.getElementById("resultNameLabel");
@@ -2388,6 +2394,7 @@ function toggleLike(){
     const LIKES_KEY = "kimochi_likes";
     let likes = {};
     try{ likes = JSON.parse(localStorage.getItem(LIKES_KEY)||"{}"); }catch(e){}
+    if(!likes || typeof likes !== "object" || Array.isArray(likes)) likes = {};
     if(!likes[likeUser.id]) likes[likeUser.id] = [];
     const already = likes[likeUser.id].some(x => x.title === currentDetailItem.t);
     if(!already){
@@ -2397,7 +2404,9 @@ function toggleLike(){
         img:   currentDetailItem.img|| "",
         desc:  currentDetailItem.desc|| ""
       });
-      localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+      // 保存に失敗してもサーバー送信は続ける
+      try{ localStorage.setItem(LIKES_KEY, JSON.stringify(likes)); }
+      catch(e){ console.warn("[きもちチェック] いいねを保存できませんでした:", e); }
     }
   }
 
