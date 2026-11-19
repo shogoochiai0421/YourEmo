@@ -235,6 +235,27 @@ html, body {
 .bg-neg2 { background: #f8c8b8; color: #2e2c2c; }
 .bg-blue { background: #c8e8f8; color: #2e2c2c; }
 
+/* ══ いたい場所の吹き出し ══ */
+.cell-place { cursor: pointer; text-decoration: underline dotted #b08a4a; text-underline-offset: 3px; }
+.cell-place:hover, .cell-place:focus-visible { background: #fff1c9; outline: none; }
+#placeBubble {
+  position: fixed; z-index: 4000; display: none;
+  background: #fffaf0; border: 2px solid #d4a855; border-radius: 14px;
+  padding: 8px 8px 6px; box-shadow: 0 6px 18px rgba(80,50,10,.28);
+}
+#placeBubble.show { display: block; }
+#placeBubble .pb-map { position: relative; width: 100%; aspect-ratio: 1679 / 937; overflow: hidden; border-radius: 8px; background: #eee; }
+#placeBubble .pb-bg  { width: 100%; height: 100%; display: block; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+#placeBubble .pb-you { position: absolute; height: auto; transform: translate(-50%, -100%); pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+#placeBubble .pb-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #e8452e; border: 2px solid #fff; box-shadow: 0 0 0 2px rgba(232,69,46,.45); pointer-events: none; }
+#placeBubble .pb-cap { margin-top: 5px; font-size: 11px; font-weight: 700; color: #7a6040; text-align: center; }
+#placeBubble .pb-arrow {
+  position: absolute; width: 14px; height: 14px; background: #fffaf0;
+  border: 2px solid #d4a855; transform: translateX(-50%) rotate(45deg);
+}
+#placeBubble.above .pb-arrow { bottom: -9px; border-top: none; border-left: none; }
+#placeBubble.below .pb-arrow { top: -9px;  border-bottom: none; border-right: none; }
+
 /* ══ いいね画面 ══ */
 #likes-screen {
   position: fixed;
@@ -432,24 +453,21 @@ const DEF = {
     sad:     { t:"かなしいきもち",       bg:"neg2" },
     angry:   { t:"いらいらする",         bg:"neg2" },
     anxious: { t:"なんだかこわいきもち", bg:"neg1" },
+    normal:  { t:"ふつう",               bg:"neu"  },
   },
   energy: {
-    high:    { t:"げんきいっぱい",       bg:"pos2" },
+    veryhigh:{ t:"げんきいっぱい",       bg:"pos2" },
+    high:    { t:"げんき",               bg:"pos2" },
     mid:     { t:"ふつうかな",           bg:"pos1" },
     low:     { t:"つかれたな",           bg:"neg1" },
     verylow: { t:"ぐったり…",           bg:"neg2" },
-  },
-  social: {
-    social:  { t:"いっしょにいたい",     bg:"pos1" },
-    alone:   { t:"ひとりがいいな",       bg:"neu"  },
-    neutral: { t:"どちらでも",           bg:"neu"  },
-    unsure:  { t:"わからない",           bg:"neg1" },
   },
   body: {
     fine:    { t:"げんき",              bg:"pos2" },
     heart:   { t:"ドキドキしてる",      bg:"neg2" },
     breath:  { t:"いきぐるしい",        bg:"neg2" },
     bad:     { t:"きもちわるい",        bg:"neg2" },
+    normal:  { t:"ふつう",              bg:"neu"  },
   },
   wish: {
     play:    { t:"あそびたい",          bg:"pos2" },
@@ -460,8 +478,90 @@ const DEF = {
 };
 
 
-const KEYS  = ["mood","energy","social","body","wish"];
-const HEADS = ["気持ち","元気度","社交性","体調","したいこと"];
+/* 列の並びは質問の順番(体調 → 気持ち → げんき度 → いたい場所 → したいこと) */
+const KEYS  = ["body","mood","energy","place","wish"];
+const HEADS = ["体調","気持ち","元気度","いたい場所","したいこと"];
+
+/* ══ いたい場所(座標) ══
+   index.html が ans.placeXY = {x,y,w} を記録する(地図画像を 0〜1 に正規化。x=左→右, y=上→下,
+   w=人物の幅/地図画像の幅)。v2 の旧記録(ans.location に地図上のピクセル値)も同じ形に直して読む。 */
+const MAP_URL = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png";
+const YOU_URL = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/you.png";
+const MAP_W = 1679, MAP_H = 937;     // index.html の MAP_META と同じ
+
+function placeCoord(ans){
+  if(!ans) return null;
+  const p = ans.placeXY;
+  if(p && isFinite(p.x) && isFinite(p.y)) return { x:p.x, y:p.y, w:(isFinite(p.w) && p.w > 0) ? p.w : 0.09 };
+  const l = ans.location;               // 旧形式(地図上のピクセル値)
+  if(l && typeof l === "object" && isFinite(l.x) && isFinite(l.y) && l.w > 0)
+    return { x:(l.x + l.w/2)/MAP_W, y:(l.y + l.h)/MAP_H, w:l.w/MAP_W };
+  return null;
+}
+/* 座標が無いとき(選ばなかった/「このなかにはない」)の表示 */
+function placeNoCoordText(ans){
+  const st = ans && ans.locationStatus;
+  if(st === "outside_btn") return "このなかにはない";
+  if(st === "unmoved")     return "えらばなかった";
+  return "－";
+}
+const pct = n => Math.round(Math.max(0, Math.min(1, n)) * 100);
+
+/* ── 吹き出し(マウスオーバー / クリック / タップで、実際の場所+人物を表示) ── */
+const placeBubble = (() => {
+  const el = document.createElement("div");
+  el.id = "placeBubble";
+  el.innerHTML = '<div class="pb-map"><img class="pb-bg" alt="" draggable="false"><span class="pb-dot"></span><img class="pb-you" alt="" draggable="false"></div><div class="pb-cap"></div><span class="pb-arrow"></span>';
+  document.body.appendChild(el);
+  el.addEventListener("click", e => e.stopPropagation());
+  const bg = el.querySelector(".pb-bg"), you = el.querySelector(".pb-you"), dot = el.querySelector(".pb-dot"),
+        cap = el.querySelector(".pb-cap"), arrow = el.querySelector(".pb-arrow");
+  bg.src = MAP_URL; you.src = YOU_URL;
+  let owner = null, pinned = false;
+  const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  function hide(){ el.classList.remove("show"); owner = null; pinned = false; }
+  function show(cell, c){
+    owner = cell;
+    const x = Math.max(0, Math.min(1, c.x)), y = Math.max(0, Math.min(1, c.y));
+    you.style.left = (x * 100) + "%"; you.style.top = (y * 100) + "%";
+    you.style.width = "max(" + (c.w * 100) + "%, 34px)";
+    dot.style.left = (x * 100) + "%"; dot.style.top = (y * 100) + "%";
+    cap.textContent = "地図の中の いた場所  (よこ " + pct(c.x) + "・たて " + pct(c.y) + ")";
+    el.classList.add("show");
+    /* 位置: セルの上(入らなければ下)に出して、画面の左右からはみ出さないようにする */
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    const W = Math.min(340, vw - 16);
+    el.style.width = W + "px";
+    const r = cell.getBoundingClientRect(), H = el.offsetHeight, gap = 12;
+    const above = r.top - H - gap >= 8 || r.bottom + H + gap > vh;
+    const left = Math.max(8, Math.min(vw - W - 8, r.left + r.width / 2 - W / 2));
+    el.style.left = left + "px";
+    el.style.top  = (above ? Math.max(8, r.top - H - gap) : r.bottom + gap) + "px";
+    el.classList.toggle("above", above); el.classList.toggle("below", !above);
+    arrow.style.left = Math.max(14, Math.min(W - 14, r.left + r.width / 2 - left)) + "px";
+  }
+  function attach(cell, c){
+    cell.classList.add("cell-place");
+    cell.tabIndex = 0; cell.setAttribute("role", "button");
+    cell.setAttribute("aria-label", "いた場所を見る");
+    cell.addEventListener("mouseenter", () => { if(canHover()){ pinned = false; show(cell, c); } });
+    cell.addEventListener("mouseleave", () => { if(canHover() && !pinned) hide(); });
+    cell.addEventListener("click", e => {
+      e.stopPropagation();
+      if(owner === cell && pinned){ hide(); } else { show(cell, c); pinned = true; }
+    });
+    cell.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); cell.click(); }
+    });
+  }
+  document.addEventListener("click", hide);
+  document.addEventListener("keydown", e => { if(e.key === "Escape") hide(); });
+  window.addEventListener("scroll", hide, true);
+  window.addEventListener("resize", hide);
+  return { attach, hide };
+})();
+
 const ROW_H = 38;
 
 const pad     = n => String(n).padStart(2,"0");
@@ -824,10 +924,23 @@ function buildKidBlock(nameId, name, recs){
       KEYS.forEach(key=>{
         const cell = document.createElement("div");
         cell.className = "cell";
+        if(key === "place"){
+          const c = placeCoord(rec.ans);
+          cell.classList.add("bg-neu");
+          if(c){
+            cell.textContent = "(" + pct(c.x) + ", " + pct(c.y) + ")";
+            cell.title = "地図の左上を(0, 0)、右下を(100, 100)としたときの足元の位置";
+            placeBubble.attach(cell, c);
+          } else {
+            cell.textContent = placeNoCoordText(rec.ans);
+          }
+          row.appendChild(cell);
+          return;
+        }
         const val = rec.ans?.[key];
         const def = DEF[key]?.[val];
         if(def){ cell.textContent=def.t; cell.classList.add("bg-"+def.bg); }
-        else   { cell.textContent=val||"－"; cell.classList.add("bg-neu"); }
+        else   { if(val) console.warn("[履歴] 表示名が未定義の値:", key, val); cell.textContent="－"; cell.classList.add("bg-neu"); }
         row.appendChild(cell);
       });
 

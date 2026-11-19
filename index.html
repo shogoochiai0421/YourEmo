@@ -1095,6 +1095,13 @@ for(let i=1; i<=16; i++){
 }
 
 const Qs=[
+  {id:"body",text:"たいちょうは どんなかんじ？",opts:[
+    {ikey:"happy",          l:"げんき",               v:"fine"},
+    {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
+    {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
+    {ikey:"sickness",       l:"きもちわるい<br>あたまがいたい", v:"bad"},
+    {ikey:"normal",         l:"ふつう",           v:"normal"}
+  ]},
   {id:"mood",text:"いまの きもちは どれかな？",opts:[
     {ikey:"smile",          l:"たのしいきもち",       v:"happy"},
     {ikey:"cry",            l:"かなしいきもち",       v:"sad"},
@@ -1103,14 +1110,7 @@ const Qs=[
     {ikey:"normal",         l:"ふつう",           v:"normal"}
   ]},
   {id:"gauge",text:"いまのげんきさをおしえてね",opts:[]},
-  {id:"location",text:"いまどこにいたい？",opts:[]}, // 以前の social の位置
-  {id:"body",text:"たいちょうは どんなかんじ？",opts:[
-    {ikey:"happy",          l:"げんき",               v:"fine"},
-    {ikey:"palpitations",   l:"ドキドキしてる",       v:"heart"},
-    {ikey:"stuffy",         l:"いきぐるしい",         v:"breath"},
-    {ikey:"sickness",       l:"きもちわるい<br>あたまがいたい", v:"bad"},
-    {ikey:"normal",         l:"ふつう",           v:"normal"}
-  ]},
+  {id:"location",text:"いまどこにいたい？",opts:[]},
   {id:"wish",text:"いま したいことは？",opts:[
     {ikey:"playwith",       l:"あそびたい",           v:"play"},
     {ikey:"sleepy",         l:"ねむりたい",           v:"sleep"},
@@ -1678,37 +1678,24 @@ function goBack(){
   const currentQ = Qs[cur].id;
   const prevQ = Qs[cur-1].id;
 
-  if (currentQ === "gauge") {
-    delete ans["gauge"]; delete ans["genkiPct"];
-    cur--;
-    fadeOut(document.getElementById("gaugeScreen"), () => {
-      renderQ();
-      fadeIn(document.getElementById("quizScreen"));
-    });
-  } else if (currentQ === "location") {
-    delete ans["location"]; delete ans["place"]; delete ans["locationStatus"];
-    cur--;
-    if (prevQ === "gauge") {
-      fadeOut(document.getElementById("locationScreen"), () => {
-        initGaugeScreen();
-        fadeIn(document.getElementById("gaugeScreen"));
-      });
-    }
-  } else if (currentQ === "body") {
-    delete ans["body"];
-    cur--;
-    if (prevQ === "location") {
-      fadeOut(document.getElementById("quizScreen"), () => {
-        initLocationScreen();
-        fadeIn(document.getElementById("locationScreen"));
-      });
-    }
-  } else if (currentQ === "wish") {
-    delete ans["wish"];
-    cur--;
-    fadeContent(()=>renderQ());
+  /* いまの質問の回答を消す */
+  if (currentQ === "gauge") { delete ans["gauge"]; delete ans["genkiPct"]; }
+  else if (currentQ === "location") { delete ans["location"]; delete ans["place"]; delete ans["locationStatus"]; }
+  else { delete ans[currentQ]; }
+  cur--;
+
+  /* 画面の種類: gauge / location は専用画面、それ以外は共通の quizScreen */
+  const screenOf = id => document.getElementById(id === "gauge" ? "gaugeScreen" : id === "location" ? "locationScreen" : "quizScreen");
+  const showPrev = () => {
+    if (prevQ === "gauge")         { initGaugeScreen();    fadeIn(screenOf("gauge")); }
+    else if (prevQ === "location") { initLocationScreen(); fadeIn(screenOf("location")); }
+    else                           { renderQ();            fadeIn(screenOf(prevQ)); }
+  };
+
+  if (screenOf(currentQ) === screenOf(prevQ) && screenOf(prevQ).id === "quizScreen") {
+    fadeContent(() => renderQ());                 // 通常質問 → 通常質問
   } else {
-    busy = false;
+    fadeOut(screenOf(currentQ), showPrev);
   }
 }
 
@@ -1759,7 +1746,7 @@ function selectOpt(qId,val,btn,optsContainer){
 function initGaugeScreen(){
   busy = false;
 
-  document.getElementById("gaugePbar").style.width = (1/Qs.length*100) + "%";
+  document.getElementById("gaugePbar").style.width = (cur/Qs.length*100) + "%";
   
   document.getElementById("gaugeFaceTop").src = GAUGE_IMAGES[0];
   document.getElementById("gaugeFaceBottom").src = GAUGE_IMAGES[15];
@@ -1955,7 +1942,7 @@ function initLocationScreen() {
   locIsOutside = false;
   isPinching = false;
   
-  document.getElementById("locationPbar").style.width = (2/Qs.length*100) + "%";
+  document.getElementById("locationPbar").style.width = (cur/Qs.length*100) + "%";
   
   const personIcon = document.getElementById('personIcon');
   const mapContainer = document.getElementById('mapContainer');
@@ -2368,12 +2355,27 @@ function showResult(){
     let hist = [];
     try{ hist = JSON.parse(localStorage.getItem(HIST_KEY)||"[]"); }catch(e){}
     if(!Array.isArray(hist)) hist = [];
+    /* 元気度: 「メーターで答えた段階」と「見出しに出した段階(からだ補正後)」を両方残す */
+    const energyAnswered = (ans.genkiPct != null) ? ENERGY_LEVELS[energyIdxFromPct(ans.genkiPct)] : null;
+    const energyResult   = lastProfile ? lastProfile.energy : physicalLevel;
+    /* いたい場所: 地図画像を 0〜1 に正規化した「足元の座標」と人物の大きさ(画像幅に対する比)を記録する。
+       x=左端0 → 右端1 / y=上端0 → 下端1。履歴画面の吹き出しで実際の場所を再現するのに使う */
+    const locStatus = ans.locationStatus || null;
+    let placeXY = null;
+    if (ans.location && typeof ans.location === "object") {
+      const r = mapImgRect(), foot = footOf(ans.location), r4 = n => Math.round(n * 10000) / 10000;
+      placeXY = { x: r4((foot.x - r.x) / r.w), y: r4((foot.y - r.y) / r.h), w: r4(ans.location.w / r.w) };
+    }
     hist.push({
+      v:      3,    // 記録形式(v3: 体調→気持ち→げんき度→場所(座標)→したいこと)
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
-      ans:    { mood:ans.mood, body:ans.body, wish:ans.wish, gauge:ans.gauge, genkiPct:ans.genkiPct, energy:lastProfile && lastProfile.energy,
-                location:ans.location, locationStatus:ans.locationStatus || null, zones:ans.place ? ans.place.hits.map(h => h.id) : [], placeTags:ans.place ? ans.place.tags : null }
+      ans:    { body:ans.body, mood:ans.mood, gauge:ans.gauge, genkiPct:ans.genkiPct,
+                energy:energyAnswered, energyResult:energyResult,
+                locationStatus:locStatus, placeXY:placeXY,
+                zones:ans.place ? ans.place.hits.map(h => h.id) : [], placeTags:ans.place ? ans.place.tags : null,
+                wish:ans.wish }
     });
     if(hist.length > HIST_MAX) hist = hist.slice(-HIST_MAX);
     // 保存に失敗(容量超過/プライベートモード等)しても結果画面は必ず表示する
