@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カード画像確認ツール</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --card-bg: #fff;
+      --text: #333;
+      --border: #ddd;
+      --error-color: #f44336;
+    }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      padding: 16px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    h1 { margin: 0; font-size: 20px; }
+    .stats { font-weight: bold; font-size: 15px; }
+    .stats .err-count { color: var(--error-color); margin-left: 8px; }
+    .controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-left: auto; }
+    select, input[type="checkbox"] { cursor: pointer; }
+    label { display: flex; align-items: center; gap: 4px; font-size: 14px; cursor: pointer; user-select: none; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .card.hide { display: none; }
+    .card[data-error="1"] { border-color: var(--error-color); background: #ffebee; }
+    
+    .img-wrap {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .no-image-text {
+      font-size: 14px;
+      color: #999;
+      text-align: center;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    
+    .info {
+      padding: 12px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      align-self: flex-start;
+    }
+    .img-name {
+      font-size: 12px;
+      color: #666;
+      font-family: monospace;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.4;
+      background: #fafafa;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    .tags {
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-start; }
+    .tag-label { font-weight: bold; color: #888; width: 48px; flex-shrink: 0; padding-top: 2px; }
+    .tag-item {
+      background: #e0e0e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #444;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>カード画像確認ツール</h1>
+    <div class="stats" id="stats">読み込み中...</div>
+    <div class="controls">
+      <label>
+        ジャンル:
+        <select id="filter-genre">
+          <option value="">すべて</option>
+        </select>
+      </label>
+      <label>
+        <input type="checkbox" id="filter-error">
+        画像エラーのみ
+      </label>
+      <label>
+        <input type="checkbox" id="filter-noimg">
+        画像未設定のみ
+      </label>
+    </div>
+  </header>
+  
+  <div class="grid" id="container"></div>
+
+  <script src="data.js"></script>
+  <script>
+    // ★ 実際の画像保存場所に合わせてベースURLを変更してください
+    // （例: 'https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/images/acts/'）
+    const BASE_IMG_URL = 'https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/';
+
+    let errorCount = 0;
+    let totalCount = 0;
+
+    function init() {
+      if (typeof BUBBLES === 'undefined') {
+        document.getElementById('stats').textContent = 'エラー: data.js を読み込めませんでした。';
+        return;
+      }
+
+      const container = document.getElementById('container');
+      const genreSelect = document.getElementById('filter-genre');
+
+      // ジャンルの選択肢を生成（重複なし）
+      const genres = [...new Set(BUBBLES.map(b => b.g))];
+      genres.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        genreSelect.appendChild(opt);
+      });
+
+      // カード生成
+      BUBBLES.forEach((b, index) => {
+        totalCount++;
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.genre = b.g;
+        card.dataset.hasimg = b.img ? "1" : "0";
+        
+        // ジャンルカラーを取得 (data.jsのBCオブジェクト)
+        const colorInfo = (typeof BC !== 'undefined' && BC[b.g]) ? BC[b.g] : {c:'#fff', tc:'#333'};
+        card.style.borderColor = colorInfo.tc;
+
+        // 画像エリア
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'img-wrap';
+        imgWrap.style.backgroundColor = colorInfo.c;
+
+        if (b.img) {
+          const img = document.createElement('img');
+          img.src = BASE_IMG_URL + b.img;
+          img.alt = b.t;
+          img.onerror = () => {
+            img.style.display = 'none';
+            imgWrap.innerHTML = `<div class="no-image-text">NO IMAGE<br><small>${b.img}</small></div>`;
+            card.dataset.error = "1";
+            errorCount++;
+            updateStats();
+          };
+          imgWrap.appendChild(img);
+        } else {
+          imgWrap.innerHTML = `<div class="no-image-text">画像未設定</div>`;
+        }
+        card.appendChild(imgWrap);
+
+        // 情報エリア
+        const info = document.createElement('div');
+        info.className = 'info';
+
+        // タイトル
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = `#${index + 1} ${b.t}`;
+        info.appendChild(title);
+
+        // ジャンルバッジ
+        const genreBadge = document.createElement('span');
+        genreBadge.className = 'badge';
+        genreBadge.style.backgroundColor = colorInfo.c;
+        genreBadge.style.color = colorInfo.tc;
+        genreBadge.textContent = b.g;
+        info.appendChild(genreBadge);
+
+        // 画像ファイル名
+        const imgName = document.createElement('div');
+        imgName.className = 'img-name';
+        imgName.textContent = b.img ? b.img : '（空）';
+        info.appendChild(imgName);
+
+        // 説明
+        const desc = document.createElement('div');
+        desc.className = 'desc';
+        desc.textContent = b.desc;
+        info.appendChild(desc);
+
+        // タグ表示
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'tags';
+        
+        const tagGroups = [
+          {label: 'mood', key: 'mood'},
+          {label: 'energy', key: 'energy'},
+          {label: 'place', key: 'place'},
+          {label: 'body', key: 'body'},
+          {label: 'wish', key: 'wish'}
+        ];
+
+        tagGroups.forEach(g => {
+          let val = b.tags[g.key];
+          if (!val || (Array.isArray(val) && val.length === 0)) return;
+          
+          const row = document.createElement('div');
+          row.className = 'tag-row';
+          row.innerHTML = `<span class="tag-label">${g.label}:</span> `;
+          
+          const values = Array.isArray(val) ? val : [val];
+          values.forEach(v => {
+            const span = document.createElement('span');
+            span.className = 'tag-item';
+            span.textContent = v;
+            row.appendChild(span);
+          });
+          tagsDiv.appendChild(row);
+        });
+        info.appendChild(tagsDiv);
+
+        card.appendChild(info);
+        container.appendChild(card);
+      });
+
+      updateStats();
+      applyFilters();
+    }
+
+    function updateStats() {
+      const stats = document.getElementById('stats');
+      let errMsg = errorCount > 0 ? ` <span class="err-count">画像エラー: ${errorCount}件</span>` : '';
+      stats.innerHTML = `全カード: ${totalCount}件${errMsg}`;
+    }
+
+    function applyFilters() {
+      const filterGenre = document.getElementById('filter-genre').value;
+      const filterError = document.getElementById('filter-error').checked;
+      const filterNoImg = document.getElementById('filter-noimg').checked;
+
+      document.querySelectorAll('.card').forEach(card => {
+        let show = true;
+        
+        if (filterGenre && card.dataset.genre !== filterGenre) show = false;
+        if (filterError && card.dataset.error !== "1") show = false;
+        if (filterNoImg && card.dataset.hasimg === "1") show = false;
+
+        if (show) {
+          card.classList.remove('hide');
+        } else {
+          card.classList.add('hide');
+        }
+      });
+    }
+
+    // イベントリスナーの登録
+    document.getElementById('filter-genre').addEventListener('change', applyFilters);
+    document.getElementById('filter-error').addEventListener('change', applyFilters);
+    document.getElementById('filter-noimg').addEventListener('change', applyFilters);
+
+    // 起動
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
