@@ -789,7 +789,7 @@ const BUBBLES = [
    tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["outdoor","nature"], body:"fine", wish:"play"}},
   {t:"ダンゴムシやありをさがしてみる",
    g:"気分転換",
-   img:"act-animals.png",
+   img:"act-bugs.png",
    desc:"ちいさな ともだちを さがしてみよう。ダンゴムシが まるまった！",
    tags:{mood:["happy","sad","anxious"], energy:["mid","high"], place:["outdoor","nature"], body:"fine", wish:"play"}},
   {t:"かざぐるまをつくってみる",
