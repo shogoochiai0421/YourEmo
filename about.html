@@ -98,7 +98,7 @@
       display: flex;
       align-items: flex-start;
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
     .flow-step:last-child { margin-bottom: 0; }
     .step-num {
@@ -161,29 +161,6 @@
     .badge-blue   { background: #E6F1FB; color: #0C447C; }
     .badge-lime   { background: #EAF3DE; color: #27500A; }
     .badge-purple { background: #EEEDFE; color: #3C3489; }
-
-    /* ── スコアの視覚化 ── */
-    .score-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .score-card {
-      background: #fff;
-      border: 1px solid #e8e0d8;
-      border-radius: 10px;
-      padding: 14px 16px;
-      text-align: center;
-    }
-    .score-pt {
-      font-family: 'M PLUS Rounded 1c', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: #ffce65;
-    }
-    .score-label { font-size: 12px; color: #9e8e86; margin-top: 2px; }
-    .score-weight { font-size: 13px; font-weight: 700; color: #53433a; margin-top: 4px; }
 
     /* ── ローカルストレージ説明 ── */
     .storage-box {
@@ -291,6 +268,7 @@
 
     <hr class="divider">
 
+    <!-- 使い方 -->
     <div class="section">
       <h2 style="margin-top:32px; font-size:30px;">使い方</h2>
       <p>子どもの名前を事前に登録しておくと、診断結果の記録・閲覧・データ提供ができます。</p>
@@ -300,42 +278,41 @@
           <div class="step-num">1</div>
           <div class="step-body">
             <div class="step-title">なまえを登録する</div>
-            <div class="step-desc">スタート画面の「＋」ボタンから子どもの名前を登録します。登録した名前はこの端末に保存されます。</div>
+            <div class="step-desc">スタート画面の「＋」ボタンから子どもの名前を登録します。登録した名前はこの端末（ブラウザ内）に保存されます。</div>
           </div>
         </div>
         <div class="flow-step">
           <div class="step-num">2</div>
           <div class="step-body">
             <div class="step-title">子どもと一緒に質問に答える</div>
-            <div class="step-desc">名前を選んでから診断を行うと、結果はこの端末に自動的に記録されます。</div>
+            <div class="step-desc">名前を選んでスタート！「体調」「気持ち」「元気度メーター」「いたい場所（地図）」「したいこと」の5つの質問に答えます。</div>
           </div>
         </div>
         <div class="flow-step">
           <div class="step-num">3</div>
           <div class="step-body">
             <div class="step-title">結果を見て子どもと話し合う</div>
-            <div class="step-desc">今の子どもの気持ちのまとめが表示されます。次の画面に進むと、今の気持ちを立て直すことに役立つ、具体的な行動カードが10個表示されます。カードをタップして拡大することもできます。子ども達と話し合い、実践してみてください。</div>
+            <div class="step-desc">今の子どもの気持ちのまとめが表示されます。「これ、やってみる？」を押すと、気持ちを立て直すヒントになる行動カード（特効薬）が表示されます。カードをタップすると詳しい説明が見られます。子ども達と話し合い、実践してみてください。</div>
           </div>
         </div>
-      </div>
-    </div>
-
+        <div class="flow-step">
+          <div class="step-num">4</div>
           <div class="step-body">
             <div class="step-title">記録データの確認</div>
             <div class="step-desc">スタート画面下部の「📊 気持ち経過観察」から専用画面を開くと、子どもごとの診断履歴を一覧できます。各子どものカード右上にある「❏」ボタンを押すと、その子といいねした行動カードの一覧も確認できます。</div>
-        <div class="flow-step">
-
-          <div class="step-body">
-            <div class="step-title">ゼミにデータを提供する（任意）</div>
-            <div class="step-desc">気持ち経過観察画面内の「ゼミにデータを提供する」ボタンで、診断データをゼミに送信できます。送信時、子どもの名前は匿名化されます。送信いただいたデータは、ゼミでの研究活動に役立てさせていただきます。</div>
           </div>
         </div>
         <div class="flow-step">
-    <hr class="divider">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">ゼミにデータを提供する（任意）</div>
+            <div class="step-desc">気持ち経過観察画面内の「ゼミにデータを提供する」ボタンで、診断データをゼミに送信できます。送信時、子どもの名前は自動的に匿名化（例：しょー → しょ▮）されます。送信いただいたデータは、ゼミでの研究活動に役立てさせていただきます。</div>
           </div>
         </div>
       </div>
     </div>
+
+    <hr class="divider">
 
     <!-- ゼミについて -->
     <div class="section">
@@ -351,42 +328,46 @@
       <h2 style="margin-top:32px; font-size:30px;">内部の仕組み</h2>
 
       <h2 style="margin-top:32px; font-size:17px;">データの保存について</h2>
-      <p>診断結果・名前・いいねデータはすべてご使用端末のブラウザ（localStorage）に保存されています。診断データは、「ゼミにデータを提供する」ボタンを押したときのみ、Google Apps Script経由でゼミ管理のスプレッドシートにデータが送信されます。</p>
+      <p>診断結果・名前・いいねデータはすべてご使用端末のブラウザ（localStorage）に保存されています。プライバシー保護のため、データは外部サーバーに常時送信されることはありません。「ゼミにデータを提供する」ボタンを押したときのみ、Google Apps Script経由でゼミ管理のスプレッドシートにデータが送信されます。</p>
+      
+      <div class="storage-box">
+        <div class="storage-row">
+          <div class="storage-key">kimochi_names</div>
+          <div class="storage-desc">登録された子どもの名前とアイコン</div>
+        </div>
+        <div class="storage-row">
+          <div class="storage-key">kimochi_history</div>
+          <div class="storage-desc">診断の履歴（日時、回答内容、場所の座標など）</div>
+        </div>
+        <div class="storage-row">
+          <div class="storage-key">kimochi_likes</div>
+          <div class="storage-desc">いいねした行動カードの記録</div>
+        </div>
+      </div>
 
       <h2 style="margin-top:32px; font-size:17px;">"行動カード"の選ばれかた</h2>
-      <p>約123個の行動カードには、それぞれ5つの質問に対応した「タグ」が設定されています。5つの回答と各行動カードのタグを照合してスコアを計算し、スコアが高いものほど選ばれやすい「重み付きランダム選択」で、PC・タブレットは10個、スマホは8個を表示します。</p>
+      <p>約160個の行動カードには、それぞれ5つの質問に対応した「タグ」が設定されています。5つの回答と各行動カードのタグを照合してスコアを計算し、スコアが高いものほど選ばれやすい「重み付きランダム選択」で、画面サイズに合わせて最適な枚数（数枚〜十数枚）を表示します。</p>
 
       <table class="tag-table">
         <thead>
           <tr><th>しつもん</th><th>タグの値</th></tr>
         </thead>
         <tbody>
-          <tr><td>いまのきもち</td><td>happy / sad / angry / anxious</td></tr>
-          <tr><td>からだのげんき</td><td>high / mid / low / verylow</td></tr>
-          <tr><td>だれかといたいか</td><td>social / alone / neutral / unsure</td></tr>
-          <tr><td>からだのかんじ</td><td>fine / heart / breath / bad</td></tr>
-          <tr><td>いましたいこと</td><td>play / sleep / talk / nothing</td></tr>
+          <tr><td>からだのちょうし</td><td>fine / heart / breath / bad / normal</td></tr>
+          <tr><td>いまのきもち</td><td>happy / sad / angry / anxious / normal</td></tr>
+          <tr><td>いまのげんきさ</td><td>veryhigh / high / mid / low / verylow （メーターの値から換算）</td></tr>
+          <tr><td>いまどこにいたい？</td><td>indoor / outdoor / active / calm / alone / friends / teacher / build / desk / book / rest / nature / family / move / music</td></tr>
+          <tr><td>しましたいこと</td><td>play / sleep / talk / nothing</td></tr>
         </tbody>
       </table>
 
-      <p style="margin-top:16px; font-size:14px; color:#7e6e66;">各タグは単一の値・複数の値（配列）・<code>any</code>のいずれかで設定されます。<code>any</code>は「どの回答でもマッチするが加点しない」という意味で、候補から除外せずにスコア0として扱われます。</p>
-
-      <div class="score-grid" style="margin-top: 24px;">
-        <div class="score-card"><div class="score-pt">5点</div><div class="score-label">全タグ一致</div><div class="score-weight">重み ×32</div></div>
-        <div class="score-card"><div class="score-pt">4点</div><div class="score-label">4つ一致</div><div class="score-weight">重み ×16</div></div>
-        <div class="score-card"><div class="score-pt">3点</div><div class="score-label">3つ一致</div><div class="score-weight">重み ×8</div></div>
-        <div class="score-card"><div class="score-pt">2点</div><div class="score-label">2つ一致</div><div class="score-weight">重み ×4</div></div>
-        <div class="score-card"><div class="score-pt">1点</div><div class="score-label">1つ一致</div><div class="score-weight">重み ×2</div></div>
-        <div class="score-card"><div class="score-pt">0点</div><div class="score-label">一致なし</div><div class="score-weight">重み ×1</div></div>
-      </div>
-
-      <p style="margin-top:16px; font-size:14px; color:#7e6e66;">1点以上の特効薬を優先して抽選し、数が不足する場合のみ0点の特効薬から補充します。重みは2のスコア乗（2^score）で計算されるため、高スコアの行動カードほど大幅に選ばれやすくなります。</p>
+      <p style="margin-top:16px; font-size:14px; color:#7e6e66;">スコアは「気持ち」「体調」「したいこと」の一致度に加え、元気度の近さや、今いる場所（地図）のタグとの相性などから複合的に計算されます。選ばれたカードのうち、特におすすめのものには「いいね！」をして記録に残すことができます。</p>
 
       <h2 style="margin-top:32px; font-size:17px;">「今のきもち」画面の判定について</h2>
-      <p>診断結果画面のメッセージは、組合せ爆発を防ぐため、1問目（気持ち）、2問目と4問目（体調）を基に決定しています。現在、よりよい診断結果の算出方法を検討中です。</p>
+      <p>診断結果画面のメッセージは、選んだ「気持ち」と「元気度メーター」「体調」の組み合わせから、全25パターンの文章の中から選ばれます。体調がすぐれない場合は、元気度が高くても少し控えめなメッセージになるよう調整しています。</p>
 
       <h2 style="margin-top:32px; font-size:17px;">行動カードのジャンル（色）</h2>
-      <p>行動カードは、実はジャンルによって色分けされています。</p>
+      <p>行動カードは、実はジャンルによって背景の色が分かれています。</p>
       <p>
         <span class="badge badge-pink">発散</span>
         <span class="badge badge-green">落ち着き</span>
