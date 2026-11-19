@@ -794,7 +794,7 @@ const BUBBLES = [
    tags:{mood:["happy","sad","anxious"], energy:["mid","high"], place:["outdoor","nature"], body:"fine", wish:"play"}},
   {t:"かざぐるまをつくってみる",
    g:"気分転換",
-   img:"act-origami.png",
+   img:"act_kazaguruma.png",
    desc:"かみで かざぐるまを つくって、ふーって ふいてみよう。くるくる まわるよ！",
    tags:{mood:["happy","sad","anxious"], energy:["veryhigh","high","mid"], place:["indoor","desk"], body:["fine","breath"], wish:"play"}},
 
@@ -806,7 +806,7 @@ const BUBBLES = [
    tags:{mood:["happy","sad","anxious"], energy:["mid","low"], place:["indoor","friends","calm"], body:"fine", wish:["play","talk"]}},
   {t:"えほんをよんでもらう",
    g:"人とつながる",
-   img:"act-read-book.png",
+   img:"act_yomikikase.png",
    desc:"だれかに えほんを よんでもらおう。「もういっかい！」って おねがいしても いいね。",
    tags:{mood:["sad","anxious","happy"], energy:["mid","low","verylow"], place:["indoor","calm","book","teacher","family"], body:["fine","bad","heart"], wish:["nothing","sleep"]}},
   {t:"おとなのおてつだいをする",
