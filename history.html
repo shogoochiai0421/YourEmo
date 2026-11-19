@@ -97,33 +97,21 @@ html, body {
 
 /* ══ スマホ対応（480px以下） ══ */
 @media (max-width: 480px) {
-  /* 帯を細く */
   #timeline-bar { width: 32px; }
   #outer        { left: 32px; }
-
-  /* ヘッダー：左パディングを帯幅に合わせ縮小・gap縮小 */
   .header { padding: 0 8px 0 8px; gap: 6px; height: 50px; }
-
-  /* タイトルを非表示 */
   .header-title { display: none; }
-
-  /* もどるボタン：文字を小さく */
   .back-btn { font-size: 11px; padding: 1px 10px; }
-
-  /* 送信・削除ボタン：マークのみ表示 */
   .send-btn    { font-size: 11px; padding: 5px 8px; }
   .del-all-btn { font-size: 11px; padding: 5px 8px; }
   .send-btn    .btn-label-full { display: none; }
   .del-all-btn .btn-label-full { display: none; }
   .send-btn    .btn-label-short { display: inline; }
   .del-all-btn .btn-label-short { display: inline; }
-
-  /* スクロール領域を帯幅・ヘッダー高さに合わせる */
   #outer { top: 50px; }
   #timeline-bar { top: 50px; }
 }
 
-/* スマホ以外ではshort labelを隠す */
 .btn-label-short { display: none; }
 
 /* ══ 左端 時系列帯 ══ */
@@ -166,7 +154,6 @@ html, body {
   background: #fff; min-width: 300px;
 }
 
-/* 名前マーク（文字サイズに合わせて自動でスケール） */
 .name-icon {
   display: inline-block;
   width: 1.2em; height: 1.2em;
@@ -175,7 +162,6 @@ html, body {
   margin-right: 0.2em;
 }
 
-/* 名前ヘッダー */
 .kid-name {
   position: sticky; top: 0; z-index: 20;
   background: #fff; color: #8b5e2a;
@@ -197,7 +183,6 @@ html, body {
 }
 .like-btn:hover { transform: scale(1.2); }
 
-/* 列ヘッダー */
 .kid-col-heads {
   position: sticky; top: 37px; z-index: 19;
   display: flex; background: #fff0dc;
@@ -208,7 +193,6 @@ html, body {
 .col-head { flex: 1; min-width: 60px; font-size: 10px; color: #a07030; font-weight: 700; text-align: center; padding: 5px 2px; border-right: 1px solid #e8d098; }
 .col-head:last-child { border-right: none; }
 
-/* 本体 */
 .kid-body { display: flex; }
 .date-col { width: 52px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid #d4a855; }
 .date-cell {
@@ -227,7 +211,6 @@ html, body {
 .cell { flex: 1; min-width: 60px; font-size: 11px; font-weight: 700; text-align: center; padding: 0 2px; border-right: 1px solid #e8d8b0; display: flex; align-items: center; justify-content: center; line-height: 1.3; }
 .cell:last-child { border-right: none; }
 
-/* 背景色 */
 .bg-pos2 { background: #c8f0c8; color: #2e2c2c; }
 .bg-pos1 { background: #e4f7e4; color: #2e2c2c; }
 .bg-neu  { background: #f5f5f0; color: #2e2c2c; }
@@ -235,7 +218,6 @@ html, body {
 .bg-neg2 { background: #f8c8b8; color: #2e2c2c; }
 .bg-blue { background: #c8e8f8; color: #2e2c2c; }
 
-/* ══ いたい場所の吹き出し ══ */
 .cell-place { cursor: pointer; text-decoration: underline dotted #b08a4a; text-underline-offset: 3px; }
 .cell-place:hover, .cell-place:focus-visible { background: #fff1c9; outline: none; }
 #placeBubble {
@@ -256,7 +238,6 @@ html, body {
 #placeBubble.above .pb-arrow { bottom: -9px; border-top: none; border-left: none; }
 #placeBubble.below .pb-arrow { top: -9px;  border-bottom: none; border-right: none; }
 
-/* ══ いいね画面 ══ */
 #likes-screen {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -284,7 +265,6 @@ html, body {
   justify-content: center;
 }
 
-/* ── ポケカ風カード（index.htmlのdetail-cardをそのまま流用） ── */
 .like-card {
   width: min(238px, 82vw);
   border-radius: 14px;
@@ -329,10 +309,8 @@ html, body {
   margin-top: 60px; line-height: 2;
 }
 
-/* 空状態 */
 .empty-msg { text-align: center; color: #c0a888; font-size: 15px; margin-top: 80px; line-height: 2.4; width: 100%; }
 
-/* ══ 送信中オーバーレイ ══ */
 #sendOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -341,7 +319,6 @@ html, body {
   display: none;
   align-items: center;
   justify-content: center;
-  /* 背後の操作を確実にブロック */
   touch-action: none;
 }
 #sendOverlay.show { display: flex; }
@@ -357,7 +334,6 @@ html, body {
   max-width: 320px;
 }
 
-/* くるくるスピナー */
 .spinner {
   width: 52px; height: 52px;
   border: 5px solid #f0d9b8;
@@ -386,20 +362,20 @@ html, body {
 
 <!-- 固定ヘッダー -->
 <div class="header">
-  <button class="back-btn" onclick="location.href='index.html'">← もどる</button>
+  <button class="back-btn" id="backToIndexBtn">← もどる</button>
   <span class="header-title">気持ち経過観察画面</span>
   <div class="send-wrap">
-    <button class="send-btn" id="sendBtn" onclick="toggleSendDropdown(event)">
+    <button class="send-btn" id="sendBtn">
       <span class="btn-label-full">ゼミにデータを提供する</span>
       <span class="btn-label-short">ゼミにデータを提供する</span>
     </button>
-    <div class="send-dropdown" id="sendDropdown" onclick="event.stopPropagation()">
+    <div class="send-dropdown" id="sendDropdown">
       <div class="send-dd-title">研究データの提供に同意されているお子さん名前にチェックを入れてください</div>
       <div class="send-dd-list" id="sendDdList"></div>
-      <button class="send-dd-submit" onclick="sendToSpreadsheet()">送信する</button>
+      <button class="send-dd-submit" id="sendSubmitBtn">送信する</button>
     </div>
   </div>
-  <button class="del-all-btn" onclick="confirmDeleteAll()">
+  <button class="del-all-btn" id="delAllBtn">
     <span class="btn-label-full">表データ全削除</span>
     <span class="btn-label-short">表データ全削除</span>
   </button>
@@ -430,7 +406,7 @@ html, body {
 <!-- いいね画面（全画面） -->
 <div id="likes-screen">
   <div class="likes-header">
-    <button class="back-btn" onclick="closeLikes()">← もどる</button>
+    <button class="back-btn" id="backFromLikesBtn">← もどる</button>
     <span class="likes-title" id="likes-title"></span>
   </div>
   <div class="likes-body" id="likes-body"></div>
@@ -446,7 +422,7 @@ html, body {
 </div>
 
 <script>
-/* ══ ラベル定義（lの内容を参照） ══ */
+/* ══ ラベル定義 ══ */
 const DEF = {
   mood: {
     happy:   { t:"たのしいきもち",       bg:"pos2" },
@@ -477,28 +453,22 @@ const DEF = {
   },
 };
 
-
-/* 列の並びは質問の順番(体調 → 気持ち → げんき度 → いたい場所 → したいこと) */
 const KEYS  = ["body","mood","energy","place","wish"];
 const HEADS = ["体調","気持ち","元気度","いたい場所","したいこと"];
 
-/* ══ いたい場所(座標) ══
-   index.html が ans.placeXY = {x,y,w} を記録する(地図画像を 0〜1 に正規化。x=左→右, y=上→下,
-   w=人物の幅/地図画像の幅)。v2 の旧記録(ans.location に地図上のピクセル値)も同じ形に直して読む。 */
 const MAP_URL = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/room.png";
 const YOU_URL = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/room/you.png";
-const MAP_W = 1679, MAP_H = 937;     // index.html の MAP_META と同じ
+const MAP_W = 1679, MAP_H = 937;
 
 function placeCoord(ans){
   if(!ans) return null;
   const p = ans.placeXY;
   if(p && isFinite(p.x) && isFinite(p.y)) return { x:p.x, y:p.y, w:(isFinite(p.w) && p.w > 0) ? p.w : 0.09 };
-  const l = ans.location;               // 旧形式(地図上のピクセル値)
+  const l = ans.location;
   if(l && typeof l === "object" && isFinite(l.x) && isFinite(l.y) && l.w > 0)
     return { x:(l.x + l.w/2)/MAP_W, y:(l.y + l.h)/MAP_H, w:l.w/MAP_W };
   return null;
 }
-/* 座標が無いとき(選ばなかった/「このなかにはない」)の表示 */
 function placeNoCoordText(ans){
   const st = ans && ans.locationStatus;
   if(st === "outside_btn") return "このなかにはない";
@@ -507,7 +477,6 @@ function placeNoCoordText(ans){
 }
 const pct = n => Math.round(Math.max(0, Math.min(1, n)) * 100);
 
-/* ── 吹き出し(マウスオーバー / クリック / タップで、実際の場所+人物を表示) ── */
 const placeBubble = (() => {
   const el = document.createElement("div");
   el.id = "placeBubble";
@@ -529,7 +498,6 @@ const placeBubble = (() => {
     dot.style.left = (x * 100) + "%"; dot.style.top = (y * 100) + "%";
     cap.textContent = "地図の中の いた場所  (よこ " + pct(c.x) + "・たて " + pct(c.y) + ")";
     el.classList.add("show");
-    /* 位置: セルの上(入らなければ下)に出して、画面の左右からはみ出さないようにする */
     const vw = document.documentElement.clientWidth, vh = window.innerHeight;
     const W = Math.min(340, vw - 16);
     el.style.width = W + "px";
@@ -567,7 +535,6 @@ const ROW_H = 38;
 const pad     = n => String(n).padStart(2,"0");
 const dateKey = iso => { const d=new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
 
-/* 今日・昨日・一昨日の判定 */
 function dateCellLabel(dk) {
   const now = new Date();
   const todayKey = dateKey(now.toISOString());
@@ -592,12 +559,8 @@ function loadLikes(){
   catch(e){ return {}; }
 }
 
-/* ══ スプレッドシートへ送信 ══ */
-
-/* ★ GASをデプロイしたら以下のURLを書き換えてください ★ */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzWH_96UuV1SFGb1oBwf5CfDKRkMihIFGxLOCdEBqdy0oKxFnE6mYQ6KFYEpBg0_jhiXQ/exec";
 
-/* 名前マスク：1文字→そのまま、2文字→最初だけ残し*、3文字以上→最初と最後を残し中間を* */
 function maskName(name){
   if(!name || name.length === 0) return name;
   if(name.length === 1) return name;
@@ -605,7 +568,6 @@ function maskName(name){
   return name[0] + "▮".repeat(name.length - 2) + name[name.length - 1];
 }
 
-/* ══ 送信対象の選択（チェック状態はlocalStorageに保持） ══ */
 const SEND_SEL_KEY = "kimochi_send_selection";
 
 function loadSendSelection(){
@@ -615,10 +577,8 @@ function loadSendSelection(){
 function saveSendSelection(sel){
   try{ localStorage.setItem(SEND_SEL_KEY, JSON.stringify(sel)); }catch(e){}
 }
-/* 未保存の名前（新規登録など）は、初期状態でチェックなし */
 function isSelected(sel, id){ return sel[id] === true; }
 
-/* ── 名前マーク（index.htmlで登録した kimochi_names から取得） ── */
 function escHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
@@ -687,9 +647,9 @@ function toggleSendDropdown(e){
   }
 }
 function closeSendDropdown(){
-  document.getElementById("sendDropdown").classList.remove("open");
+  const dd = document.getElementById("sendDropdown");
+  if(dd) dd.classList.remove("open");
 }
-document.addEventListener("click", closeSendDropdown);
 
 async function sendToSpreadsheet(){
   const allHistory = loadHistory();
@@ -701,7 +661,6 @@ async function sendToSpreadsheet(){
     return;
   }
 
-  /* チェックされた名前のデータだけに絞り込む */
   const sel = loadSendSelection();
   const history = allHistory.filter(rec => isSelected(sel, rec.nameId || "__anon__"));
   const likes = Object.fromEntries(
@@ -721,18 +680,15 @@ async function sendToSpreadsheet(){
   btn.disabled = true;
   btn.innerHTML = "送信中…";
 
-  /* ── 画面全体をロックしてスピナーを表示 ── */
   const overlay = document.getElementById("sendOverlay");
   overlay.classList.add("show");
 
-  /* 名前をマスクしたコピーを作成（元データは変更しない） */
   const maskedHistory = history.map(rec => ({
     ...rec,
     name: maskName(rec.name)
   }));
   const maskedLikes = Object.fromEntries(
     Object.entries(likes).map(([id, items]) => {
-      /* いいねデータのnameIdに対応する名前をhistoryから取得してマスク */
       const origRec = history.find(r => r.nameId === id);
       const maskedItems = (items || []).map(item => ({
         ...item,
@@ -742,15 +698,7 @@ async function sendToSpreadsheet(){
     })
   );
 
-  const payload = {
-    history: maskedHistory,
-    likes:   maskedLikes,
-    sentAt:  new Date().toISOString()
-  };
-
   try {
-    /* no-corsではapplication/jsonヘッダーが送れないため
-       フォームデータ形式（application/x-www-form-urlencoded）でPOST */
     const formData = new URLSearchParams();
     formData.append("payload", JSON.stringify({
       history: maskedHistory,
@@ -762,19 +710,17 @@ async function sendToSpreadsheet(){
       mode:   "no-cors",
       body:   formData
     });
-    /* no-corsではレスポンスが読めないので、少し待って成功とみなす */
     await new Promise(r => setTimeout(r, 1500));
     alert("送信しました！\nご提供頂いた貴重なデータは、ゼミでの研究に活用させていただきます。");
   } catch(err) {
-    alert("送信に失敗しました。\nネットワーク接続を確認してください。\nネット接続があっても送信できない場合は、お手数ですが にじいろゼミ まで不具合報告をお願いいたします。" + err);
+    alert("送信に失敗しました。\nネットワーク接続を確認してください。");
   } finally {
     overlay.classList.remove("show");
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-label-full">ゼミにデータを提供する</span><span class="btn-label-short">📤</span>';
+    btn.innerHTML = '<span class="btn-label-full">ゼミにデータを提供する</span><span class="btn-label-short">ゼミにデータを提供する</span>';
   }
 }
 
-/* ══ 全データ削除（二重確認） ══ */
 function confirmDeleteAll(){
   const first = confirm("診断記録をすべて削除します\nよろしいですか？(登録した名簿は残ります)");
   if(!first) return;
@@ -782,7 +728,6 @@ function confirmDeleteAll(){
   if(!second) return;
   localStorage.removeItem("kimochi_history");
   localStorage.removeItem("kimochi_likes");
-  /* 画面をリセット */
   const inner = document.getElementById("inner");
   inner.innerHTML = "";
   document.getElementById("emptyMsg").style.display = "block";
@@ -792,7 +737,6 @@ function closeLikes(){
   document.getElementById("likes-screen").classList.remove("open");
 }
 
-/* ══ いいね画面を開く ══ */
 const BASE_ACT = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
 
 const BC = {
@@ -825,7 +769,6 @@ function openLikes(nameId, name){
       card.style.setProperty("--card-bg", bc.c);
       card.style.setProperty("--card-tc", bc.tc);
 
-      /* ヘッダー（タイトル） */
       const hdr = document.createElement("div");
       hdr.className = "like-card-header";
       const ttl = document.createElement("div");
@@ -834,17 +777,17 @@ function openLikes(nameId, name){
       hdr.appendChild(ttl);
       card.appendChild(hdr);
 
-      /* 画像エリア */
       const imgWrap = document.createElement("div");
       imgWrap.className = "like-card-img-wrap";
       const img = document.createElement("img");
       img.className = "like-card-img";
       img.src = BASE_ACT + (item.img || "404.png");
       img.alt = item.title;
+      img.loading = "lazy";
+      img.decoding = "async";
       imgWrap.appendChild(img);
       card.appendChild(imgWrap);
 
-      /* 本文エリア（解説文） */
       const cardBody = document.createElement("div");
       cardBody.className = "like-card-body";
       const desc = document.createElement("div");
@@ -860,21 +803,27 @@ function openLikes(nameId, name){
   document.getElementById("likes-screen").classList.add("open");
 }
 
-/* ══ 子ども1人分ブロック生成 ══ */
 function buildKidBlock(nameId, name, recs){
   const block = document.createElement("div");
   block.className = "kid-block";
 
-  /* 名前ヘッダー（sticky）*/
   const nameEl = document.createElement("div");
   nameEl.className = "kid-name";
-  nameEl.innerHTML = `
-    <span class="name-text">${nameIconHtml(nameId)}${name}<span class="san">さん</span></span>
-    <button class="like-btn" title="${name}さんと「いいね！」したカード" onclick="openLikes('${nameId}','${name}')">❏</button>
-  `;
+  
+  const textSpan = document.createElement("span");
+  textSpan.className = "name-text";
+  textSpan.innerHTML = `${nameIconHtml(nameId)}${escHtml(name)}<span class="san">さん</span>`;
+  
+  const likeBtn = document.createElement("button");
+  likeBtn.className = "like-btn";
+  likeBtn.title = `${name}さんと「いいね！」したカード`;
+  likeBtn.textContent = "❏";
+  likeBtn.addEventListener("click", () => openLikes(nameId, name));
+
+  nameEl.appendChild(textSpan);
+  nameEl.appendChild(likeBtn);
   block.appendChild(nameEl);
 
-  /* 列ヘッダー（sticky） */
   const colHeads = document.createElement("div");
   colHeads.className = "kid-col-heads";
   [["col-head-date","日付"],["col-head-time","時刻"]].forEach(([cls,txt])=>{
@@ -883,7 +832,6 @@ function buildKidBlock(nameId, name, recs){
   HEADS.forEach(h=>{ const el=document.createElement("div"); el.className="col-head"; el.textContent=h; colHeads.appendChild(el); });
   block.appendChild(colHeads);
 
-  /* 新しい順ソート → 日付グループ化 */
   const sorted = [...recs].sort((a,b)=>new Date(b.date)-new Date(a.date));
   const dayGroups = [];
   sorted.forEach(rec=>{
@@ -954,7 +902,6 @@ function buildKidBlock(nameId, name, recs){
   return block;
 }
 
-/* ══ 全体構築 ══ */
 function buildAll(history){
   const kidMap = {};
   history.forEach(rec=>{
@@ -967,11 +914,28 @@ function buildAll(history){
   Object.entries(kidMap).forEach(([id,k])=>inner.appendChild(buildKidBlock(id, k.name, k.recs)));
 }
 
-/* ══ 初期化 ══ */
-window.addEventListener("load",()=>{
+// ══ 初期化とイベントバインド ══
+document.addEventListener("DOMContentLoaded", () => {
+  // ボタンイベント
+  document.getElementById("backToIndexBtn").addEventListener("click", () => {
+    location.href = "index.html";
+  });
+  document.getElementById("sendBtn").addEventListener("click", toggleSendDropdown);
+  document.getElementById("sendSubmitBtn").addEventListener("click", sendToSpreadsheet);
+  document.getElementById("delAllBtn").addEventListener("click", confirmDeleteAll);
+  document.getElementById("backFromLikesBtn").addEventListener("click", closeLikes);
+
+  // ドロップダウンの外側クリックで閉じる
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".send-wrap")) closeSendDropdown();
+  });
+  // ドロップダウン内のクリックは外側に伝播させない
+  document.getElementById("sendDropdown").addEventListener("click", (e) => e.stopPropagation());
+
+  // データの初期表示
   const h = loadHistory();
-  if(h.length===0){
-    document.getElementById("emptyMsg").style.display="block";
+  if(h.length === 0){
+    document.getElementById("emptyMsg").style.display = "block";
   } else {
     buildAll(h);
   }

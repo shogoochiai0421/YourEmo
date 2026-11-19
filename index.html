@@ -11,10 +11,6 @@
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
 
-/* =====================================================
-   ★ デザイン設定まとめ ★
-   ===================================================== */
-
 :root {
   --fade-ms:             500;
   --fade-wait-ms:        200;
@@ -33,6 +29,12 @@
   --fw-res-ttl:          700;
   --fw-res-desc:         700;
   --fw-bubble:           700;
+  --color-text-primary:   #53433a;
+  --color-text-secondary: #7e7d81;
+  --color-background-primary:   #ffffff;
+  --color-background-secondary: #ffffff;
+  --color-border-secondary:     #e8d8c0;
+  --res-img-size:        clamp(100px, 22vh, 180px);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -57,21 +59,7 @@ html, body {
   position:relative;
 }
 
-.header-text {
-  position:absolute; bottom:20px; right:40px;
-  font-size:18px; color:#7e7d81;
-  z-index:100; pointer-events:none;
-  font-family:'Zen Maru Gothic',sans-serif;
-}
-
-.footer-text {
-  position:absolute; bottom:20px; left:30px;
-  font-size:16px; color:#7e7d81;
-  z-index:100; pointer-events:none;
-  font-family:'Zen Maru Gothic',sans-serif;
-}
-
-/* ── 画面共通：フェード ＆ スクロール禁止レイアウト ── */
+/* ── 画面共通 ── */
 .screen {
   position: absolute;
   top: 0; left: 0;
@@ -89,9 +77,7 @@ html, body {
 .screen.visible { opacity:1; pointer-events: auto; }
 
 /* ── スタート画面 ── */
-#startScreen {
-  justify-content: center;
-}
+#startScreen { justify-content: center; }
 .big-img {width:clamp(90px, 22vh, 250px); height:clamp(90px, 22vh, 250px); object-fit:contain; margin-bottom:10px; display:block;}
 .ttl { font-size:clamp(22px, 5.5vh, 35px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(12px, 3vh, 30px); }
 .sub { font-size:clamp(14px, 3.2vh, 25px); color:var(--color-text-secondary); text-align:center; line-height:1.2; margin-bottom:clamp(14px, 3vh, 30px); font-family:'Zen Maru Gothic',sans-serif;}
@@ -123,7 +109,7 @@ html, body {
 /* ── もどるボタン ── */
 .back-btn { align-self:center; margin-top:12px; background:transparent; border:none; font-size:18px; color:#bbbbbb; cursor:pointer; padding:4px 8px; flex-shrink:0; }
 @media (hover:hover) and (pointer:fine) {
-  .back-btn:hover { color:#888; }
+  .back-btn:hover { color:#868686; }
 }
 .back-btn:active { transform:scale(0.95); }
 .back-btn.hidden { visibility:hidden; pointer-events:none; }
@@ -135,16 +121,16 @@ html, body {
   padding: 20px;
   overflow-y: auto;
 }
+
 .res-top  { text-align:center; padding:8px 16px 4px; flex-shrink:0; width:100%; }
 .res-img  { width:var(--res-img-size); height:var(--res-img-size); object-fit:contain; margin:0 auto 3px; display:block;}
 .res-ttl  { font-size:clamp(18px, 4.5vh, var(--res-ttl-size)); font-weight:var(--fw-res-ttl); color:var(--color-text-primary); line-height:1.3; }
 
 /* ── 今の気持ち画面 ── */
-.center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; position: relative; flex-shrink: 0; }
+.center-card     { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:24px; padding:10px 20px; text-align:center; width:auto; min-width:120px; position: relative; flex-shrink: 0; margin: 0 auto; }
 .center-card .ce { line-height:1; margin-bottom:4px; min-height:50px; display:flex; align-items:center; justify-content:center; }
 .center-card .ce img { width:var(--center-img-size); height:var(--center-img-size); object-fit:contain; }
 
-/* 追加：マップスナップショット */
 .map-snapshot {
   border-radius: 50%;
   overflow: hidden;
@@ -155,7 +141,6 @@ html, body {
   display: inline-block;
 }
 
-/* 丸の下に被せるタイトル */
 .location-title {
   position: absolute;
   bottom: -15px;
@@ -192,7 +177,6 @@ html, body {
 .act-ttl  { font-size:clamp(14px, 3vh, var(--act-ttl-size));  font-weight:var(--fw-res-ttl);  color:var(--color-text-primary); }
 .act-desc { font-size:clamp(10px, 1.8vh, var(--act-desc-size)); font-weight:var(--fw-res-desc); color:var(--color-text-secondary); margin-top:4px; line-height:1.5; }
 
-/* グリッドをフレックスで余白いっぱいに広げ、カードを自動拡大 */
 .bubble-grid {
   flex: 1;
   display: grid;
@@ -230,7 +214,20 @@ html, body {
   animation: bubbleTapHint 2.5s ease-in-out;
 }
 
-.retry-btn { flex-shrink:0; margin:8px 0 12px; background:var(--color-background-secondary); border:0.5px solid var(--color-border-secondary); border-radius:99px; padding:7px 22px; font-size:18px; color:var(--color-text-secondary); cursor:pointer; }
+.retry-btn { 
+  flex-shrink:0; 
+  margin:8px 0 12px; 
+  background-color:var(--color-background-secondary); 
+  border:0.5px solid var(--color-border-secondary); 
+  border-radius:99px; 
+  padding:7px 22px; 
+  font-size:18px; 
+  color:var(--color-text-secondary); 
+  cursor:pointer; 
+  -webkit-appearance: none; /* ブラウザ標準のボタンデザインを無効化 */
+  appearance: none;
+  font-family: inherit;     /* フォントを他と統一 */
+}
 .next-screen-btn { flex-shrink:0; margin:12px 0 0; background:#ffce65; color:#fff; border:none; border-radius:99px; padding:14px 32px; font-size:22px; font-weight:700; cursor:pointer; }
 .next-screen-btn:active { transform:scale(0.96); }
 .act-btns { flex-shrink:0; display:flex; gap:12px; align-items:center; justify-content:flex-start; flex-wrap:wrap; }
@@ -704,8 +701,8 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 1679px;    /* 960px から変更 */
-  height: 937px;    /* 460px から変更 */
+  width: 1679px;
+  height: 937px;
   background-color: transparent;
   transform-origin: 0 0;
   will-change: transform;
@@ -777,15 +774,9 @@ html, body {
 }
 
 /* =====================================================
-   ★ レスポンシブ調整（2026-11-15 追加）★
-   ・ブラウザのタブバー/アドレスバーで変わる表示領域に追従
-     （100dvh + セーフエリア）
-   ・高さの低い画面（横向きスマホ・低 height のPC等）では
-     要素そのものは変えず、サイズだけを段階的に縮小する
-   ・詳細画面は縦スクロール可能にして上端の見切れを防ぐ
+   ★ レスポンシブ調整 ★
    ===================================================== */
 
-/* セーフエリア（ノッチ・ホームバー・ブラウザUI）を避ける */
 #app .screen {
   padding-left:  max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
@@ -794,16 +785,13 @@ html, body {
 .header-text { bottom: max(20px, env(safe-area-inset-bottom)); }
 .footer-text { bottom: max(20px, env(safe-area-inset-bottom)); }
 
-/* 詳細画面：カードが画面より高い端末でも上から読めるように */
 #detailScreen { overflow-y: auto; }
 
-/* ── 中くらいの高さ（〜640px）：全体を一段コンパクトに ── */
 @media (max-height: 640px) {
   :root {
     --center-img-size: clamp(100px, 30vh, 170px);
     --detail-img-size: 210px;
   }
-  /* メーター */
   .gauge-track-wrap { height: clamp(140px, 32vh, 220px); }
   .gauge-fixed-face { width: 44px; height: 44px; }
   .gauge-thumb { right: -170px; width: 170px; height: 116px; }
@@ -812,14 +800,11 @@ html, body {
   .gauge-arrow { border-top-width: 16px; border-bottom-width: 16px; border-right-width: 20px; }
   .gauge-drag-area { right: -200px; }
   #gaugeScreen .q-text { margin-bottom: 8px; }
-  /* カード一覧 */
   .bubble-img { width: min(100%, 88px); }
-  /* 結果画面は上端が見切れないよう上寄せ */
   #resultScreen { justify-content: flex-start; }
   #quizScreen { padding-top: 14px; }
 }
 
-/* ── 低い画面（〜480px）：横向きスマホ等 ── */
 @media (max-height: 480px) {
   :root {
     --center-img-size: clamp(84px, 28vh, 130px);
@@ -827,7 +812,6 @@ html, body {
     --detail-ttl-size: 22px;
     --detail-desc-size: 16px;
   }
-  /* スタート画面 */
   #startScreen { padding-top: 8px; }
   .big-img { width: clamp(64px, 20vh, 110px); height: clamp(64px, 20vh, 110px); margin-bottom: 4px; }
   .ttl { font-size: 24px; margin-bottom: 6px; }
@@ -836,7 +820,6 @@ html, body {
   .name-select { font-size: 16px; padding: 8px 18px; }
   .name-add-btn { width: 42px; height: 42px; font-size: 26px; }
   .start-btn { font-size: 17px; padding: 10px 28px; }
-  /* 質問画面 */
   #quizScreen { padding-top: 10px; }
   .q-text { font-size: clamp(17px, 4.5vh, 22px); margin-bottom: 6px; }
   .opt { padding: 6px 10px; font-size: 13px; }
@@ -845,7 +828,6 @@ html, body {
   .pbar-wrap { margin-bottom: 8px; }
   .opts.opts-5 .opt .oi img { width: clamp(36px, 10vh, 52px); height: clamp(36px, 10vh, 52px); }
   .back-btn { margin-top: 6px; font-size: 15px; }
-  /* メーター */
   #gaugeScreen { padding-top: 8px; }
   .gauge-track-wrap { width: 96px; height: clamp(96px, 26vh, 140px); }
   .gauge-fixed-face { width: 30px; height: 30px; }
@@ -859,10 +841,8 @@ html, body {
   .gauge-label-top, .gauge-label-bottom { font-size: 12px; }
   .gauge-container { gap: 4px; margin-top: 4px; }
   .next-screen-btn { font-size: 18px; padding: 8px 24px; margin-top: 4px; }
-  /* 結果画面 */
   #resultScreen { gap: 8px; padding-top: 8px; }
   .res-ttl { font-size: clamp(16px, 4vh, 24px); }
-  /* カード一覧 */
   .act-top { padding: 4px 0 2px; }
   .act-ttl { font-size: 17px; }
   .act-desc { font-size: 11px; }
@@ -870,56 +850,76 @@ html, body {
   .bubble { padding: 8px 6px; font-size: 12.5px; gap: 5px; }
   .bubble-img { width: min(100%, 60px); }
   .act-btns .retry-btn, .shuffle-btn { margin: 4px 0 6px; }
-  /* 詳細画面 */
   #detailScreen { justify-content: flex-start; padding-top: 10px; }
   .detail-card-img-wrap { min-height: 0; padding-top: 8px; }
   .detail-img { width: clamp(90px, 26vh, 150px); height: clamp(90px, 26vh, 150px); }
   .detail-card-body { padding: 8px 18px 22px; }
-  /* 場所画面 */
   .instruction { font-size: 12px; margin-top: 4px; }
 }
 
-/* ── 横向き・幅広で低い画面では質問の選択肢を横に広げる ── */
 @media (max-height: 480px) and (min-width: 700px) {
   .opts { max-width: 720px; }
 }
 
-/* カードの上下余白を少し詰める（行高を安定させ、収まりを良くする） */
 .bubble { padding-top: clamp(8px, 1.6vh, 13px); padding-bottom: clamp(8px, 1.6vh, 13px); }
 
-/* ── 小さいスマホ幅ではカード画像を少し小さく（枚数計算と対応） ── */
 @media (max-width: 768px) {
   .bubble-img { width: min(100%, 88px); }
 }
+
+.site-footer {
+  position: absolute;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 24px;
+  padding: 0 16px;
+  z-index: 100;
+  pointer-events: none;
+}
+.site-footer .footer-text,
+.site-footer .footer-link {
+  font-size: clamp(10px, 1.5vw, 14px);
+  color: #7e7d81;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  white-space: nowrap;
+}
+.site-footer .footer-link {
+  pointer-events: auto;
+  text-decoration: underline;
+}
+
 </style>
 
 <div id="app">
 <div id="startScreen" class="screen active">
-  <img class="big-img" id="startImg" src="" alt="">
+  <img class="big-img" id="startImg" src="" alt="" loading="lazy" decoding="async">
+  
   <div class="ttl">きもちチェック</div>
   <div class="sub">しつもんにこたえると<br>きもちラクラクのヒントがでてくるよ！</div>
 
   <div class="name-pick-row">
-    <select class="name-select" id="nameSelect" onchange="onNameSelect()" style="display:none">
-      <option value="">なまえを えらぶ</option>
-    </select>
     <div class="name-dd">
-      <button type="button" class="name-select name-dd-btn" id="nameDdBtn" onclick="toggleNameDd(event)">
+      <button type="button" class="name-select name-dd-btn" id="nameDdBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="nameDdMenu">
         <span class="name-dd-label" id="nameDdLabel">なまえを えらぶ</span>
-        <span class="name-dd-caret">▼</span>
+        <span class="name-dd-caret" aria-hidden="true">▼</span>
       </button>
-      <div class="name-dd-menu" id="nameDdMenu"></div>
+      <div class="name-dd-menu" id="nameDdMenu" role="listbox" aria-labelledby="nameDdBtn"></div>
     </div>
-    <button class="name-add-btn" onclick="goNameScreen()" title="名前を追加する">＋</button>
+    <button type="button" class="name-add-btn" id="nameAddBtn" title="名前を追加する" aria-label="名前を追加する">＋</button>
   </div>
 
-  <button class="start-btn" id="startBtn" onclick="startQ()" disabled>はじめる</button>
-<div style="position:absolute; bottom:20px; left:30px; display:flex; gap:20px; z-index:100; pointer-events: none;">
-  <div class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:none;">開発 横浜保育教育専門学校 にじいろゼミ</div>
-  <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">連絡はこちら</a>
-  <a href="about.html" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">使い方・このサイトについて</a>
-  <a href="history.html" class="footer-text" style="position:static; bottom:auto; left:auto; pointer-events:auto; color:#7e7d81; text-decoration:underline;">📊 気持ち経過観察</a>
-</div>
+  <button class="start-btn" id="startBtn" disabled>はじめる</button>
+  
+  <div class="site-footer">
+    <div class="footer-text">開発 横浜保育教育専門学校 にじいろゼミ</div>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFqVYJE5zGsHYEIMp1BIrcc5-U1TKQFIKo03nMVefwHbz6gw/viewform?usp=dialog" target="_blank" class="footer-link">連絡はこちら</a>
+    <a href="about.html" class="footer-link">使い方・このサイトについて</a>
+    <a href="history.html" class="footer-link">📊 気持ち経過観察</a>
+  </div>
 </div>
 
 <div id="quizScreen" class="screen">
@@ -927,8 +927,8 @@ html, body {
   <div id="quizNameBadge" style="display:none;align-self:flex-start;font-size:clamp(14px,3vh,24px);color:#b09070;margin-bottom:2px;margin-top:-6px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;max-width:100%;overflow-wrap:break-word;word-break:break-word;"></div>
   <div class="q-text" id="qtext"></div>
   <div class="opts" id="opts"></div>
-  <button class="back-btn hidden" id="backBtn" onclick="goBack()">← もどる</button>
-  <button class="back-btn hidden" id="topBtn" onclick="goTop()">← さいしょにもどる</button>
+  <button class="back-btn hidden" id="backBtn">← もどる</button>
+  <button class="back-btn hidden" id="topBtn">← さいしょにもどる</button>
 </div>
 
 <!-- 元気度メーター画面 -->
@@ -961,8 +961,8 @@ html, body {
     </div>
   </div>
   
-  <button class="next-screen-btn" id="gaugeNextBtn" onclick="submitGauge()" style="margin-top:10px;">できた</button>
-  <button class="back-btn" id="gaugeBackBtn" onclick="goBack()">← もどる</button>
+  <button class="next-screen-btn" id="gaugeNextBtn" style="margin-top:10px;">できた</button>
+  <button class="back-btn" id="gaugeBackBtn">← もどる</button>
 </div>
 
 <!-- いまどこにいたい？画面 -->
@@ -985,8 +985,8 @@ html, body {
     </div>
   </div>
 
-  <button class="next-screen-btn" id="locationNextBtn" onclick="submitLocation()">できた</button>
-  <button class="back-btn" onclick="goBack()">← もどる</button>
+  <button class="next-screen-btn" id="locationNextBtn">できた</button>
+  <button class="back-btn" id="locationBackBtn">← もどる</button>
 </div>
 
 <!-- 今の気持ち画面 -->
@@ -1001,13 +1001,12 @@ html, body {
       <div class="sub-tags" id="subTags"></div>
     </div>
   </div>
-  <div class="center-card" style="margin:0 auto;">
+  <div class="center-card">
     <div class="ce" id="cce"></div>
     <!-- 丸の下に被せるタイトル -->
     <div class="location-title">いまいたいところ</div>
   </div>
-  <button class="next-screen-btn" onclick="showActScreen()">これ、やってみる？ →</button>
-  <button class="retry-btn" onclick="restart()">もういちど</button>
+  <button class="next-screen-btn" id="showActBtn">これ、やってみる？ →</button>
 </div>
 
 <!-- 特効薬画面 -->
@@ -1019,9 +1018,9 @@ html, body {
   </div>
   <div class="bubble-grid" id="bscene"></div>
   <div class="act-btns">
-    <button class="retry-btn" onclick="goBackToResult()">←いっこ もどる</button>
-    <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleBubbles()">↻ ほかのカードをみる</button>
-    <button class="retry-btn" onclick="restart()">さいしょから</button>
+    <button class="retry-btn" id="backToResultBtn">←いっこ もどる</button>
+    <button class="shuffle-btn" id="shuffleBtn">↻ ほかのカードをみる</button>
+    <button class="retry-btn" id="actRestartBtn">さいしょから</button>
   </div>
 </div>
 
@@ -1036,12 +1035,12 @@ html, body {
     </div>
     <div class="detail-card-body">
       <div class="detail-card-desc" id="detailDesc"></div>
-      <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+      <button class="like-btn" id="likeBtn">
         <img id="likeImg" src="" alt="👍" class="like-img">
       </button>
     </div>
   </div>
-  <button class="detail-back-btn" onclick="closeDetail()">← もどる</button>
+  <button class="detail-back-btn" id="detailBackBtn">← もどる</button>
 </div>
 </div>
 
@@ -1084,7 +1083,7 @@ const IMG = {
   alone:          BASE_EXP+"expression-alone.png",
   palpitations:   BASE_EXP+"expression-palpitations.png",
   stuffy:         BASE_EXP+"expression-stuffy.png",
-  talk:          BASE_EXP+"expression-talking.png",
+  talk:           BASE_EXP+"expression-talking.png",
   happy:          BASE_EXP+"expression-happy.png",
 };
 
@@ -1121,28 +1120,22 @@ const Qs=[
 
 /* ══════════════════════════════════════════════
    採点ロジック
-   ・回答 → プロフィール(buildProfile) → カードごとの採点(scoreBubble)
-   ・設定値は data.js の SCORE_CFG / ZONES / PLACE_TAGS
    ══════════════════════════════════════════════ */
 const ALL_MOODS  = ["happy","sad","angry","anxious"];
 const ALL_BODIES = ["fine","heart","breath","bad"];
 const toArr = v => v == null ? [] : (Array.isArray(v) ? v : [v]);
 
-/* メーターの「げんき%」(0〜100・なめらか) → 20%刻みの5段階の添字
-   0=とてもげんき(80〜100%) 1=げんき 2=ふつう 3=げんきがない 4=とてもげんきがない(0〜20%) */
 function energyIdxFromPct(pct){
   const band = Math.min(4, Math.floor(Math.max(0, Math.min(100, pct)) / 20));
   return 4 - band;
 }
-/* gaugeValue: 0=げんき 〜 15=ぐったり (画面の見た目と同じ向き) → げんき% */
 function genkiPctFromGauge(g){ return (1 - g / 15) * 100; }
 
-/* ── 地図・当たり判定 ── */
-function mapImgRect(){               // 地図領域(960x460)の中で背景画像が占める矩形
+function mapImgRect(){
   const h = MAP_META.h, w = h * MAP_META.imgAspect;
   return { x:(MAP_META.w - w) / 2, y:0, w, h };
 }
-function pointInPoly(x, y, poly){    // レイキャスティング法
+function pointInPoly(x, y, poly){
   let inside = false;
   for(let i = 0, j = poly.length - 1; i < poly.length; j = i++){
     const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
@@ -1150,18 +1143,15 @@ function pointInPoly(x, y, poly){    // レイキャスティング法
   }
   return inside;
 }
-/* ゾーンの当たり判定: rect=[左,上,右,下](正規化座標)。旧形式の poly も読める */
 function zoneContains(z, x, y){
   if(z.rect) return x >= z.rect[0] && x <= z.rect[2] && y >= z.rect[1] && y <= z.rect[3];
   return z.poly ? pointInPoly(x, y, z.poly) : false;
 }
-/* ゾーンの表示名は持たない。代わりに割り当てタグの短い名前を並べて表示する */
 const TAG_SHORT = {};
 PLACE_TAGS.groups.forEach(g => g.tags.forEach(t => { TAG_SHORT[t.id] = t.s || String(t.label).split('(')[0]; }));
 const tagsLabel = tags => toArr(tags).map(t => TAG_SHORT[t] || t).join('・') || '(タグなし)';
-function footOf(loc){ return { x: loc.x + loc.w / 2, y: loc.y + loc.h }; }  // 人物の足元(下辺中央)
+function footOf(loc){ return { x: loc.x + loc.w / 2, y: loc.y + loc.h }; }
 
-/* 足元の位置 → 重なったゾーンすべてのタグを加算 */
 function placeProfileAt(foot){
   const r = mapImgRect();
   const nx = (foot.x - r.x) / r.w, ny = (foot.y - r.y) / r.h;
@@ -1175,16 +1165,11 @@ function placeProfileAt(foot){
            hits: hits.map(z => ({id:z.id, weight:z.weight == null ? 1 : z.weight, tags:toArr(z.tags)})) };
 }
 
-/* ── プロフィール ──
-   ・「ふつう」(mood/body) → 同じ質問の全選択肢を選んだ扱い
-   ・place が null (「このなかにはない」/ゾーン外/未選択) → 場所は一切採点に使わない */
 function buildProfile(a){
   const moodAny = !a.mood || a.mood === "normal";
   const bodyAny = !a.body || a.body === "normal";
   const pct = a.genkiPct != null ? a.genkiPct : (a.gauge != null ? genkiPctFromGauge(a.gauge) : 50);
   const rawEnergyIdx = energyIdxFromPct(pct);
-
-  // ★ 問題12：見出しと同じ「からだ補正後の段階」をカードのenergy評価にも使う
   const physicalLevel = derivePhysicalLevel(rawEnergyIdx, a.body);
   const energyIdx = ENERGY_LEVELS.indexOf(physicalLevel);
 
@@ -1199,10 +1184,6 @@ function buildProfile(a){
 
 function scoreBubble(b, P){
   const C = SCORE_CFG, t = b.tags;
-  /* タグ一致の採点: 基本点 + ボーナス×(一致数/タグ数)
-     ・"any" は分母に数えない
-     ・タグが1つでも同じ式を使う(旧実装は複数タグのときだけボーナスが付き、複数タグのカードが有利だった)
-     ・「ふつう」(全選択肢扱い)のときは全カードが比率1になり、タグ数による有利不利は出ない */
   const parts = { mood:0, energy:0, body:0, wish:0, place:0 };
   const tagScore = (tagVal, set, base, bonus) => {
     const tags = toArr(tagVal).filter(x => x !== "any");
@@ -1214,29 +1195,24 @@ function scoreBubble(b, P){
 
   parts.mood = tagScore(t.mood, P.moodSet, C.mood, C.moodBonus);
   parts.body = tagScore(t.body, P.bodySet, C.body, C.bodyBonus);
-  // 「なにもしたくない」は加点を抑える（実質デフォルトタグ化を防ぐ）
   const isNothing = P.wishSet.length === 1 && P.wishSet[0] === "nothing";
   parts.wish = tagScore(t.wish, P.wishSet, isNothing ? C.wishNothingBonus : C.wish, C.wishBonus);
 
-  /* ── energy（連続関数 + タグの広さに応じた減衰） ── */
   const es = toArr(t.energy).map(x => ENERGY_LEVELS.indexOf(x)).filter(i => i >= 0);
   if(es.length){
     const d = Math.min(...es.map(i => Math.abs(i - P.energyIdx)));
-    // 距離0で最大、離れるほど減衰
     let e = Math.max(0, C.energyWeight - d * C.energyDecay);
-    // タグが4段階以上にまたがる場合は「機械的に広く付けた」とみなして減衰
     if(es.length >= 4) e *= 0.5;
     else if(es.length === 3) e *= 0.8;
     parts.energy = e;
   }
 
-  /* ── place（カードのplaceタグ数で正規化） ── */
   if(P.place){
     const placeTags = toArr(t.place);
     let raw = 0;
     placeTags.forEach(tag => { raw += (P.place.tags[tag] || 0); });
     if(C.placeNormalize && placeTags.length > 0){
-      raw = raw / placeTags.length;   // ★ タグ数で割って平均化
+      raw = raw / placeTags.length;
     }
     parts.place = Math.min(C.placeCap, raw * C.placePerPoint);
   }
@@ -1245,16 +1221,14 @@ function scoreBubble(b, P){
   return parts;
 }
 
-/* 全カードをスコア降順に並べる(同点はランダム順) */
 function rankBubbles(P){
   const scored = shuffle(BUBBLES).map(b => { const parts = scoreBubble(b, P); return {b, s:parts.total, parts}; });
   return scored.sort((x, y) => y.s - x.s);
 }
 
-/* 初回表示: 重み付き抽選(重み = weightBase ^ スコア)。高スコアほど出やすい */
 function pickInitial(ranked, n){
   let cand = ranked.filter(x => x.s >= SCORE_CFG.minScore);
-  if(cand.length < n) cand = ranked.slice(0, n);        // 足りなければ上位から補充
+  if(cand.length < n) cand = ranked.slice(0, n);
   const top = cand[0].s;
   const w = cand.map(x => Math.pow(SCORE_CFG.weightBase, x.s - top));
   const out = [], used = new Set();
@@ -1270,7 +1244,6 @@ function pickInitial(ranked, n){
   return out;
 }
 
-/* シャッフル: スコア上位 shufflePool 枚の中から n 枚を一様ランダムに(前に出たカードの再登場OK) */
 function pickShuffle(ranked, n){
   const pool = ranked.slice(0, Math.max(n, SCORE_CFG.shufflePool));
   return shuffle(pool).slice(0, n);
@@ -1302,11 +1275,7 @@ function goBackToResult(){
 }
 
 /* ══════════════════════════════════════════════
-   デバッグ表示 (URL に ?debug=1 を付けたときだけ有効)
-   ・場所タブ   : 足元の座標 / 重なったゾーン / タグごとの加点 / 加点されるカード
-   ・プロフィール: 回答が内部でどう解釈されたか
-   ・カードタブ : 全カードのスコア内訳(上位)
-   ・地図の上にゾーンの輪郭と足元マーカーを重ねる
+   デバッグ表示
    ══════════════════════════════════════════════ */
 const DBG = (() => {
   const on = new URLSearchParams(location.search).get('debug') === '1';
@@ -1343,7 +1312,7 @@ const DBG = (() => {
       <button data-tab="min" style="margin-left:auto">▁</button></div><div class="body"></div>`;
     document.body.appendChild(panel);
     bodyEl = panel.querySelector('.body');
-    if(window.innerWidth < 600){ minimized = true; bodyEl.style.display = 'none'; }   // 狭い画面では最小化で開始(▁ を押すと開く)
+    if(window.innerWidth < 600){ minimized = true; bodyEl.style.display = 'none'; }
     panel.querySelector('.bar').addEventListener('click', e => {
       const t = e.target.dataset && e.target.dataset.tab; if(!t) return;
       if(t === 'min'){ minimized = !minimized; bodyEl.style.display = minimized ? 'none' : ''; return; }
@@ -1351,7 +1320,6 @@ const DBG = (() => {
     });
   }
 
-  /* 現在の人物位置から場所プロフィールを作る(submitLocation と同じ判定) */
   function curPlace(){
     if(locIsOutside) return { status:'「このなかにはない」→ 場所は採点に一切使わない', p:null, unused:true };
     const el = document.getElementById('personIcon');
@@ -1487,9 +1455,8 @@ function fadeIn(el){
   el.classList.add("active");
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     el.classList.add("visible");
-    // 画面が表示された後にマップのフィット計算を実行
     if (el.id === "locationScreen") {
-      setTimeout(fitMap, 550); // フェードイン完了後
+      setTimeout(fitMap, 550);
     }
   }));
 }
@@ -1507,15 +1474,36 @@ function fadeContent(cb){
 
 const NAME_RESULT_URL = "https://script.google.com/macros/s/XXXXXXXXXX/exec";
 
-function toggleNameDd(e){
-  if(e) e.stopPropagation();
-  document.getElementById("nameDdMenu").classList.toggle("open");
+// ── ドロップダウン制御 ──
+function toggleNameDd(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('nameDdMenu');
+  const btn  = document.getElementById('nameDdBtn');
+  const isOpen = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  if (isOpen) {
+    const first = menu.querySelector('.name-dd-opt');
+    if (first) first.focus();
+  }
 }
-function closeNameDd(){
-  const m = document.getElementById("nameDdMenu");
-  if(m) m.classList.remove("open");
+
+function closeNameDd() {
+  const menu = document.getElementById('nameDdMenu');
+  const btn  = document.getElementById('nameDdBtn');
+  if (menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
 }
-document.addEventListener("click", closeNameDd);
+
+// 外側クリックとEscキーで閉じる
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.name-dd')) closeNameDd();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeNameDd();
+});
+
 function renderNameDd(){
   const menu = document.getElementById("nameDdMenu");
   if(!menu) return;
@@ -1525,18 +1513,20 @@ function renderNameDd(){
     b.type = "button";
     b.className = "name-dd-opt";
     b.innerHTML = html;
-    b.onclick = () => pickNameDd(id);
+    b.onclick = (e) => { e.stopPropagation(); pickNameDd(id); };
     menu.appendChild(b);
   };
   mk("", "なまえを えらぶ");
   loadNames().forEach(n => mk(n.id, nameHtml(n)));
 }
+
 function pickNameDd(id){
-  const sel = document.getElementById("nameSelect");
-  sel.value = id;
+  if (id) sessionStorage.setItem("kimochi_selected_id", id);
+  else sessionStorage.removeItem("kimochi_selected_id");
   closeNameDd();
-  onNameSelect();
+  updateStartBtn();
 }
+
 function updateNameDdLabel(){
   const lab = document.getElementById("nameDdLabel");
   if(!lab) return;
@@ -1545,34 +1535,14 @@ function updateNameDdLabel(){
 }
 
 function refreshNameSelect(){
-  const list = loadNames();
-  const sel = document.getElementById("nameSelect");
-  const savedId = sel.value || sessionStorage.getItem("kimochi_selected_id") || "";
-  sel.innerHTML = '<option value="">なまえを えらぶ</option>';
-  list.forEach(n => {
-    const opt = document.createElement("option");
-    opt.value = n.id;
-    opt.textContent = n.name;
-    if(n.id === savedId) opt.selected = true;
-    sel.appendChild(opt);
-  });
   renderNameDd();
   updateStartBtn();
 }
 
-function onNameSelect(){
-  updateStartBtn();
-  const sel = document.getElementById("nameSelect");
-  if(sel && sel.value) sessionStorage.setItem("kimochi_selected_id", sel.value);
-  else sessionStorage.removeItem("kimochi_selected_id");
-}
 function updateStartBtn(){
-  const sel = document.getElementById("nameSelect");
   const btn = document.getElementById("startBtn");
-  if(!sel || !btn) return;
-  const selOpt = sel.options[sel.selectedIndex];
   const selUser = getSelectedUser();
-  if(sel.value && selOpt && selUser){
+  if(selUser){
     btn.innerHTML = nameHtml(selUser) + "さんとして はじめる";
     btn.disabled = false;
   } else {
@@ -1583,10 +1553,10 @@ function updateStartBtn(){
 }
 
 function getSelectedUser(){
-  const sel = document.getElementById("nameSelect");
-  if(!sel || !sel.value) return null;
+  const id = sessionStorage.getItem("kimochi_selected_id");
+  if(!id) return null;
   const list = loadNames();
-  return list.find(n => n.id === sel.value) || null;
+  return list.find(n => n.id === id) || null;
 }
 
 function goNameScreen(){
@@ -1678,13 +1648,11 @@ function goBack(){
   const currentQ = Qs[cur].id;
   const prevQ = Qs[cur-1].id;
 
-  /* いまの質問の回答を消す */
   if (currentQ === "gauge") { delete ans["gauge"]; delete ans["genkiPct"]; }
   else if (currentQ === "location") { delete ans["location"]; delete ans["place"]; delete ans["locationStatus"]; }
   else { delete ans[currentQ]; }
   cur--;
 
-  /* 画面の種類: gauge / location は専用画面、それ以外は共通の quizScreen */
   const screenOf = id => document.getElementById(id === "gauge" ? "gaugeScreen" : id === "location" ? "locationScreen" : "quizScreen");
   const showPrev = () => {
     if (prevQ === "gauge")         { initGaugeScreen();    fadeIn(screenOf("gauge")); }
@@ -1693,7 +1661,7 @@ function goBack(){
   };
 
   if (screenOf(currentQ) === screenOf(prevQ) && screenOf(prevQ).id === "quizScreen") {
-    fadeContent(() => renderQ());                 // 通常質問 → 通常質問
+    fadeContent(() => renderQ());
   } else {
     fadeOut(screenOf(currentQ), showPrev);
   }
@@ -1858,8 +1826,8 @@ function submitGauge(){
   if(busy) return;
   busy = true;
   
-  ans["gauge"] = Math.round(gaugeValue);                                  // 旧形式(履歴互換)
-  ans["genkiPct"] = Math.round(genkiPctFromGauge(gaugeValue) * 10) / 10;  // なめらかな値(0〜100%)。採点は20%刻みの5段階に丸めて使う
+  ans["gauge"] = Math.round(gaugeValue);
+  ans["genkiPct"] = Math.round(genkiPctFromGauge(gaugeValue) * 10) / 10;
   
   fadeOut(document.getElementById("gaugeScreen"), () => {
     cur++;
@@ -1888,10 +1856,9 @@ let locPinchStart = null;
 let locPersonDrag = null;
 let locIsPanning = false;
 let locPanMovedDistance = 0;
-let isPinching = false; // ピンチ操作中かどうかのフラグ
-let locHadMulti = false; // このタッチ操作中に2本指になったか(なったらタップ扱いにしない)
+let isPinching = false;
+let locHadMulti = false;
 
-// 画面のリサイズや表示を監視してマップをフィットさせる
 const mapViewport = document.getElementById('mapViewport');
 const resizeObserver = new ResizeObserver(() => {
   if (document.getElementById("locationScreen").classList.contains("visible")) {
@@ -1900,7 +1867,6 @@ const resizeObserver = new ResizeObserver(() => {
 });
 resizeObserver.observe(mapViewport);
 
-// iOS Safari はuser-scalable=noを無視するため、ジェスチャー自体を抑止
 ['gesturestart','gesturechange','gestureend'].forEach(t =>
   mapViewport.addEventListener(t, e => e.preventDefault(), { passive: false })
 );
@@ -1912,7 +1878,6 @@ function fitMap() {
   const vw = mapViewport.clientWidth;
   const vh = mapViewport.clientHeight;
   
-  // ★ ここを修正
   const mw = MAP_META.w;
   const mh = MAP_META.h;
   
@@ -2055,8 +2020,6 @@ function initLocationScreen() {
         
         const nextZoom = Math.max(0.5, Math.min(2.5,
           locPinchStart.zoom * distance / Math.max(1, locPinchStart.distance)));
-        // ピンチ開始時のマップ状態を基準に「指の下にあった地図上の点」を求める
-        // （毎フレーム現在値を使うと誤差が蓄積して横滑りする）
         const contentX = (locPinchStart.centerX - locPinchStart.mapX) / locPinchStart.zoom;
         const contentY = (locPinchStart.centerY - locPinchStart.mapY) / locPinchStart.zoom;
         locZoom = nextZoom;
@@ -2090,7 +2053,6 @@ function initLocationScreen() {
 const finishViewportPointer = (e) => {
   const wasSinglePointer = locPointers.size === 1;
   const wasPanning = locIsPanning;
-  // pointerdown時の座標を保持（viewportPointで保存済み）
   const startPoint = locPanStart ? { x: locPanStart.x, y: locPanStart.y } : null;
   locPointers.delete(e.pointerId);
 
@@ -2106,7 +2068,6 @@ const finishViewportPointer = (e) => {
     locIsPanning = false;
     isPinching = false;
 
-    // ★ タップ判定：pointerdownとpointerupの距離が10px未満ならタップ扱い
     if (e.type === 'pointerup' && wasSinglePointer && wasPanning && !locHadMulti) {
       const endPoint = viewportPoint(e);
       const dist = startPoint
@@ -2118,7 +2079,6 @@ const finishViewportPointer = (e) => {
         const mapLocalX = (e.clientX - rect.left - locMapX) / locZoom;
         const mapLocalY = (e.clientY - rect.top  - locMapY) / locZoom;
         const w = personIcon.offsetWidth, h = personIcon.offsetHeight;
-        // ★ 960 - w / 460 - h → MAP_META.w - w / MAP_META.h - h に修正
         const left = Math.max(0, Math.min(mapLocalX - w / 2, MAP_META.w - w));
         const top  = Math.max(0, Math.min(mapLocalY - h,     MAP_META.h - h));
 
@@ -2178,7 +2138,6 @@ const finishViewportPointer = (e) => {
       let left = (p.x - locMapX) / locZoom - locPersonDrag.offsetX;
       let top = (p.y - locMapY) / locZoom - locPersonDrag.offsetY;
       
-      // ★ 960 - personIcon.offsetWidth / 460 - personIcon.offsetHeight を修正
       left = Math.max(0, Math.min(left, MAP_META.w - personIcon.offsetWidth));
       top = Math.max(0, Math.min(top, MAP_META.h - personIcon.offsetHeight));
       
@@ -2214,10 +2173,8 @@ const finishViewportPointer = (e) => {
       submitLocation();
     });
 
-    // 初回のフィット
     fitMap();
   } else {
-    // 2回目以降の表示の際は位置をリセット
     locHasMoved = false;
     locIsOutside = false;
     fitMap();
@@ -2235,7 +2192,6 @@ function submitLocation() {
     ans.location = "outside";
     ans.locationStatus = "outside_btn";
   } else if (!locHasMoved) {
-    // 人物を動かしていない: 初期位置は本人の選択ではないので、場所として扱わない
     ans.location = null;
     ans.locationStatus = "unmoved";
   } else {
@@ -2246,8 +2202,6 @@ function submitLocation() {
     ans.location = { x: left, y: top, w: w, h: h };
   }
   
-  // 場所プロフィール: 足元がゾーンに入っていれば、重なった全ゾーンのタグを加算。
-  // 「このなかにはない」/ ゾーン外 / 人物を動かしていない → null (採点に一切寄与しない)
   ans.place = null;
   if (!locIsOutside && locHasMoved) {
     const pp = placeProfileAt(footOf(ans.location));
@@ -2274,8 +2228,6 @@ const ANS_LABEL = {
   wish:   { sleep:"ねむりたい", play:"あそびたい", talk:"はなしたいことがある", nothing:"なにもしたくない" },
 };
 
-/* 見出し用の段階: げんき度(5段階)を、からだの不調ぶんだけ重い側へずらす。
-   (旧実装はメーターの値を二重に加算していたため、初期位置でも「つかれてる」になっていた) */
 function derivePhysicalLevel(energyIdx, body){
   const BODY_WEIGHT = { fine:0, normal:0, heart:1, breath:1, bad:2 };
   const idx = Math.min(ENERGY_LEVELS.length - 1, energyIdx + (BODY_WEIGHT[body] || 0));
@@ -2285,15 +2237,11 @@ function derivePhysicalLevel(energyIdx, body){
 function showResult(){
   busy = false;
   const mt = ans.mood || "happy";
-  // buildProfile 内で からだ補正済み。ここで再度 derivePhysicalLevel を通さない(二重加算の防止)
   const physicalLevel = buildProfile(ans).energy;
   const key = mt + "_" + physicalLevel;
   let d = MD[key];
   if(!d){
-    console.error(
-      `[きもちチェック] MDに未定義の組み合わせです: mood="${mt}", physicalLevel="${physicalLevel}" (key="${key}")。` +
-      `data.jsのMDオブジェクトを確認してください。`
-    );
+    console.error(`[きもちチェック] MDに未定義の組み合わせです: key="${key}"`);
     d = MD.error;
   }
 
@@ -2343,7 +2291,6 @@ function showResult(){
   }).filter(s => s !== "");
   subTagsEl.textContent = parts.join("・");
   
-  // カード枚数の調整: 画面サイズからグリッドに収まる枚数を計算する
   const bubbleCount = computeBubbleCount();
   chosenBubbles = selectBubbles(ans, bubbleCount);
   sendResult();
@@ -2351,15 +2298,12 @@ function showResult(){
   const histUser = getSelectedUser();
   if(histUser){
     const HIST_KEY = "kimochi_history";
-    const HIST_MAX = 500;   // 無制限に増えないよう古い順に切り捨てる
+    const HIST_MAX = 500;
     let hist = [];
     try{ hist = JSON.parse(localStorage.getItem(HIST_KEY)||"[]"); }catch(e){}
     if(!Array.isArray(hist)) hist = [];
-    /* 元気度: 「メーターで答えた段階」と「見出しに出した段階(からだ補正後)」を両方残す */
     const energyAnswered = (ans.genkiPct != null) ? ENERGY_LEVELS[energyIdxFromPct(ans.genkiPct)] : null;
     const energyResult   = lastProfile ? lastProfile.energy : physicalLevel;
-    /* いたい場所: 地図画像を 0〜1 に正規化した「足元の座標」と人物の大きさ(画像幅に対する比)を記録する。
-       x=左端0 → 右端1 / y=上端0 → 下端1。履歴画面の吹き出しで実際の場所を再現するのに使う */
     const locStatus = ans.locationStatus || null;
     let placeXY = null;
     if (ans.location && typeof ans.location === "object") {
@@ -2367,7 +2311,7 @@ function showResult(){
       placeXY = { x: r4((foot.x - r.x) / r.w), y: r4((foot.y - r.y) / r.h), w: r4(ans.location.w / r.w) };
     }
     hist.push({
-      v:      3,    // 記録形式(v3: 体調→気持ち→げんき度→場所(座標)→したいこと)
+      v:      3,
       nameId: histUser.id,
       name:   histUser.name,
       date:   new Date().toISOString(),
@@ -2378,7 +2322,6 @@ function showResult(){
                 wish:ans.wish }
     });
     if(hist.length > HIST_MAX) hist = hist.slice(-HIST_MAX);
-    // 保存に失敗(容量超過/プライベートモード等)しても結果画面は必ず表示する
     try{ localStorage.setItem(HIST_KEY, JSON.stringify(hist)); }
     catch(e){ console.warn("[きもちチェック] 履歴を保存できませんでした:", e); }
   }
@@ -2391,14 +2334,6 @@ function showResult(){
     resLabel.style.display = "none";
   }
   fadeIn(document.getElementById("resultScreen"));
-}
-
-function goBackToResult(){
-  if(busy) return;
-  stopBubbleHint();
-  fadeOut(document.getElementById("actScreen"), () => {
-    fadeIn(document.getElementById("resultScreen"));
-  });
 }
 
 function showActScreen(){
@@ -2418,7 +2353,6 @@ function showActScreen(){
   }
   fadeOut(document.getElementById("resultScreen"),()=>{
     fadeIn(document.getElementById("actScreen"));
-    // カードがまだ無ければ初回配置、既にあればヒントアニメだけ再開
     if(document.querySelectorAll("#bscene .bubble").length === 0){
       setTimeout(()=>placeBubbles(chosenBubbles),(cssVar('--fade-ms')||300)+50);
     } else {
@@ -2524,7 +2458,6 @@ function toggleLike(){
         img:   currentDetailItem.img|| "",
         desc:  currentDetailItem.desc|| ""
       });
-      // 保存に失敗してもサーバー送信は続ける
       try{ localStorage.setItem(LIKES_KEY, JSON.stringify(likes)); }
       catch(e){ console.warn("[きもちチェック] いいねを保存できませんでした:", e); }
     }
@@ -2575,30 +2508,21 @@ function restart(){
   document.getElementById("detailScreen").style.background="";
   fadeOut(current,()=>{ cur=0;ans={}; fadeIn(document.getElementById("startScreen")); });
 }
-</script>
 
-<script>
-/* =====================================================
-   レスポンシブ調整用ユーティリティ（2026-11-15 追加）
-   ===================================================== */
-/* 結果カードの枚数：グリッド領域に収まる「列数 × 行数」を画面サイズから計算する。
-   列幅・行高はCSS側のカードサイズ（画像＋文字＋余白）と対応させている。 */
 function computeBubbleCount(){
   const w = window.innerWidth, h = window.innerHeight;
-  const compact = w <= 768;          // スマホ・小タブレット幅
-  const short   = h <= 480;          // 横向きスマホ等の低い画面
+  const compact = w <= 768;
+  const short   = h <= 480;
   const minCol  = compact ? 140 : 180;
   const gap     = compact ? 10 : 16;
   const gridW   = Math.min(w - 32, 960) - (compact ? 10 : 20);
   const cols    = Math.max(1, Math.floor((gridW + gap) / (minCol + gap)));
-  const chromeH = short ? 130 : compact ? 210 : 150;       // 見出し＋ボタン類の高さ
+  const chromeH = short ? 130 : compact ? 210 : 150;
   const rowPitch = short ? (128 + gap) : compact ? (156 + gap) : (190 + gap);
   const rows    = Math.max(1, Math.floor((h - chromeH + gap) / rowPitch));
   return Math.max(4, Math.min(12, cols * rows));
 }
 
-/* 起動保険：画像やフォントの読み込みが遅い環境で window の load が
-   遅れても、スタート画面が真っ白なままにならないようにする */
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const s = document.getElementById('startScreen');
@@ -2607,6 +2531,30 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }, 3000);
 });
+
+function bindEvents() {
+  const on = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', fn);
+  };
+  on('startBtn', startQ);
+  on('backBtn', goBack);
+  on('topBtn', goTop);
+  on('gaugeNextBtn', submitGauge);
+  on('gaugeBackBtn', goBack);
+  on('locationNextBtn', submitLocation);
+  on('locationBackBtn', goBack);
+  on('showActBtn', showActScreen);
+  on('backToResultBtn', goBackToResult);
+  on('shuffleBtn', shuffleBubbles);
+  on('actRestartBtn', restart);
+  on('likeBtn', toggleLike);
+  on('nameAddBtn', goNameScreen);
+  on('detailBackBtn', closeDetail);
+  on('nameDdBtn', toggleNameDd);
+}
+document.addEventListener('DOMContentLoaded', bindEvents);
+
 </script>
 </body>
 </html>
