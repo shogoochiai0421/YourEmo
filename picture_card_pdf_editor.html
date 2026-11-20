@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>きもちチェック｜絵カード印刷・レイアウト編集</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+       画面用UIスタイル
+       ═══════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════
+       カードのデフォルト変数（全体で共有）
+       ═══════════════════════════════════════════ */
+    :root {
+      --card-w: 60mm;
+      --card-h: 80mm;
+      
+      /* ジャンル色のデフォルト（JSで個別に上書きされます） */
+      --genre-bg: #FBEAF0;
+      --genre-text: #72243E;
+      
+      /* ユーザー設定項目 */
+      --body-bg-color: #ffffff;
+      --title-color: #464652; /* RGB(70, 70, 82) */
+      --desc-color: #4c4c52;  /* RGB(76, 76, 82) */
+      --border-color: #cccccc;
+      --border-width: 2.5px;
+      
+      --font-title: 4.5mm;
+      --font-genre: 2.5mm;
+      --font-desc: 3.4mm;
+      
+      --img-area-h: 50%;
+      --img-scale: 100%;
+      --ct-pad: 2mm;
+      --ct-gap: 1.5mm;
+      --inner-radius: 2.5mm;
+    }
+
+    /* 左：設定＆編集サイドバー */
+    .sidebar {
+      width: 360px;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+      z-index: 10;
+    }
+    .sidebar-header {
+      padding: 15px 20px;
+      background: #fff;
+      border-bottom: 2px solid #ffce65;
+      position: sticky; top: 0; z-index: 2;
+    }
+    .sidebar-header h1 { font-size: 18px; color: #53433a; }
+    
+    .settings-group {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .settings-group h3 {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 15px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-group h3::before {
+      content: "";
+      display: inline-block;
+      width: 4px; height: 14px;
+      background: #ffce65;
+      border-radius: 2px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .control-row label { flex: 1; color: #555; }
+    .control-row input[type="number"] {
+      width: 70px;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-family: inherit;
+      text-align: right;
+    }
+    .control-row input[type="range"] {
+      width: 110px;
+      accent-color: #ffce65;
+    }
+    .control-row input[type="color"] {
+      width: 40px; height: 28px;
+      padding: 0; border: 1px solid #ccc;
+      border-radius: 4px; cursor: pointer;
+    }
+    .control-row input[type="color"]:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .control-row input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: #ffce65;
+      cursor: pointer;
+    }
+    .control-row .val-display {
+      width: 40px;
+      text-align: right;
+      color: #888;
+    }
+
+    .stats-box {
+      background: #fdfaf5;
+      border: 1px solid #ffe0b2;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+    .stats-box span { font-weight: bold; color: #e65100; }
+
+    .print-btn {
+      margin: 20px;
+      background: #ffce65;
+      color: #fff;
+      border: none;
+      border-radius: 99px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+      font-family: inherit;
+    }
+    .print-btn:active { transform: scale(0.98); }
+    .print-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+    /* 右：メインコンテンツ */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #e4e9f0;
+    }
+    
+    /* タブ切り替え */
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    .tab {
+      padding: 15px 25px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #777;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab.active {
+      color: #53433a;
+      border-bottom-color: #ffce65;
+    }
+
+    /* リスト＆プレビューエリア */
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+      display: none;
+    }
+    .view-container.active { display: block; }
+
+    /* ① カード選択リスト（カード風グリッド） */
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+    }
+    .list-item {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .list-item:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .list-item.selected { border-color: #ffce65; background: #fffdf7; }
+    .list-item input[type="checkbox"] {
+      position: absolute;
+      top: 8px; left: 8px;
+      width: 22px; height: 22px;
+      cursor: pointer;
+      accent-color: #ffce65;
+      z-index: 2;
+    }
+    .list-thumb {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .list-thumb .inner-bg {
+      background: #fff; width: 85%; height: 85%; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1) inset;
+    }
+    .list-thumb img { max-width: 90%; max-height: 90%; object-fit: contain; }
+    .list-info { text-align: center; margin-top: auto; }
+    .list-title { font-size: 13px; font-weight: bold; line-height: 1.4; word-break: break-all; color: #333; }
+    .list-genre { font-size: 11px; color: #888; margin-top: 4px; }
+
+    /* ② レイアウト編集プレビュー */
+    .preview-workspace {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100%;
+      transform: scale(1.5);
+      transform-origin: center center; 
+    }
+    
+    /* ═══════════════════════════════════════════
+       カードデザイン（印刷用）
+       ═══════════════════════════════════════════ */
+    .card-template {
+      width: var(--card-w);
+      height: var(--card-h);
+      background-color: var(--genre-bg);
+      color: var(--title-color);
+      border-radius: 4mm;
+      border: var(--border-width) solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      
+      /* 影（プレビュー時のみ） */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      
+      /* 切り取り用の薄灰色線（実線、box-shadowで一番下のレイヤーに描画） */
+      /* 外側に1px広げる。カードの背景色が上から塗りつぶすため、隣接時は隠れる */
+      box-shadow: 0 0 0 0.3px #cccccc, 0 10px 30px rgba(0,0,0,0.15);
+      
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .ct-img-wrap {
+      height: var(--img-area-h);
+      background-color: var(--genre-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--ct-pad);
+      flex-shrink: 0;
+    }
+
+    /* 画像背景は常に白 */
+    .ct-img-inner {
+      background-color: #ffffff;
+      width: 100%;
+      height: 100%;
+      border-radius: var(--inner-radius);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .ct-img-inner img {
+      max-width: var(--img-scale);
+      max-height: var(--img-scale);
+      object-fit: contain;
+    }
+
+    .ct-body {
+      flex: 1;
+      background-color: var(--body-bg-color);
+      display: flex;
+      flex-direction: column;
+      padding: var(--ct-pad);
+      padding-bottom: calc(var(--ct-pad) + 8mm);
+      gap: var(--ct-gap);
+      min-height: 0;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .ct-title {
+      font-size: var(--font-title);
+      font-weight: 700;
+      line-height: 1.2;
+      word-break: break-all;
+      color: var(--title-color);
+    }
+
+    /* ジャンルタグ（左下に固定） */
+    .ct-genre {
+      position: absolute;
+      bottom: var(--ct-pad);
+      left: var(--ct-pad);
+      background-color: var(--genre-bg);
+      color: var(--genre-text);
+      padding: 0.5mm 2mm;
+      border-radius: 99px;
+      font-size: var(--font-genre);
+      font-weight: 700;
+      z-index: 2;
+    }
+
+    /* 説明文 */
+    .ct-desc {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background-color: transparent;
+      padding: 1.5mm 0;
+      font-size: var(--font-desc);
+      line-height: 1.4;
+      color: var(--desc-color);
+    }
+
+    /* ═══════════════════════════════════════════
+       印刷用スタイル
+       ═══════════════════════════════════════════ */
+    .print-area { display: none; }
+    
+    @page { size: A4 portrait; margin: 0; }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body { background: #fff; display: block; height: auto; overflow: visible; }
+      .sidebar, .main-content { display: none !important; }
+      .print-area { display: block !important; }
+      
+      .card-template {
+        /* 印刷時は影を消し、切り取り線のみ残す */
+        box-shadow: 0 0 0 1px #cccccc !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- サイドバー -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>レイアウト設定</h1>
+    </div>
+
+    <!-- 基本サイズ設定 -->
+    <div class="settings-group">
+      <h3>基本設定（PDF出力用）</h3>
+      <div class="control-row">
+        <label>カード幅 (mm)</label>
+        <input type="number" id="setCardW" value="60" min="30" max="150">
+      </div>
+      <div class="control-row">
+        <label>カード高 (mm)</label>
+        <input type="number" id="setCardH" value="80" min="40" max="200">
+      </div>
+      <div class="control-row">
+        <label>横の間隔 (mm)</label>
+        <input type="number" id="setGapX" value="5" min="0" max="30">
+      </div>
+      <div class="control-row">
+        <label>縦の間隔 (mm)</label>
+        <input type="number" id="setGapY" value="5" min="0" max="30">
+      </div>
+      <div class="control-row">
+        <label>ページ余白 (mm)</label>
+        <input type="number" id="setMargin" value="10" min="0" max="30">
+      </div>
+      
+      <div class="stats-box">
+        選択中: <span id="selCount">0</span> 枚<br>
+        1ページあたり: <span id="perPage">0</span> 枚<br>
+        合計ページ数: <span id="pageCount">0</span> ページ
+      </div>
+    </div>
+
+    <!-- カラー設定 -->
+    <div class="settings-group">
+      <h3>カラー設定</h3>
+      <div class="control-row">
+        <label>文字エリアの背景色</label>
+        <input type="color" id="setBodyBgColor" value="#ffffff">
+      </div>
+      <div class="control-row">
+        <label>タイトルの文字色</label>
+        <input type="color" id="setTitleColor" value="#464652">
+      </div>
+      <div class="control-row">
+        <label>説明文の文字色</label>
+        <input type="color" id="setDescColor" value="#4c4c52">
+      </div>
+      
+      <div class="control-row" style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+        <label>枠線をジャンル色ベースにする</label>
+        <input type="checkbox" id="borderUseGenre" checked>
+      </div>
+      <div class="control-row">
+        <label>枠線の彩度 (%)</label>
+        <input type="range" id="setBorderSat" min="0" max="100" value="30">
+        <span id="valBorderSat" class="val-display">30%</span>
+      </div>
+      <div class="control-row">
+        <label>枠線の明度 (%)</label>
+        <input type="range" id="setBorderLight" min="0" max="100" value="60">
+        <span id="valBorderLight" class="val-display">60%</span>
+      </div>
+      <div class="control-row" style="margin-top: 10px;">
+        <label>枠線の直指定色</label>
+        <input type="color" id="setBorderColor" value="#cccccc" disabled>
+      </div>
+      <div class="control-row">
+        <label>枠線の太さ</label>
+        <input type="range" id="setBorderWidth" min="0" max="10" step="0.5" value="2.5">
+        <span id="valBorderWidth" class="val-display">2.5px</span>
+      </div>
+    </div>
+
+    <!-- レイアウト調整 -->
+    <div class="settings-group">
+      <h3>レイアウト調整</h3>
+      
+      <div class="control-row">
+        <label>画像領域 (高さ)</label>
+        <input type="range" id="setImgH" min="10" max="90" value="50">
+        <span id="valImgH" class="val-display">50%</span>
+      </div>
+      <div class="control-row">
+        <label>画像サイズ</label>
+        <input type="range" id="setImgScale" min="10" max="100" value="100">
+        <span id="valImgScale" class="val-display">100%</span>
+      </div>
+      <div class="control-row">
+        <label>白背景の角丸</label>
+        <input type="range" id="setInnerRadius" min="0" max="20" step="0.5" value="2.5">
+        <span id="valInnerRadius" class="val-display">2.5mm</span>
+      </div>
+
+      <div class="control-row">
+        <label>タイトルサイズ</label>
+        <input type="range" id="setFontTitle" min="2" max="15" step="0.5" value="4.5">
+        <span id="valFontTitle" class="val-display">4.5mm</span>
+      </div>
+      <div class="control-row">
+        <label>説明文サイズ</label>
+        <input type="range" id="setFontDesc" min="1" max="10" step="0.2" value="3.4">
+        <span id="valFontDesc" class="val-display">3.4mm</span>
+      </div>
+      <div class="control-row">
+        <label>内側の余白</label>
+        <input type="range" id="setPad" min="0.5" max="15" step="0.5" value="2">
+        <span id="valPad" class="val-display">2mm</span>
+      </div>
+
+      <div class="control-row" style="margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 10px;">
+        <label>分類タグを表示</label>
+        <input type="checkbox" id="showGenre" checked>
+      </div>
+    </div>
+
+    <button class="print-btn" id="btnPrint">PDF出力（印刷）</button>
+  </div>
+
+  <!-- メインエリア -->
+  <div class="main-content">
+    <div class="tabs">
+      <div class="tab active" data-target="viewSelect">1. カードを選ぶ</div>
+      <div class="tab" data-target="viewPreview">2. レイアウト確認・編集</div>
+    </div>
+
+    <!-- タブ1: 選択リスト -->
+    <div class="view-container active" id="viewSelect">
+      <div class="card-list" id="cardList">
+        <!-- JSで生成 -->
+      </div>
+    </div>
+
+    <!-- タブ2: ビジュアルプレビュー -->
+    <div class="view-container" id="viewPreview">
+      <div class="preview-workspace">
+        <div class="card-template" id="previewCard">
+          <!-- JSで中身を生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 印刷用出力先 -->
+  <div id="print-area" class="print-area"></div>
+
+  <script src="data.js"></script>
+  <script>
+    const BASE_ACT = "https://raw.githubusercontent.com/shogoochiai0421/YourEmo/main/images/acts/";
+    let selectedIndices = new Set();
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      BUBBLES.forEach((_, i) => selectedIndices.add(i));
+      
+      renderSelectionList();
+      updatePreviewCard();
+      updateStats();
+      setupEventListeners();
+      updateCssVariables();
+    });
+
+    // タブ切り替え
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+    // リスト描画
+    function renderSelectionList() {
+      const list = document.getElementById('cardList');
+      list.innerHTML = '';
+      
+      BUBBLES.forEach((b, i) => {
+        const isChecked = selectedIndices.has(i);
+        const bc = BC[b.g] || {c:"#fff"};
+        const imgSrc = b.img ? BASE_ACT + b.img : BASE_ACT + "404.png";
+        
+        const div = document.createElement('div');
+        div.className = `list-item ${isChecked ? 'selected' : ''}`;
+        
+        div.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''}>
+          <div class="list-thumb" style="background-color:${bc.c};">
+            <div class="inner-bg">
+              <img src="${imgSrc}" loading="lazy">
+            </div>
+          </div>
+          <div class="list-info">
+            <div class="list-title">${b.t}</div>
+            <div class="list-genre">${b.g}</div>
+          </div>
+        `;
+        
+        div.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'INPUT') {
+            const cb = div.querySelector('input');
+            cb.checked = !cb.checked;
+          }
+          const cb = div.querySelector('input');
+          if (cb.checked) selectedIndices.add(i);
+          else selectedIndices.delete(i);
+          
+          div.classList.toggle('selected', cb.checked);
+          updateStats();
+        });
+
+        list.appendChild(div);
+      });
+    }
+
+    // 説明文の自動縮小ロジック
+    function adjustDescSize(descEl, baseFontSizeMm) {
+      descEl.style.fontSize = ''; 
+      let size = baseFontSizeMm;
+      const minSize = 0.8; 
+      
+      while (descEl.scrollHeight > descEl.clientHeight + 1 && size > minSize) {
+        size -= 0.1;
+        descEl.style.fontSize = size + 'mm';
+      }
+    }
+
+    // Hex to HSL 変換ロジック
+    function hexToHsl(hex) {
+      hex = hex.replace(/^#/, '');
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      let r = parseInt(hex.substring(0, 2), 16) / 255;
+      let g = parseInt(hex.substring(2, 4), 16) / 255;
+      let b = parseInt(hex.substring(4, 6), 16) / 255;
+      let max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0; 
+      } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return { h: h * 360, s: s * 100, l: l * 100 };
+    }
+
+    // HSL to Hex 変換ロジック
+    function hslToHex(h, s, l) {
+      s /= 100;
+      l /= 100;
+      let c = (1 - Math.abs(2 * l - 1)) * s;
+      let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      let m = l - c / 2;
+      let r = 0, g = 0, b = 0;
+      if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+      else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+      else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+      else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+      else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+      else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+      
+      const toHex = n => {
+        const hex = Math.round((n + m) * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    // 指定されたジャンル色ベースの枠線色を計算
+    function getBorderColor(genreColorHex) {
+      const useGenre = document.getElementById('borderUseGenre').checked;
+      if (!useGenre) {
+        return document.getElementById('setBorderColor').value;
+      }
+      const hsl = hexToHsl(genreColorHex);
+      const targetS = parseFloat(document.getElementById('setBorderSat').value);
+      const targetL = parseFloat(document.getElementById('setBorderLight').value);
+      return hslToHex(hsl.h, targetS, targetL);
+    }
+
+    // プレビューカードの描画
+    function updatePreviewCard() {
+      const idx = Array.from(selectedIndices)[0] !== undefined ? Array.from(selectedIndices)[0] : 0;
+      const b = BUBBLES[idx];
+      if (!b) return;
+
+      const bc = BC[b.g] || {c:"#FBEAF0", tc:"#72243E"};
+      const imgSrc = b.img ? BASE_ACT + b.img : BASE_ACT + "404.png";
+      const showGenre = document.getElementById('showGenre').checked;
+
+      const card = document.getElementById('previewCard');
+      
+      card.style.setProperty('--genre-bg', bc.c);
+      card.style.setProperty('--genre-text', bc.tc);
+      
+      const finalBorderColor = getBorderColor(bc.c);
+      card.style.setProperty('--border-color', finalBorderColor);
+      
+      card.innerHTML = `
+        <div class="ct-img-wrap">
+          <div class="ct-img-inner">
+            <img src="${imgSrc}" alt="">
+          </div>
+        </div>
+        <div class="ct-body">
+          <div class="ct-title">${b.t}</div>
+          ${showGenre ? `<div class="ct-genre">${b.g}</div>` : ''}
+          <div class="ct-desc">${b.desc}</div>
+        </div>
+      `;
+
+      const descEl = card.querySelector('.ct-desc');
+      const baseFont = parseFloat(document.getElementById('setFontDesc').value);
+      if (descEl) {
+        requestAnimationFrame(() => {
+          adjustDescSize(descEl, baseFont);
+        });
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('selCount').textContent = selectedIndices.size;
+      
+      const cw = parseFloat(document.getElementById('setCardW').value) || 60;
+      const ch = parseFloat(document.getElementById('setCardH').value) || 80;
+      const gx = parseFloat(document.getElementById('setGapX').value) || 0;
+      const gy = parseFloat(document.getElementById('setGapY').value) || 0;
+      const margin = parseFloat(document.getElementById('setMargin').value) || 0;
+
+      const innerW = 210 - margin * 2;
+      const innerH = 297 - margin * 2;
+
+      const cols = Math.max(1, Math.floor((innerW + gx) / (cw + gx)));
+      const rows = Math.max(1, Math.floor((innerH + gy) / (ch + gy)));
+      
+      const perPage = cols * rows;
+      document.getElementById('perPage').textContent = perPage;
+      
+      const totalPages = selectedIndices.size === 0 ? 0 : Math.ceil(selectedIndices.size / perPage);
+      document.getElementById('pageCount').textContent = totalPages;
+
+      document.getElementById('btnPrint').disabled = selectedIndices.size === 0;
+    }
+
+    function setupEventListeners() {
+      const bindSlider = (id, valId, suffix) => {
+        const el = document.getElementById(id);
+        const val = document.getElementById(valId);
+        el.addEventListener('input', () => {
+          val.textContent = el.value + suffix;
+          updateCssVariables();
+          if (id.includes('Border')) updatePreviewCard();
+        });
+      };
+
+      bindSlider('setImgH', 'valImgH', '%');
+      bindSlider('setImgScale', 'valImgScale', '%');
+      bindSlider('setFontTitle', 'valFontTitle', 'mm');
+      bindSlider('setFontDesc', 'valFontDesc', 'mm');
+      bindSlider('setPad', 'valPad', 'mm');
+      bindSlider('setBorderWidth', 'valBorderWidth', 'px');
+      bindSlider('setInnerRadius', 'valInnerRadius', 'mm');
+      bindSlider('setBorderSat', 'valBorderSat', '%');
+      bindSlider('setBorderLight', 'valBorderLight', '%');
+
+      ['setBodyBgColor', 'setTitleColor', 'setDescColor', 'setBorderColor'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateCssVariables();
+          updatePreviewCard();
+        });
+      });
+      
+      document.getElementById('borderUseGenre').addEventListener('change', (e) => {
+        document.getElementById('setBorderColor').disabled = e.target.checked;
+        document.getElementById('setBorderSat').disabled = !e.target.checked;
+        document.getElementById('setBorderLight').disabled = !e.target.checked;
+        updatePreviewCard();
+      });
+      
+      // 初期状態の設定
+      document.getElementById('setBorderColor').disabled = true;
+
+      ['setCardW', 'setCardH', 'setGapX', 'setGapY', 'setMargin'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateStats();
+          updateCssVariables();
+        });
+      });
+
+      document.getElementById('showGenre').addEventListener('change', updatePreviewCard);
+
+      document.getElementById('btnPrint').addEventListener('click', handlePrint);
+    }
+
+    function updateCssVariables() {
+      const root = document.documentElement;
+      
+      root.style.setProperty('--card-w', document.getElementById('setCardW').value + 'mm');
+      root.style.setProperty('--card-h', document.getElementById('setCardH').value + 'mm');
+      
+      root.style.setProperty('--body-bg-color', document.getElementById('setBodyBgColor').value);
+      root.style.setProperty('--title-color', document.getElementById('setTitleColor').value);
+      root.style.setProperty('--desc-color', document.getElementById('setDescColor').value);
+      
+      root.style.setProperty('--img-area-h', document.getElementById('setImgH').value + '%');
+      root.style.setProperty('--img-scale', document.getElementById('setImgScale').value + '%');
+      root.style.setProperty('--font-title', document.getElementById('setFontTitle').value + 'mm');
+      root.style.setProperty('--font-desc', document.getElementById('setFontDesc').value + 'mm');
+      
+      const pad = document.getElementById('setPad').value;
+      root.style.setProperty('--ct-pad', pad + 'mm');
+      root.style.setProperty('--ct-gap', (pad/2) + 'mm');
+      
+      root.style.setProperty('--border-width', document.getElementById('setBorderWidth').value + 'px');
+      root.style.setProperty('--inner-radius', document.getElementById('setInnerRadius').value + 'mm');
+
+      const descEl = document.querySelector('#previewCard .ct-desc');
+      const baseFont = parseFloat(document.getElementById('setFontDesc').value);
+      if (descEl) {
+        requestAnimationFrame(() => {
+          adjustDescSize(descEl, baseFont);
+        });
+      }
+    }
+
+    async function preloadImages(cards) {
+      const promises = cards.map(c => {
+        return new Promise((resolve) => {
+          if (!c.img) return resolve();
+          const img = new Image();
+          img.src = BASE_ACT + c.img;
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      await Promise.all(promises);
+    }
+
+    async function handlePrint() {
+      const btn = document.getElementById('btnPrint');
+      const originalText = btn.textContent;
+      
+      if (selectedIndices.size === 0) return;
+
+      btn.textContent = '画像読み込み中...';
+      btn.disabled = true;
+
+      // data.js の並び順（インデックス順）にソートして抽出
+      const cardsToPrint = Array.from(selectedIndices).sort((a, b) => a - b).map(i => BUBBLES[i]);
+      await preloadImages(cardsToPrint);
+
+      const cw = parseFloat(document.getElementById('setCardW').value);
+      const ch = parseFloat(document.getElementById('setCardH').value);
+      const gx = parseFloat(document.getElementById('setGapX').value);
+      const gy = parseFloat(document.getElementById('setGapY').value);
+      const margin = parseFloat(document.getElementById('setMargin').value);
+      const baseFont = parseFloat(document.getElementById('setFontDesc').value);
+
+      const innerW = 210 - margin * 2;
+      const innerH = 297 - margin * 2;
+      const cols = Math.max(1, Math.floor((innerW + gx) / (cw + gx)));
+      const rows = Math.max(1, Math.floor((innerH + gy) / (ch + gy)));
+      const perPage = cols * rows;
+
+      const showGenre = document.getElementById('showGenre').checked;
+
+      const styleText = `
+        .print-page {
+          width: 210mm;
+          height: 297mm;
+          padding: ${margin}mm;
+          display: grid;
+          grid-template-columns: repeat(${cols}, ${cw}mm);
+          grid-template-rows: repeat(${rows}, ${ch}mm);
+          gap: ${gy}mm ${gx}mm;
+          page-break-after: always;
+          background-color: #fff;
+          box-sizing: border-box;
+          align-content: start;
+          justify-content: start;
+          overflow: hidden;
+        }
+        .print-page:last-child { page-break-after: auto; }
+      `;
+      const styleEl = document.createElement('style');
+      styleEl.textContent = styleText;
+      document.head.appendChild(styleEl);
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      
+      printArea.style.display = 'block';
+      printArea.style.position = 'absolute';
+      printArea.style.left = '-9999px';
+
+      for (let i = 0; i < cardsToPrint.length; i += perPage) {
+        const pageItems = cardsToPrint.slice(i, i + perPage);
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'print-page';
+
+        pageItems.forEach(b => {
+          const imgSrc = b.img ? BASE_ACT + b.img : BASE_ACT + "404.png";
+          const bc = BC[b.g] || {c:"#FBEAF0", tc:"#72243E"};
+          
+          const finalBorderColor = getBorderColor(bc.c);
+
+          const cardDiv = document.createElement('div');
+          cardDiv.className = 'card-template';
+          
+          cardDiv.style.setProperty('--genre-bg', bc.c);
+          cardDiv.style.setProperty('--genre-text', bc.tc);
+          cardDiv.style.setProperty('--border-color', finalBorderColor);
+
+          cardDiv.innerHTML = `
+            <div class="ct-img-wrap">
+              <div class="ct-img-inner">
+                <img src="${imgSrc}" alt="">
+              </div>
+            </div>
+            <div class="ct-body">
+              <div class="ct-title">${b.t}</div>
+              ${showGenre ? `<div class="ct-genre">${b.g}</div>` : ''}
+              <div class="ct-desc">${b.desc}</div>
+            </div>
+          `;
+          pageDiv.appendChild(cardDiv);
+        });
+
+        printArea.appendChild(pageDiv);
+      }
+
+      const allDescs = printArea.querySelectorAll('.ct-desc');
+      allDescs.forEach(desc => {
+        adjustDescSize(desc, baseFont);
+      });
+
+      printArea.style.display = 'none'; 
+      printArea.style.position = '';
+      printArea.style.left = '';
+
+      window.print();
+
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        styleEl.remove();
+        printArea.innerHTML = '';
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
