@@ -829,7 +829,7 @@ const BUBBLES = [
    desc:"しょくぶつに みずをあげたり ひりょうを あげたりする",
    tags:{mood:["happy","sad","anxious"], energy:["veryhigh","high","mid","low"], place:["indoor","outdoor","nature"], body:["fine"], wish:["play","nothing"]}},
   {t:"いきものの おせわをする",
-   g:"人とつながる",
+   g:"気分転換",
    img:"act-careanimals.png",
    desc:"いきものに えさを あげたり、みずを かえたりしてみよう。いきものも よろこぶよ。",
    tags:{mood:["happy","sad","anxious"], energy:["veryhigh","high","mid","low"], place:["indoor","nature","outdoor"], body:["fine"], wish:["play","nothing"]}},
